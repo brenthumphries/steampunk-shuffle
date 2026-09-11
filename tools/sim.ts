@@ -5,16 +5,13 @@
 //   3. Win rate vs random play, by AI difficulty (regression check on 1.3)
 //   4. AI-difficulty mirror win rates (sanity check on AI strength ordering)
 //   5. Starter-vs-Regular-tier win rate (design.md §12.2)
+//   6. Legend-vs-starter win rate (design.md §9.3)
 //
 // Run: `npm run sim`. Writes docs/balance.md and prints a summary to stdout.
 //
 // Card content note: reads the full v1 set and every authored deck from
 // src/cards/data/ (plan step 1.5) — the canonical content module — rather
 // than duplicating card definitions here.
-//
-// Opponent decks: design.md §16 also asks for "Legend-vs-starter win rate"
-// (§9.3) — no Legend-tier deck is authored yet (src/cards/data/decks/
-// README.md), so that one is still reported as not yet measurable.
 
 import { writeFileSync } from "node:fs";
 import path from "node:path";
@@ -33,7 +30,12 @@ import {
 import { stepRandom } from "../src/engine/rng.ts";
 
 import { ALL_CARDS } from "../src/cards/data/index.ts";
-import { KNOWN_DECKS as ALL_KNOWN_DECKS, starterDeck } from "../src/cards/data/decks/index.ts";
+import {
+  KNOWN_DECKS as ALL_KNOWN_DECKS,
+  starterDeck,
+  REGULAR_DECK_NAMES,
+  LEGEND_DECK_NAMES,
+} from "../src/cards/data/decks/index.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,7 +50,10 @@ export const KNOWN_CARDS: Card[] = ALL_CARDS;
 export const KNOWN_DECKS: { name: string; deck: Deck }[] = ALL_KNOWN_DECKS;
 
 /** Regular-tier decks (design.md §9.1), for the starter-vs-Regular check (§12.2). */
-const REGULAR_DECKS = KNOWN_DECKS.filter((d) => d.deck !== starterDeck && d.name !== "House (Sir Charles)");
+const REGULAR_DECKS = KNOWN_DECKS.filter((d) => REGULAR_DECK_NAMES.includes(d.name));
+
+/** Legend-tier decks (design.md §9.3), for the Legend-vs-starter check. */
+const LEGEND_DECKS = KNOWN_DECKS.filter((d) => LEGEND_DECK_NAMES.includes(d.name));
 
 // design.md §4: "average printed points across the family's Characters".
 const FAMILY_TARGETS: Partial<Record<Family, number>> = {
@@ -375,8 +380,9 @@ function buildReport(opts: {
   vsRandom: VsRandomResult[];
   mirrors: MirrorResult[];
   headToHead: HeadToHeadResult[];
+  legendVsStarter: HeadToHeadResult[];
 }): string {
-  const { elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead } = opts;
+  const { elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead, legendVsStarter } = opts;
   const outliers = cardLift.filter((r) => r.outlier);
   const lines: string[] = [];
 
@@ -465,9 +471,18 @@ function buildReport(opts: {
   }
   lines.push("");
 
-  lines.push("## Not yet measurable");
+  lines.push("## Legend-vs-starter win rate (design.md §9.3, target ~70%)");
   lines.push("");
-  lines.push("- **Legend-vs-starter win rate** (design.md §9.3, target ~70%) — needs a Legend-tier opponent deck (design.md §9.3); none authored yet (`src/cards/data/decks/README.md`).");
+  lines.push(
+    "Each Legend's deck (`legend` AI) against the starter deck (`regular` AI, \"played sensibly\"). " +
+      "Reports the Legend's win rate.",
+  );
+  lines.push("");
+  lines.push("| Legend | Games | Legend win rate |");
+  lines.push("|---|---|---|");
+  for (const r of legendVsStarter) {
+    lines.push(`| ${r.deckAName} | ${r.games} | ${pct(r.winRateA)} |`);
+  }
   lines.push("");
 
   return lines.join("\n");
@@ -496,14 +511,23 @@ function main(): void {
   ];
 
   const headToHead: HeadToHeadResult[] = REGULAR_DECKS.map((opponent) =>
-    runHeadToHead("Starter (Village Constable)", deck, opponent.name, opponent.deck, "regular", "regular", 20, liftSink),
+    runHeadToHead("Starter (Village Constable)", deck, opponent.name, opponent.deck, "regular", "regular", 15, liftSink),
+  );
+
+  // `legend` AI's 3-turn lookahead over 32 hidden-hand samples is the
+  // simulator's most expensive path (design.md §9.4) — 8 games per legend
+  // here, matching the vsRandom legend row's precedent, to keep the whole
+  // run in a reasonable window now that 6 Legend decks exist (plan step
+  // 1.5). See CLAUDE.md's runtime-budget gotcha.
+  const legendVsStarter: HeadToHeadResult[] = LEGEND_DECKS.map((legend) =>
+    runHeadToHead(legend.name, legend.deck, "Starter (Village Constable)", deck, "legend", "regular", 8, liftSink),
   );
 
   const familyCurves = computeFamilyCurves(KNOWN_CARDS);
   const cardLift = computeCardLift(liftSink);
   const elapsedMs = Date.now() - start;
 
-  const report = buildReport({ elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead });
+  const report = buildReport({ elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead, legendVsStarter });
 
   const outPath = path.join(__dirname, "..", "docs", "balance.md");
   writeFileSync(outPath, report + "\n");

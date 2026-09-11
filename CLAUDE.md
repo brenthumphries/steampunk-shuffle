@@ -102,48 +102,74 @@ step whenever the task can be scripted.
   exercised by actually running the tool, same as `ship.sh`. 88 tests total
   (project-wide), all passing.
 
-1.5 in progress. `.claude/skills/ss-card-author/` (Haiku) is built:
-authors a card/batch/deck against `src/cards/cardTypes.ts`'s schema and
-adds it to the content module. **The v1 card set is fully authored**:
-`src/cards/data/` is the new canonical source for every real card — 5
-family files (9 cards each), `locations.ts` (8), `legends.ts` (6
-signature cards), `landlady.ts` (1); `src/cards/data/README.md` tracks the
-composition tally. `index.ts` exports `ALL_CARDS` (60, matches design.md
-§8.1 exactly: 45 family + 8 location + 6 legend + 1 Landlady). The
-previously-locked starter/house-deck card definitions moved here from the
-test fixtures, which now re-export them (`tests/unit/cards/fixtures/
-starterDeck.ts`, `tests/unit/engine/fixtures/houseDeck.ts`,
-`tests/unit/cards/fixtures/legends.ts`) rather than duplicating — this
-resolves the `tools/` → `tests/` backwards-dependency gotcha from 1.4.
-`src/cards/data/decks/` has 6 legal 20-card decks: the starter deck, the
-completed House deck (the locked 9 Foundry cards + 1 filler card, up to 2
-copies each, to reach 20/60), and all four Regular-tier opponent decks
-(Mudd, Nell Ashby, Reg Farrow, Prudence Hollis — design.md §9.1). Seasoned
-and Legend decks aren't built yet (`src/cards/data/decks/README.md`).
-`tools/sim.ts` now reads `KNOWN_CARDS`/`KNOWN_DECKS` from
-`src/cards/data/` directly and reports a real starter-vs-Regular win rate
-(design.md §12.2) instead of the old interim AI-mirror proxy; a new
-`tests/unit/cards/dataSet.test.ts` validates every card and deck in the
-module. 152 tests total (project-wide), all passing; `npm run sim`,
-`npm run typecheck`, and `npm run build` all clean.
+1.5 done. `.claude/skills/ss-card-author/` (Haiku) is built: authors a
+card/batch/deck against `src/cards/cardTypes.ts`'s schema and adds it to
+the content module. **The v1 card set is fully authored**: `src/cards/
+data/` is the new canonical source for every real card — 5 family files
+(9 cards each), `locations.ts` (8), `legends.ts` (6 signature cards),
+`landlady.ts` (1); `src/cards/data/README.md` tracks the composition
+tally. `index.ts` exports `ALL_CARDS` (60, matches design.md §8.1 exactly:
+45 family + 8 location + 6 legend + 1 Landlady). The previously-locked
+starter/house-deck card definitions moved here from the test fixtures,
+which now re-export them (`tests/unit/cards/fixtures/starterDeck.ts`,
+`tests/unit/engine/fixtures/houseDeck.ts`, `tests/unit/cards/fixtures/
+legends.ts`) rather than duplicating — this resolves the `tools/` →
+`tests/` backwards-dependency gotcha from 1.4.
 
-**Not yet done for 1.5:** Seasoned-tier decks (Bucket, Lovelace, Adler,
-Dickens) and Legend-tier decks (Holmes, Moriarty, Christie, Poirot,
-Jekyll/Hyde, Shelley) — their signature/reward cards for the seasoned tier
-(Bucket's Forefinger, The Analytical Engine, The Photograph, Next
-Instalment) aren't authored either, since design.md only asks for the
-Regular-tier reward cards to double as family-slice cards. This means
-design.md §9.3's "Legend-vs-starter win rate" is still "not yet
-measurable" in `docs/balance.md` — flagged there, not a blocker. `docs/
-design.md §15`'s "The Five D's" (Rookery) and "We're Not Worthy" (Salon)
-easter eggs also aren't authored — both need effect kinds the engine
-doesn't have (see the schema-gap list below).
+**All 16 decks are authored** (`src/cards/data/decks/`, tracked in its own
+README): the starter deck, the completed House deck, all four
+Regular-tier opponents (Mudd, Nell Ashby, Reg Farrow, Prudence Hollis —
+design.md §9.1), all four Seasoned (Bucket, Lovelace, Adler, Dickens —
+§9.2, each carrying their reward card as a deck-local extra beyond the
+labeled 60), and all six Legends (Holmes, Moriarty, Christie, Poirot,
+Jekyll/Hyde, Shelley — §9.3, each running their own signature legendary
+card at 1 copy plus, where design.md names one, their unique Location —
+Moriarty's Reichenbach Falls, Christie's Overnight Express). Mary
+Shelley's deck also picks up two of design.md §15's easter-egg extras
+(Abby Normal, Eye-gor); the third, Put the Candle Back, needs an effect
+kind the engine doesn't have and isn't authored (see the schema-gap
+gotcha). `tools/sim.ts` reads `KNOWN_CARDS`/`KNOWN_DECKS` from `src/cards/
+data/` directly and now reports **both** design.md §12.2's real
+starter-vs-Regular win rate **and** §9.3's Legend-vs-starter win rate
+(replacing the old interim AI-mirror-only proxy); a new `tests/unit/cards/
+dataSet.test.ts` validates every card and all 16 decks. 162 tests total
+(project-wide), all passing; `npm run sim`, `npm run typecheck`, and
+`npm run build` all clean.
 
-**Next three tasks:** finish 1.5 (Seasoned/Legend decks, if wanted before
-moving on — check with Brent) → 1.6 `ss-art-prompts` skill → 1.7
-`tools/ingest-art.py`.
+**Still open, not blocking:** design.md §15's "The Five D's" (Rookery) and
+"We're Not Worthy" (Salon) easter eggs aren't authored — both need effect
+kinds the engine doesn't have (see the schema-gap gotcha below).
+
+**Next three tasks:** 1.6 `ss-art-prompts` skill → 1.7
+`tools/ingest-art.py` → Phase 2 (match screen, 2.1).
 
 **Gotchas:**
+- **`npm run sim`'s runtime grew past 1.4's original "<2 min" exit check
+  once 1.5 added 6 Legend-tier decks** — a first pass at the full
+  16-deck report (all 4 Regular decks + all 6 Legend decks, at the
+  original game counts) took 212s. `legend` AI's 3-turn lookahead over 32
+  hidden-hand samples (design.md §9.4) is by far the most expensive path;
+  the Legend-vs-starter games were trimmed from 15 to 8 per legend
+  (matching the `vsRandom` legend row's existing precedent), bringing the
+  full run to 130.9s — still a hair over 2 minutes, accepted rather than
+  trimmed further. If it creeps up again as more content is added, trim
+  game counts before reaching for a bigger model to run it on — this is
+  meant to stay a Haiku one-liner.
+- **`docs/balance.md`'s first real numbers show wide, worth-a-look
+  variance, not a red flag yet — this is simulated AI-vs-AI play, not a
+  human "played sensibly," so treat it as a first signal, not a verdict.**
+  Starter-vs-Regular (design.md §12.2, target ~60%) ranges from 40%
+  (Mudd, Hollis) to 100% (Nell Ashby) — Nell's deck likely needs more
+  bite once real playtesting starts. Legend-vs-starter (§9.3, target
+  ~70%) ranges from 50% (Dr Jekyll / Mr Hyde) to 100% (Mary Shelley); the
+  Jekyll/Hyde number is likely depressed because design.md §9.3's
+  "Jekyll rounds play `seasoned`, Hyde rounds play `legend`" per-round AI
+  dial override (flagged back in 1.3's gotchas as "a card/opponent-data
+  decision for whichever step actually authors Jekyll/Hyde") still isn't
+  wired up anywhere — `tools/sim.ts`'s head-to-head runner uses one fixed
+  difficulty for the whole match. That wiring belongs with whatever step
+  actually drives opponent AI turns in a real match (Phase 2, likely
+  2.3), not the balance simulator.
 - **1.5 surfaced real gaps between design.md's card text and the shipped
   1.1/1.2 engine — flagged for Brent, not a blocker, but worth a look next
   time the engine gets touched.** Full list with the specific cards

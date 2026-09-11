@@ -29,8 +29,9 @@ structural; they don't check rarity ratios).
 
 Opponent reward cards for the four Regulars (Sergeant Pike, Nell's Basket,
 Reg's Ledger, Miss Hollis, Authoress) are folded into their family's 9
-slots. Seasoned/Legend reward cards (Bucket's Forefinger, The Analytical
-Engine, The Photograph, Next Instalment) aren't authored yet — see
+slots. Seasoned reward cards (Bucket's Forefinger, The Analytical Engine,
+The Photograph, Next Instalment) are authored too, but as extras living in
+their opponent's own deck file rather than a labeled-60 slot — see
 `decks/README.md`.
 
 ## Known engine-schema gaps (found while authoring v1)
