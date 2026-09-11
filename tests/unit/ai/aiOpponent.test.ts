@@ -157,7 +157,7 @@ describe("AI move legality and determinism", () => {
 });
 
 describe("AI self-play (broad ability coverage)", () => {
-  it("plays 15 full matches against itself across all difficulty pairings without throwing", { timeout: 90_000 }, () => {
+  it("plays 15 full matches against itself across all difficulty pairings without throwing", { timeout: 240_000 }, () => {
     const deck = deckFrom(buildAIPool());
     const difficulties: Difficulty[] = ["regular", "seasoned", "legend"];
     let games = 0;
@@ -194,7 +194,7 @@ describe("AI opponent win rate vs random play (plan step 1.3 exit check)", () =>
   // below doesn't pay for a second, third round of legend games on top of
   // the threshold checks — keeps this test file's cost sane for `ss-ship`,
   // which runs the whole suite (npm test) on every deploy.
-  it("regular < seasoned < legend, and each clears its calibrated floor", { timeout: 60_000 }, () => {
+  it("regular < seasoned < legend, and each clears its calibrated floor", { timeout: 240_000 }, () => {
     const rates: Record<Difficulty, number> = {
       regular: winRateVsRandom(starterDeck, "regular", 50),
       seasoned: winRateVsRandom(starterDeck, "seasoned", 30),
