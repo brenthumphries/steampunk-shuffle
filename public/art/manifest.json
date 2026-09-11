@@ -1,0 +1,122 @@
+{
+  "app-icon": {
+    "category": "icon",
+    "family": null,
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:38+00:00",
+    "sourceFile": "art/inbox/app-icon.jpeg",
+    "width": 640
+  },
+  "background-the-back-parlour": {
+    "category": "background",
+    "family": null,
+    "height": 1430,
+    "ingestedAt": "2026-09-11T20:24:38+00:00",
+    "sourceFile": "art/inbox/background-the-back-parlour.jpeg",
+    "width": 804
+  },
+  "background-the-cellar": {
+    "category": "background",
+    "family": null,
+    "height": 1430,
+    "ingestedAt": "2026-09-11T20:24:38+00:00",
+    "sourceFile": "art/inbox/background-the-cellar.jpeg",
+    "width": 804
+  },
+  "background-the-snug": {
+    "category": "background",
+    "family": null,
+    "height": 1430,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/background-the-snug.jpeg",
+    "width": 804
+  },
+  "card-back": {
+    "category": "card-back",
+    "family": null,
+    "height": 800,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/card-back.jpeg",
+    "width": 600
+  },
+  "portrait-ada-lovelace": {
+    "category": "portrait",
+    "family": "foundry",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-ada-lovelace.jpeg",
+    "width": 640
+  },
+  "portrait-charles-dickens": {
+    "category": "portrait",
+    "family": "salon",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-charles-dickens.jpeg",
+    "width": 640
+  },
+  "portrait-constable-tobias-mudd": {
+    "category": "portrait",
+    "family": "yard",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:36+00:00",
+    "sourceFile": "art/inbox/portrait-constable-tobias-mudd.jpeg",
+    "width": 640
+  },
+  "portrait-dodgy-reg-farrow": {
+    "category": "portrait",
+    "family": "rookery",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:36+00:00",
+    "sourceFile": "art/inbox/portrait-dodgy-reg-farrow.jpeg",
+    "width": 640
+  },
+  "portrait-inspector-bucket": {
+    "category": "portrait",
+    "family": "yard",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-inspector-bucket.jpeg",
+    "width": 640
+  },
+  "portrait-irene-adler": {
+    "category": "portrait",
+    "family": "rookery",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-irene-adler.jpeg",
+    "width": 640
+  },
+  "portrait-miss-prudence-hollis": {
+    "category": "portrait",
+    "family": "salon",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:36+00:00",
+    "sourceFile": "art/inbox/portrait-miss-prudence-hollis.jpeg",
+    "width": 640
+  },
+  "portrait-old-nell-ashby": {
+    "category": "portrait",
+    "family": "irregulars",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:36+00:00",
+    "sourceFile": "art/inbox/portrait-old-nell-ashby.jpeg",
+    "width": 640
+  },
+  "portrait-professor-moriarty": {
+    "category": "portrait",
+    "family": "rookery",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-professor-moriarty.jpeg",
+    "width": 640
+  },
+  "portrait-sherlock-holmes": {
+    "category": "portrait",
+    "family": "irregulars",
+    "height": 640,
+    "ingestedAt": "2026-09-11T20:24:37+00:00",
+    "sourceFile": "art/inbox/portrait-sherlock-holmes.jpeg",
+    "width": 640
+  }
+}

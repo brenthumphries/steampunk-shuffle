@@ -150,3 +150,8 @@ dev-dist/
 /blob-report/
 /playwright/.cache/
 
+# Raw Gemini downloads dropped for tools/ingest-art.py — consumed into
+# public/art/ (WebP + manifest.json), not archived. See art/inbox/README.md.
+/art/inbox/*
+!/art/inbox/README.md
+

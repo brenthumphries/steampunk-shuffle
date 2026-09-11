@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "sim": "tsx tools/sim.ts",
-    "art-prompts": "tsx tools/artPrompts.ts"
+    "art-prompts": "tsx tools/artPrompts.ts",
+    "ingest-art": "python3 tools/ingest-art.py"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

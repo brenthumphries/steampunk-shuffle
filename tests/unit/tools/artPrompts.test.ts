@@ -14,6 +14,7 @@ import {
   chunkRows,
   NEGATIVE_PROMPT_BASE,
   rowsToCsv,
+  rowsToText,
   type AssetPromptRow,
 } from "../../../tools/artPrompts.ts";
 
@@ -95,6 +96,55 @@ describe("rowsToCsv", () => {
     expect(csv.split("\n")[0]).toBe(
       "assetId,category,family,aspectRatio,prompt,negativePrompt,referenceImages,pasteReady,notes",
     );
+  });
+});
+
+describe("rowsToText", () => {
+  const seed = { alwaysAttach: ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"] };
+
+  it("numbers the block, lists references, and isolates the paste-ready text on its own", () => {
+    const rows: AssetPromptRow[] = [{ assetId: "card-back", category: "card-back", prompt: "A brass emblem." }];
+    const [sheetRow] = buildSheetRows(rows, seed);
+    const text = rowsToText([sheetRow!]);
+    expect(text).toContain("[1/1] card-back  (card-back)");
+    expect(text).toContain("  - art/reference/The_Wheatstone_Bridge_taproom.jpeg");
+    expect(text).toContain(sheetRow!.pasteReady);
+  });
+
+  it("includes family in the header and splits multiple references onto their own lines", () => {
+    const rows: AssetPromptRow[] = [
+      { assetId: "ada-lovelace", category: "portrait", family: "foundry", prompt: "A countess." },
+    ];
+    const seedWithFamily = {
+      alwaysAttach: ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"],
+      byFamily: { foundry: "art/reference/Sir_Charles_Wheatstone-behind-the-bar.jpeg" },
+    };
+    const [sheetRow] = buildSheetRows(rows, seedWithFamily);
+    const text = rowsToText([sheetRow!]);
+    expect(text).toContain("[1/1] ada-lovelace  (portrait · foundry)");
+    expect(text).toContain("  - art/reference/The_Wheatstone_Bridge_taproom.jpeg\n  - art/reference/Sir_Charles_Wheatstone-behind-the-bar.jpeg");
+  });
+
+  it("omits the notes line when there are no notes, includes it when there are", () => {
+    const rows: AssetPromptRow[] = [
+      { assetId: "x", category: "icon", prompt: "A gear." },
+      { assetId: "y", category: "icon", prompt: "A cog.", notes: "design.md §1." },
+    ];
+    const sheetRows = buildSheetRows(rows, seed);
+    expect(rowsToText([sheetRows[0]!])).not.toContain("Notes:");
+    expect(rowsToText([sheetRows[1]!])).toContain("Notes: design.md §1.");
+  });
+
+  it("numbers blocks against the full set and separates them with a blank line", () => {
+    const rows: AssetPromptRow[] = [
+      { assetId: "x", category: "icon", prompt: "A gear." },
+      { assetId: "y", category: "icon", prompt: "A cog." },
+    ];
+    const sheetRows = buildSheetRows(rows, seed);
+    const text = rowsToText(sheetRows);
+    expect(text).toContain("[1/2] x");
+    expect(text).toContain("[2/2] y");
+    expect(text).toContain("\n\n" + "=".repeat(80) + "\n[2/2] y");
   });
 });
 

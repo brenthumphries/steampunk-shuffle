@@ -196,6 +196,42 @@ export function rowsToCsv(rows: PromptSheetRow[]): string {
   return [header, ...lines].join("\n") + "\n";
 }
 
+const RULE = "-".repeat(80);
+
+/**
+ * One row as a self-contained block for manual copy/paste: which images to
+ * attach first, then the paste-ready prompt on its own (so it can be
+ * selected and pasted into Gemini without the reference-image list coming
+ * along with it), then any notes.
+ */
+function rowToTextBlock(row: PromptSheetRow, index: number, total: number): string {
+  const header = `[${index}/${total}] ${row.assetId}  (${row.category}${row.family ? ` · ${row.family}` : ""})`;
+  const refs = row.referenceImages
+    ? row.referenceImages
+        .split("; ")
+        .map((ref) => `  - ${ref}`)
+        .join("\n")
+    : "  (none)";
+  const lines = [
+    "=".repeat(80),
+    header,
+    RULE,
+    "Attach these images first:",
+    refs,
+    "",
+    "Paste this into Gemini:",
+    RULE,
+    row.pasteReady,
+  ];
+  if (row.notes) lines.push(RULE, `Notes: ${row.notes}`);
+  return lines.join("\n");
+}
+
+/** Plain-text sibling of `rowsToCsv` — every field a person needs, formatted to cut/paste one asset at a time. */
+export function rowsToText(rows: PromptSheetRow[]): string {
+  return rows.map((row, i) => rowToTextBlock(row, i + 1, rows.length)).join("\n\n") + "\n";
+}
+
 export function chunkRows<T>(rows: T[], size: number = GEMINI_DAILY_CAP): T[][] {
   if (size <= 0) throw new Error("chunk size must be positive");
   if (rows.length === 0) return [[]];
@@ -223,9 +259,12 @@ export function writePromptSheet(
   const paths: string[] = [];
   chunks.forEach((chunk, index) => {
     const suffix = chunks.length > 1 ? `-part${index + 1}` : "";
-    const filePath = path.join(outDir, `prompt-sheet-${options.sheetNumber}${suffix}.csv`);
-    writeFileSync(filePath, rowsToCsv(chunk));
-    paths.push(filePath);
+    const csvPath = path.join(outDir, `prompt-sheet-${options.sheetNumber}${suffix}.csv`);
+    writeFileSync(csvPath, rowsToCsv(chunk));
+    paths.push(csvPath);
+    const txtPath = path.join(outDir, `prompt-sheet-${options.sheetNumber}${suffix}.txt`);
+    writeFileSync(txtPath, rowsToText(chunk));
+    paths.push(txtPath);
   });
   return paths;
 }

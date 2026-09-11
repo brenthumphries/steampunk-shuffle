@@ -179,10 +179,124 @@ before any Legend) as the most defensible reading, but it's a judgment
 call, not a locked spec. Worth confirming with Brent before spending the
 Gemini generations, or revising if he'd rather prioritize differently.
 
-**Next task:** 1.7 `tools/ingest-art.py` (crop/resize/WebP/manifest for
-whatever Brent generates from sheet 1) → Phase 2 (match screen, 2.1).
+1.7 done. `tools/ingest-art.py` is built (Python + Pillow, the only
+non-npm tool in the project — the plan calls for Python here specifically
+because Pillow's WebP path is more solid than a dependency-free Node
+option). Drop a Gemini download into `art/inbox/<assetId>.<png|jpg|jpeg|
+webp>` (assetId matching a row in one of `art/prompts/sheet-<N>-manifest.
+json` — the same manifest that generated the prompt sheet, so category/
+aspect can't drift between prompting and ingesting), then
+`npm run ingest-art -- art/prompts/sheet-1-manifest.json`. It center-crops
+to the asset's category aspect (docs/style-bible.md §4, read from the
+manifest row, not re-guessed), resizes to a 2x retina target, and writes
+WebP to `public/art/<assetId>.webp` plus a merged `public/art/
+manifest.json` (assetId → category/family/dimensions/source/ingestedAt,
+accumulated across every batch ever run, not overwritten per-run). It also
+regenerates `art/ingest-preview.html` — deliberately in `art/`, not
+`public/`, so this debug grid of every ingested asset never ships to the
+live Pages site. First run needs `pip3 install -r tools/requirements.txt`
+(Pillow; not otherwise part of this repo's toolchain). Verified end-to-end
+with synthetic placeholder images run through the real `npm run ingest-art`
+path and the preview page confirmed rendering correctly over a local HTTP
+server (see gotcha below on why not a real Playwright/Vitest test) — output
+crop math checked in both directions (source wider and taller than target)
+plus the RGBA-flatten path for a PNG with an alpha channel.
+
+**Since then, batch 1 is complete — all 15 of sheet 1's assets are
+actually ingested** (not just tool-tested), all in `public/art/` as real
+WebP: the 10 portraits (`portrait-constable-tobias-mudd`,
+`portrait-old-nell-ashby`, `portrait-dodgy-reg-farrow`,
+`portrait-miss-prudence-hollis`, `portrait-ada-lovelace`,
+`portrait-inspector-bucket`, `portrait-irene-adler`,
+`portrait-charles-dickens`, `portrait-sherlock-holmes`,
+`portrait-professor-moriarty`), the 3 backgrounds (`background-the-snug`,
+`background-the-back-parlour`, `background-the-cellar`), `card-back`, and
+`app-icon`. Each was spot-checked by opening the file directly (not just
+the preview grid, whose `loading="lazy"` images don't all render in a
+headless/automated browser — a false alarm the first time, not a real
+bug).
+
+Sourcing, for whoever needs to repeat this pattern on a later sheet: the
+first 7 (3 rerolls of Mudd, 2 of Nell Ashby, 4 of Reg Farrow, 2 of an
+unplaceable man later confirmed by Brent as Holmes, 1 each of the three
+backgrounds) came from Brent's `art/manual Gemini generations/` folder —
+14 untracked downloads with generic `Gemini_Generated_Image_*.jpeg` names,
+not assetIds, matched by eye against sheet 1's prompt descriptions, most
+recent reroll of each moved+renamed into `art/inbox/`. The remaining
+rerolls sat untouched in `art/manual Gemini generations/` for a while
+during this session, then disappeared — Brent's own cleanup outside this
+conversation, not this session's doing; the folder is now empty. Everything
+else (Hollis, Lovelace, Bucket, Adler, Dickens, Moriarty, card-back ×2,
+app-icon) came as fresh Gemini generations Brent pasted straight into
+chat — the actual file lands in `~/Downloads/Gemini_Generated_Image_*.jpeg`
+when that happens; `find ~/Downloads -newer <any-recent-repo-file>` is how
+each one was located, repeated once per asset. `ingest-art.py` itself was
+verified beforehand against synthetic placeholder images in a scratch
+directory (crop math both directions, RGBA-flatten path), before the
+first real run.
+
+`ss-art-prompts` also grew a plain-text sibling to its CSV output this
+session — `rowsToText`/`prompt-sheet-<N>.txt` (`tools/artPrompts.ts`), one
+self-contained copy/paste block per asset with references,
+prompt+negative+aspect, and notes each clearly separated. Brent asked for
+it to make manual pasting into Gemini easier; it's now written
+automatically alongside every sheet's CSV, and sheet 1's regenerated copy
+already reflects it.
+
+**Two quality issues flagged for Brent, not fixed here — his call, not
+mine:**
+- **`card-back` has a full ornate scrollwork border baked into the
+  illustration**, but the manifest's own note for this asset says the SVG
+  frame (a later Phase-3.1 step) supplies the border and this art should
+  be self-contained/frame-shape-free. As ingested, laying 3.1's SVG frame
+  over this would double the border. A re-roll (already ingested over the
+  first attempt) improved the gearwork detail but kept the same baked-in
+  border — the underlying prompt likely needs the "no border/no
+  ornamental frame" negative pushed harder, not just another generation.
+  Either fix the prompt and re-roll again, or decide the card back keeps
+  its own border and 3.1 skips wrapping this particular asset.
+- **`portrait-professor-moriarty`'s chalkboard came out with legible-ish
+  equations** despite the manifest's "no legible mathematics" negative
+  prompt — purely cosmetic, ingested as-is, flagged in case a re-roll is
+  wanted later.
+
+**Next task:** Phase 2 (match screen, 2.1) — the natural next step per the
+plan's ordering, and never blocked on art (3.1/3.2 wire art onto frames
+much later). Batch 1 being finished isn't a prerequisite for 2.1 either
+way — it just happened to land first.
 
 **Gotchas:**
+- **The 2x-retina pixel dimensions (`BASE_SIZE_BY_RATIO` in `tools/
+  ingest-art.py`) are a judgment call, not a locked spec — same situation
+  1.6 flagged for "which 10 portraits."** No card-window CSS size exists
+  anywhere yet (Phase 3.1's SVG frame, which will actually mount these
+  illustrations, isn't built). Chose 600×800 for 3:4 card art, 640×640 for
+  1:1 portraits/icons, and 804×1430 for 9:16 backgrounds (that last one's
+  1x base, 402px, matches the Playwright iPhone-17 viewport width so a
+  background fills the phone screen edge to edge). Cheap to change later —
+  it's a resize step re-run on the same source files, not a re-generation.
+- **`ASPECT_BY_CATEGORY` is duplicated by hand between `tools/ingest-art.py`
+  and `tools/artPrompts.ts`'s `ASPECT_BY_CATEGORY`** — a Python script can't
+  import the TS module. If style-bible.md §4's framing table ever changes,
+  both need editing; `ingest-art.py` throws immediately on an unrecognized
+  category rather than silently mis-cropping, which is the main guard
+  against the two drifting unnoticed.
+- **No automated test for `ingest-art.py`** — this repo's "every new module
+  gets a Vitest unit test" convention is TS/Vitest-specific, and this is
+  the first Python file in the project (no pytest or other Python test
+  runner set up, and `deploy.yml` doesn't gate on Python at all). Rather
+  than stand up Python test infra for one script, verified it by actually
+  running it (synthetic images through the real code path, output
+  inspected with Pillow, preview page screenshotted over a local HTTP
+  server) — same "run the tool for real" verification `ship.sh` and
+  `sim.ts` already rely on. Worth reconsidering if more Python tooling
+  gets added later.
+- `public/art/` (processed WebP + `manifest.json`) is genuinely deployed —
+  it's under Vite's `public/`, copied verbatim to the Pages build. Note for
+  whoever does 3.6 (asset budget <15 MB, service-worker precache):
+  `vite.config.ts`'s workbox `globPatterns` doesn't include `webp` yet, so
+  none of this is precached for offline until that's added — deliberately
+  left alone here since 3.6 owns the offline/perf pass, not 1.7.
 - **This step ran on Sonnet, not the Haiku the plan assigns to 1.6** —
   the session was already on Sonnet when asked to start 1.6 rather than
   being opened fresh on Haiku, and there's no way for a running session to
@@ -191,11 +305,6 @@ whatever Brent generates from sheet 1) → Phase 2 (match screen, 2.1).
   invocation, so this doesn't compound. If a future session opens
   specifically to build a plan step, open it on the model the plan lists
   first, per `CLAUDE.md`'s model-discipline rule.
-- There are 14 untracked `art/Gemini_Generated_Image_*.jpeg` files at the
-  repo root (not under `art/inbox/` or `art/reference/`) — Brent's own
-  in-progress Gemini downloads, not touched by this step. Leave them for
-  1.7's `ingest-art.py` (or Brent) to sort into `art/inbox/` with real
-  asset ids; don't rename or move them from a content-authoring step.
 - **`npm run sim`'s runtime grew past 1.4's original "<2 min" exit check
   once 1.5 added 6 Legend-tier decks** — a first pass at the full
   16-deck report (all 4 Regular decks + all 6 Legend decks, at the
