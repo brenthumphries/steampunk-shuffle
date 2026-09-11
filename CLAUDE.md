@@ -33,17 +33,22 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after Step 0.4, Sept 10, 2026)
+## Current state (updated after Step 0.5, Sept 10, 2026)
 
-- Phase 0 (Foundations): 0.1–0.4 done. 0.5 (`ss-ship` skill) is next.
+- Phase 0 (Foundations): 0.1–0.4 done. 0.5 (`ss-ship` skill) is built,
+  pending its first real run to confirm the exit check end-to-end.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
 - `docs/design.md` and `docs/style-bible.md` are approved. Three style-bible
   reference images are in `images/` (not yet moved into the art pipeline —
   that starts in Step 1.6).
 - App is an empty PWA shell: one placeholder screen, no game logic yet.
+- `.claude/skills/ss-ship/` (Haiku) + `tools/ship.sh` (the deterministic
+  part) exist: typecheck, test, build, non-blocking Lighthouse read, commit,
+  push, wait for `deploy.yml`, print the live URL. Say "ship it" / "run
+  ss-ship" to invoke it.
 
-**Next three tasks:** 0.5 `ss-ship` skill → 1.1 card schema + validator →
-1.2 rules engine.
+**Next three tasks:** confirm `ss-ship`'s first real deploy → 1.1 card
+schema + validator → 1.2 rules engine.
 
 **Gotchas:**
 - The site is served at `https://brenthumphries.github.io/steampunk-shuffle/`
@@ -53,9 +58,17 @@ step whenever the task can be scripted.
 - The `deploy.yml` workflow gates on `npm run typecheck` and `npm test`
   (Vitest) but does **not** run Playwright in CI — e2e is local-only for now
   to keep the pipeline fast. Revisit once the game has enough surface area
-  that e2e coverage matters, or fold it into `ss-ship`.
+  that e2e coverage matters.
 - `npm run build` runs `tsc --noEmit` before `vite build`; a type error fails
   the build even though Vite itself would happily transpile past it.
+- Lighthouse 13 dropped the standalone `pwa` category (real installability
+  scoring now needs a separate plugin). `tools/ship.sh` reports
+  performance/best-practices/accessibility/seo as an informational read
+  only — no threshold gates a ship. Real PWA/perf budgets are plan step 3.6;
+  don't add a hard gate to `ss-ship` without checking with Brent first.
+- `ss-ship` never pushes on its own initiative — it's invoked, not
+  autonomous. It also never force-pushes and refuses to commit if a staged
+  file name looks like a secret (`.env`, `.pem`, `credentials`, `secrets.*`).
 
 ---
 
