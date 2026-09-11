@@ -33,24 +33,42 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after Step 0.5, Sept 10, 2026)
+## Current state (updated after Step 1.1, Sept 10, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
 - `docs/design.md` and `docs/style-bible.md` are approved. Three style-bible
-  reference images are in `images/` (not yet moved into the art pipeline —
-  that starts in Step 1.6).
+  reference images are in `art/reference/` (kept separate from
+  `art/inbox/`, which is where final card art lands for `ingest-art.py`,
+  built in Step 1.7).
 - App is an empty PWA shell: one placeholder screen, no game logic yet.
 - `.claude/skills/ss-ship/` (Haiku) + `tools/ship.sh` (the deterministic
   part) exist and are verified working: typecheck, test, build,
   non-blocking Lighthouse read, commit, push, wait for `deploy.yml`, print
   the live URL. Say "ship it" / "run ss-ship" to invoke it. First real run
   (commit `422383b`) went green end-to-end in ~30s.
+- Phase 1 (Engine): 1.1 done. Card schema lives in `src/cards/cardTypes.ts`
+  (`Card`, `CardFace`, `Keywords`, `Ability`/`Effect` DSL, `Deck`), with
+  `validateCard` (`src/cards/cardValidator.ts`) and `validateDeck`
+  (`src/cards/deckValidator.ts`) doing structural + legality checks.
+  Tests in `tests/unit/cards/` use the real §8.3 starter deck (20 cards, 37
+  points) as the golden legal fixture, plus Dr Jekyll/Mr Hyde (two-faced
+  Transform) and Sherlock Holmes/Robin Hood (reveal, reserved steal) for
+  ability-DSL coverage. 45 tests, all passing.
 
-**Next three tasks:** 1.1 card schema + validator → 1.2 rules engine →
-1.3 AI opponent.
+**Next three tasks:** 1.2 rules engine → 1.3 AI opponent → 1.4 balance
+simulator.
 
 **Gotchas:**
+- The ability DSL (`Effect` in `src/cards/cardTypes.ts`) is structural only
+  — it validates shape (trigger/effect kinds, target sides, filters), not
+  game semantics. 1.2 owns actually resolving these effects. `steal` is
+  accepted by the schema but reserved/unresolved in v1 (Robin Hood is a
+  stretch legend, design.md §9.3).
+- `Card.rarity` lives on the card, not per-face, but `points`/`family`/
+  `keywords`/`abilities` are per-face — needed for Dr Jekyll/Mr Hyde, whose
+  two faces have different families and only the front face's points count
+  toward deck legality (design.md §5.10, §16).
 - The site is served at `https://brenthumphries.github.io/steampunk-shuffle/`
   — a subpath, not a domain root. `vite.config.ts` sets `base` accordingly;
   any new hard-coded asset path needs the same treatment (prefer relative
@@ -78,7 +96,9 @@ step whenever the task can be scripted.
 steampunk-shuffle/
 ├── .github/workflows/   # CI: typecheck, test, build, deploy to Pages
 ├── docs/                # design.md, style-bible.md
-├── images/              # Gemini-generated art, staged before tools/ingest-art.py exists
+├── art/
+│   ├── reference/        # style-bible reference images (batch 0)
+│   └── inbox/            # final card art drops here for tools/ingest-art.py (Step 1.7)
 ├── public/              # PWA icons, static files served as-is
 ├── src/                 # App source (TypeScript)
 ├── tests/
