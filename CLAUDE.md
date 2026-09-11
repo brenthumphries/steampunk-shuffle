@@ -35,20 +35,20 @@ step whenever the task can be scripted.
 
 ## Current state (updated after Step 0.5, Sept 10, 2026)
 
-- Phase 0 (Foundations): 0.1–0.4 done. 0.5 (`ss-ship` skill) is built,
-  pending its first real run to confirm the exit check end-to-end.
+- Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
 - `docs/design.md` and `docs/style-bible.md` are approved. Three style-bible
   reference images are in `images/` (not yet moved into the art pipeline —
   that starts in Step 1.6).
 - App is an empty PWA shell: one placeholder screen, no game logic yet.
 - `.claude/skills/ss-ship/` (Haiku) + `tools/ship.sh` (the deterministic
-  part) exist: typecheck, test, build, non-blocking Lighthouse read, commit,
-  push, wait for `deploy.yml`, print the live URL. Say "ship it" / "run
-  ss-ship" to invoke it.
+  part) exist and are verified working: typecheck, test, build,
+  non-blocking Lighthouse read, commit, push, wait for `deploy.yml`, print
+  the live URL. Say "ship it" / "run ss-ship" to invoke it. First real run
+  (commit `422383b`) went green end-to-end in ~30s.
 
-**Next three tasks:** confirm `ss-ship`'s first real deploy → 1.1 card
-schema + validator → 1.2 rules engine.
+**Next three tasks:** 1.1 card schema + validator → 1.2 rules engine →
+1.3 AI opponent.
 
 **Gotchas:**
 - The site is served at `https://brenthumphries.github.io/steampunk-shuffle/`
