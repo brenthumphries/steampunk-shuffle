@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after Step 1.4, Sept 11, 2026)
+## Current state (updated after starting Step 1.5, Sept 11, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -102,31 +102,71 @@ step whenever the task can be scripted.
   exercised by actually running the tool, same as `ship.sh`. 88 tests total
   (project-wide), all passing.
 
-**Next three tasks:** 1.5 `ss-card-author` skill + card set v1 → 1.6
-`ss-art-prompts` skill → 1.7 `tools/ingest-art.py`.
+1.5 in progress. `.claude/skills/ss-card-author/` (Haiku) is built:
+authors a card/batch/deck against `src/cards/cardTypes.ts`'s schema and
+adds it to the content module. **The v1 card set is fully authored**:
+`src/cards/data/` is the new canonical source for every real card — 5
+family files (9 cards each), `locations.ts` (8), `legends.ts` (6
+signature cards), `landlady.ts` (1); `src/cards/data/README.md` tracks the
+composition tally. `index.ts` exports `ALL_CARDS` (60, matches design.md
+§8.1 exactly: 45 family + 8 location + 6 legend + 1 Landlady). The
+previously-locked starter/house-deck card definitions moved here from the
+test fixtures, which now re-export them (`tests/unit/cards/fixtures/
+starterDeck.ts`, `tests/unit/engine/fixtures/houseDeck.ts`,
+`tests/unit/cards/fixtures/legends.ts`) rather than duplicating — this
+resolves the `tools/` → `tests/` backwards-dependency gotcha from 1.4.
+`src/cards/data/decks/` has 6 legal 20-card decks: the starter deck, the
+completed House deck (the locked 9 Foundry cards + 1 filler card, up to 2
+copies each, to reach 20/60), and all four Regular-tier opponent decks
+(Mudd, Nell Ashby, Reg Farrow, Prudence Hollis — design.md §9.1). Seasoned
+and Legend decks aren't built yet (`src/cards/data/decks/README.md`).
+`tools/sim.ts` now reads `KNOWN_CARDS`/`KNOWN_DECKS` from
+`src/cards/data/` directly and reports a real starter-vs-Regular win rate
+(design.md §12.2) instead of the old interim AI-mirror proxy; a new
+`tests/unit/cards/dataSet.test.ts` validates every card and deck in the
+module. 152 tests total (project-wide), all passing; `npm run sim`,
+`npm run typecheck`, and `npm run build` all clean.
+
+**Not yet done for 1.5:** Seasoned-tier decks (Bucket, Lovelace, Adler,
+Dickens) and Legend-tier decks (Holmes, Moriarty, Christie, Poirot,
+Jekyll/Hyde, Shelley) — their signature/reward cards for the seasoned tier
+(Bucket's Forefinger, The Analytical Engine, The Photograph, Next
+Instalment) aren't authored either, since design.md only asks for the
+Regular-tier reward cards to double as family-slice cards. This means
+design.md §9.3's "Legend-vs-starter win rate" is still "not yet
+measurable" in `docs/balance.md` — flagged there, not a blocker. `docs/
+design.md §15`'s "The Five D's" (Rookery) and "We're Not Worthy" (Salon)
+easter eggs also aren't authored — both need effect kinds the engine
+doesn't have (see the schema-gap list below).
+
+**Next three tasks:** finish 1.5 (Seasoned/Legend decks, if wanted before
+moving on — check with Brent) → 1.6 `ss-art-prompts` skill → 1.7
+`tools/ingest-art.py`.
 
 **Gotchas:**
-- **1.4 only has the starter deck to simulate with — flagged for Brent, not
-  a blocker.** 1.5 hasn't authored the full 60-card set or any opponent
-  decks yet, so `docs/balance.md`'s "starter-vs-Regular win rate" and
-  "Legend-vs-starter win rate" (design.md §12.2, §9.3) are reported as **not
-  yet measurable** rather than faked against a placeholder deck — they need
-  real Regular/Legend-tier opponent decks. The report's AI-difficulty-mirror
-  section (starter deck both sides, different AI difficulty per side) is an
-  interim sanity check on AI strength ordering only, clearly labeled as not
-  the design's real target metric. Family-curve rows are similarly partial
-  (only as many of each family's 9 cards as exist today) and marked so.
-  Once 1.5 lands real card/opponent-deck content, re-point `KNOWN_CARDS` and
-  `KNOWN_DECKS` in `tools/sim.ts` at it — everything downstream (lift,
-  curves, win-rate reporting) is already generic over "whatever decks/cards
-  are known".
-- `tools/sim.ts` reads its card/deck data from the same `tests/unit/.../
-  fixtures/*.ts` files the engine and AI tests already treat as the
-  canonical §8.3 source (`starterDeck.ts`, `houseDeck.ts`), rather than
-  duplicating ~25 card definitions. This is a `tools/` → `tests/` import,
-  which is backwards from the usual dependency direction — deliberate and
-  temporary until 1.5 gives the project a real content module to import
-  from instead.
+- **1.5 surfaced real gaps between design.md's card text and the shipped
+  1.1/1.2 engine — flagged for Brent, not a blocker, but worth a look next
+  time the engine gets touched.** Full list with the specific cards
+  affected is in `src/cards/data/README.md`'s "Known engine-schema gaps"
+  section. Short version: `TargetFilter` can't check for a keyword (so
+  "each face-up Friend card" cards are approximated, inconsistently
+  loosely, as "each face-up card" or "each face-up Character"); `draw` has
+  no `target`/`side` (so "each player draws N" headlines only draw for
+  whoever played them); a Location has no controller, so it can't say
+  "each player, their own side" distinctly from "a pool combined across
+  both boards" (Moriarty's and Christie's signature Locations were both
+  reworded to fit); there's no cross-effect target chaining (Mary
+  Shelley's card dropped its "+2" clause); continuous buffs have no
+  self-exclusion (The Landlady buffs herself by +1 too); and there's no
+  "grant a keyword temporarily" or "conditional" effect at all (blocks two
+  of design.md §15's easter eggs entirely). None of this fails
+  `validateCard` (purely structural), which is why it wasn't caught until
+  content-authoring actually tried to use the printed rules text.
+- `src/cards/data/decks/*.ts` each add one plain "filler" Character (Line
+  Fitter, Beat Partner, Street Sweeper, Errand Runner, Church Fete Stall)
+  to reach a legal 20-card deck — a family's 9 unique v1 cards cap out at
+  18 copies (2 each), two short. These fillers are deck-local and not part
+  of the labeled 60-card set (`src/cards/data/README.md`).
 - **1.3's exit check doesn't hold at face value — flagged for Brent, not a
   blocker.** The plan says legend should beat random play >95% of the time;
   measured on the starter deck mirrored against itself, even a version of
@@ -225,6 +265,8 @@ steampunk-shuffle/
 │   └── inbox/            # final card art drops here for tools/ingest-art.py (Step 1.7)
 ├── public/              # PWA icons, static files served as-is
 ├── src/                 # App source (TypeScript)
+│   └── cards/data/       # Canonical v1 card set + decks (plan step 1.5)
+├── .claude/skills/       # ss-ship, ss-card-author, ...
 ├── tests/
 │   ├── unit/            # Vitest
 │   └── e2e/             # Playwright

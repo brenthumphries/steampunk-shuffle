@@ -3,31 +3,24 @@
 //   1. Per-card effective-vs-printed point lift (design.md §7.4)
 //   2. Family average printed points vs design.md §4's curves
 //   3. Win rate vs random play, by AI difficulty (regression check on 1.3)
-//   4. AI-difficulty mirror win rates (interim proxy for §12.2/§9.3 — see
-//      the "Opponent decks" note below)
+//   4. AI-difficulty mirror win rates (sanity check on AI strength ordering)
+//   5. Starter-vs-Regular-tier win rate (design.md §12.2)
 //
 // Run: `npm run sim`. Writes docs/balance.md and prints a summary to stdout.
 //
-// Card content note: 1.5 hasn't authored the full 60-card set or opponent
-// decks yet, so the only legal complete deck in the game is the starter deck,
-// and the only other real (locked, design.md §8.3) content is the House
-// deck's 9 Foundry cards. This reads both from the same fixtures the engine
-// and AI tests already use as the canonical §8.3 source, rather than
-// duplicating ~25 card definitions here. Once 1.5 lands src/cards/data (or
-// wherever the real card-set module ends up), repoint KNOWN_CARD_SOURCES and
-// KNOWN_DECKS below at it — everything downstream is generic.
+// Card content note: reads the full v1 set and every authored deck from
+// src/cards/data/ (plan step 1.5) — the canonical content module — rather
+// than duplicating card definitions here.
 //
-// Opponent decks: design.md §16 asks for "starter-vs-Regular win rate" and
-// "Legend-vs-starter" — both require the opponent decks 1.5 authors (§9.1,
-// §9.3). Until then this reports an AI-difficulty mirror (starter deck both
-// sides, different AI difficulty per side) as a clearly-labeled interim
-// proxy, plus the win-rate-vs-random regression check from 1.3.
+// Opponent decks: design.md §16 also asks for "Legend-vs-starter win rate"
+// (§9.3) — no Legend-tier deck is authored yet (src/cards/data/decks/
+// README.md), so that one is still reported as not yet measurable.
 
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import type { Card, Family } from "../src/cards/cardTypes.ts";
+import type { Card, Deck, Family } from "../src/cards/cardTypes.ts";
 import { chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
 import {
   createMatch,
@@ -39,22 +32,23 @@ import {
 } from "../src/engine/matchEngine.ts";
 import { stepRandom } from "../src/engine/rng.ts";
 
-import { starterDeck, starterDeckCards } from "../tests/unit/cards/fixtures/starterDeck.ts";
-import * as houseDeckModule from "../tests/unit/engine/fixtures/houseDeck.ts";
+import { ALL_CARDS } from "../src/cards/data/index.ts";
+import { KNOWN_DECKS as ALL_KNOWN_DECKS, starterDeck } from "../src/cards/data/decks/index.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
-// Known content (see the file header's "Card content note")
+// Known content
 // ---------------------------------------------------------------------------
 
-const houseDeckCards: Card[] = Object.values(houseDeckModule);
+/** Every real card in the v1 set, for the family-curve check (design.md §4). */
+export const KNOWN_CARDS: Card[] = ALL_CARDS;
 
-/** Every real card known today, for the family-curve check (design.md §4). */
-export const KNOWN_CARDS: Card[] = [...starterDeckCards, ...houseDeckCards];
+/** Every complete legal deck authored so far, for self-play. */
+export const KNOWN_DECKS: { name: string; deck: Deck }[] = ALL_KNOWN_DECKS;
 
-/** Every complete legal deck known today, for self-play (only the starter deck exists pre-1.5). */
-export const KNOWN_DECKS: { name: string; deck: typeof starterDeck }[] = [{ name: "Starter (Village Constable)", deck: starterDeck }];
+/** Regular-tier decks (design.md §9.1), for the starter-vs-Regular check (§12.2). */
+const REGULAR_DECKS = KNOWN_DECKS.filter((d) => d.deck !== starterDeck && d.name !== "House (Sir Charles)");
 
 // design.md §4: "average printed points across the family's Characters".
 const FAMILY_TARGETS: Partial<Record<Family, number>> = {
@@ -64,7 +58,13 @@ const FAMILY_TARGETS: Partial<Record<Family, number>> = {
   rookery: 2.4,
   irregulars: 2.0,
 };
-const FULL_FAMILY_SIZE = 9; // design.md §8.1: 9 cards per family in the v1 set.
+// design.md §8.1: 6 Characters per family in the family's 9-card slice
+// (the other 3 slots are Gadget/Scheme/Headline, non-Character). Legend
+// signature cards (design.md §9.3) are also Characters affiliated with a
+// family and get folded into this same average by computeFamilyCurves, so
+// a family with a legend can legitimately sample above 6 (e.g. 7 or 8) —
+// that's not "more than complete," just legends included.
+const FULL_FAMILY_SIZE = 6;
 
 // design.md §7.4: "flags any card whose *average* effective points exceed printed + 3."
 const LIFT_OUTLIER_THRESHOLD = 3;
@@ -299,6 +299,67 @@ function runMirror(deck: typeof starterDeck, difA: Difficulty, difB: Difficulty,
   return { difA, difB, games, winRateA: winsA / games };
 }
 
+/** Plays one AI-vs-AI match with a *different* deck per side (design.md §12.2, §9.3). */
+function playHeadToHeadGame(
+  deckA: Deck,
+  deckB: Deck,
+  difA: Difficulty,
+  difB: Difficulty,
+  matchSeed: number,
+  seedA: number,
+  seedB: number,
+  liftSink: LiftObservation[],
+): MatchState {
+  let state = createMatch(deckA, deckB, { seed: matchSeed, shuffle: true });
+  let sA = seedA;
+  let sB = seedB;
+  let guard = 0;
+  while (state.status === "in-progress" && guard < TURN_GUARD) {
+    guard++;
+    const acting = currentPlayer(state);
+    if (acting === "A") {
+      const move = aiTurn(state, "A", deckB, difA, sA);
+      state = move.state;
+      sA = move.nextSeed;
+    } else {
+      const move = aiTurn(state, "B", deckA, difB, sB);
+      state = move.state;
+      sB = move.nextSeed;
+    }
+    sampleBoardLift(state, liftSink);
+  }
+  if (state.status !== "complete") throw new Error("match did not finish within the turn guard");
+  return state;
+}
+
+export interface HeadToHeadResult {
+  deckAName: string;
+  deckBName: string;
+  games: number;
+  winRateA: number;
+}
+
+function runHeadToHead(
+  deckAName: string,
+  deckA: Deck,
+  deckBName: string,
+  deckB: Deck,
+  difA: Difficulty,
+  difB: Difficulty,
+  games: number,
+  liftSink: LiftObservation[],
+): HeadToHeadResult {
+  let winsA = 0;
+  for (let g = 0; g < games; g++) {
+    const matchSeed = 11_000_003 * (g + 1);
+    const seedA = 12_000_017 * (g + 1);
+    const seedB = 13_000_029 * (g + 1);
+    const result = playHeadToHeadGame(deckA, deckB, difA, difB, matchSeed, seedA, seedB, liftSink);
+    if (result.result?.winner === "A") winsA++;
+  }
+  return { deckAName, deckBName, games, winRateA: winsA / games };
+}
+
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
@@ -313,8 +374,9 @@ function buildReport(opts: {
   cardLift: CardLiftRow[];
   vsRandom: VsRandomResult[];
   mirrors: MirrorResult[];
+  headToHead: HeadToHeadResult[];
 }): string {
-  const { elapsedMs, familyCurves, cardLift, vsRandom, mirrors } = opts;
+  const { elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead } = opts;
   const outliers = cardLift.filter((r) => r.outlier);
   const lines: string[] = [];
 
@@ -353,9 +415,12 @@ function buildReport(opts: {
 
   lines.push("## Family average points vs design.md §4 curves");
   lines.push("");
-  lines.push(`Target is the average across a full 9-card family (${FULL_FAMILY_SIZE} cards); sample sizes below are partial until 1.5 authors the rest.`);
+  lines.push(
+    `Target is the average across a family's ${FULL_FAMILY_SIZE} v1 Characters, plus any legend signature ` +
+      "cards affiliated with that family (design.md §9.3) — so a sample above 6 includes legends, not extra v1 cards.",
+  );
   lines.push("");
-  lines.push("| Family | Avg points | Target | Delta | Sample (of 9) |");
+  lines.push(`| Family | Avg points | Target | Delta | Sample (${FULL_FAMILY_SIZE}+ legends) |`);
   lines.push("|---|---|---|---|---|");
   for (const row of familyCurves) {
     const target = row.target === undefined ? "—" : row.target.toFixed(1);
@@ -374,13 +439,9 @@ function buildReport(opts: {
   }
   lines.push("");
 
-  lines.push("## AI-difficulty mirror win rates (interim proxy for §12.2/§9.3)");
+  lines.push("## AI-difficulty mirror win rates (sanity check on AI strength ordering)");
   lines.push("");
-  lines.push(
-    "Both sides play the starter deck; only the AI difficulty differs. This is **not** the design's actual " +
-      "starter-vs-Regular / Legend-vs-starter metric — those need 1.5's opponent decks (§9.1, §9.3), which don't " +
-      "exist yet. Kept here as a sanity signal on AI strength ordering until then.",
-  );
+  lines.push("Both sides play the starter deck; only the AI difficulty differs.");
   lines.push("");
   lines.push("| A (difficulty) | B (difficulty) | Games | A win rate |");
   lines.push("|---|---|---|---|");
@@ -389,11 +450,24 @@ function buildReport(opts: {
   }
   lines.push("");
 
+  lines.push("## Starter-vs-Regular-tier win rate (design.md §12.2, target ~60%)");
+  lines.push("");
+  lines.push(
+    "The starter deck (`regular` AI) against each Regular-tier opponent deck (`regular` AI on both sides — " +
+      "the AI dial, not the *deck's* tier, matters here per design.md §9.4). Target: the starter deck should win " +
+      "about 60% of the time when played sensibly.",
+  );
+  lines.push("");
+  lines.push("| Opponent | Games | Starter win rate |");
+  lines.push("|---|---|---|");
+  for (const r of headToHead) {
+    lines.push(`| ${r.deckBName} | ${r.games} | ${pct(r.winRateA)} |`);
+  }
+  lines.push("");
+
   lines.push("## Not yet measurable");
   lines.push("");
-  lines.push("- **Starter-vs-Regular win rate** (design.md §12.2, target ~60%) — needs a Regular-tier opponent deck (§9.1); none authored yet (plan step 1.5).");
-  lines.push("- **Legend-vs-starter win rate** (design.md §9.3, target ~70%) — needs a Legend-tier opponent deck (§9.3); none authored yet (plan step 1.5).");
-  lines.push("- **Family point totals** (design.md §4: 18–30 printed points per family) — needs all 9 cards per family; only partial families exist.");
+  lines.push("- **Legend-vs-starter win rate** (design.md §9.3, target ~70%) — needs a Legend-tier opponent deck (design.md §9.3); none authored yet (`src/cards/data/decks/README.md`).");
   lines.push("");
 
   return lines.join("\n");
@@ -421,11 +495,15 @@ function main(): void {
     runMirror(deck, "regular", "legend", 6, liftSink),
   ];
 
+  const headToHead: HeadToHeadResult[] = REGULAR_DECKS.map((opponent) =>
+    runHeadToHead("Starter (Village Constable)", deck, opponent.name, opponent.deck, "regular", "regular", 20, liftSink),
+  );
+
   const familyCurves = computeFamilyCurves(KNOWN_CARDS);
   const cardLift = computeCardLift(liftSink);
   const elapsedMs = Date.now() - start;
 
-  const report = buildReport({ elapsedMs, familyCurves, cardLift, vsRandom, mirrors });
+  const report = buildReport({ elapsedMs, familyCurves, cardLift, vsRandom, mirrors, headToHead });
 
   const outPath = path.join(__dirname, "..", "docs", "balance.md");
   writeFileSync(outPath, report + "\n");
