@@ -1,0 +1,103 @@
+// Renders rules text for the match screen (card zoom, target-picker prompts)
+// from the ability DSL (src/cards/cardTypes.ts) — cards carry structural
+// abilities and flavor text, not authored rules prose, so this generates it
+// generically from design.md §5's keyword/effect vocabulary.
+
+import type { Ability, CardFace, Effect, Target, TargetFilter } from "../cards/cardTypes.ts";
+
+const TRIGGER_LABEL: Record<Ability["trigger"], string | undefined> = {
+  onPlay: "On Play",
+  continuous: undefined,
+  startOfRound: "Start of Round",
+  endOfRound: "End of Round",
+};
+
+export function keywordChips(face: CardFace): string[] {
+  const chips: string[] = [];
+  const kw = face.keywords;
+  if (kw?.persist) chips.push("Persist");
+  if (kw?.elusive) chips.push("Elusive");
+  if (kw?.return) chips.push("Return");
+  if (kw?.friend !== undefined) chips.push(`Friend +${kw.friend}`);
+  return chips;
+}
+
+function describeSide(side: Target["side"]): string {
+  if (side === "self") return "your";
+  if (side === "opponent") return "an opposing";
+  return "each";
+}
+
+function describeFilter(filter: TargetFilter | undefined): string {
+  if (!filter) return "";
+  const bits: string[] = [];
+  if (filter.highestPoints) bits.push("highest-point");
+  if (filter.lowestPoints) bits.push("lowest-point");
+  if (filter.family) bits.push(filter.family);
+  if (filter.cardType) bits.push(filter.cardType);
+  const worth =
+    filter.maxPoints !== undefined
+      ? ` worth ${filter.maxPoints} or less`
+      : filter.minPoints !== undefined
+        ? ` worth ${filter.minPoints} or more`
+        : "";
+  return (bits.length > 0 ? ` ${bits.join(" ")}` : "") + worth;
+}
+
+function describeCount(count: number | undefined): string {
+  if (!count || count <= 1) return "card";
+  return `${count} cards`;
+}
+
+function describeTarget(target: Target): string {
+  const side = describeSide(target.side);
+  return `${side} ${describeCount(target.count)}${describeFilter(target.filter)}`;
+}
+
+function describeEffect(effect: Effect): string {
+  switch (effect.effect) {
+    case "flip":
+      return `Flip ${describeTarget(effect.target)}.`;
+    case "unflip":
+      return `Turn ${describeTarget(effect.target)} face-up.`;
+    case "return":
+      return `Return ${describeTarget(effect.target)} to hand.`;
+    case "buff":
+      return `Give ${describeTarget(effect.target)} +${effect.amount}.`;
+    case "draw":
+      return `Draw ${effect.amount}.`;
+    case "discardRandom":
+      return `${describeSide(effect.target.side)} player discards ${effect.amount} at random.`;
+    case "discardLocation":
+      return "Discard the active Location.";
+    case "reveal":
+      return `Reveal ${describeTarget(effect.target)}'s hand.`;
+    case "steal":
+      return `Steal ${describeTarget(effect.target)}.`;
+  }
+}
+
+/** One line per ability, e.g. "On Play: Flip an opposing card worth 3 or less." Continuous abilities omit the label. */
+export function abilityLines(face: CardFace): string[] {
+  return (face.abilities ?? []).map((ability) => {
+    const body = ability.effects.map(describeEffect).join(" ");
+    const label = TRIGGER_LABEL[ability.trigger];
+    return label ? `${label}: ${body}` : body;
+  });
+}
+
+/** A short one-line label for a target-picker prompt, e.g. "Choose a target to Flip". */
+export function effectPromptLabel(effect: Effect): string {
+  switch (effect.effect) {
+    case "flip":
+      return "Choose a card to Flip";
+    case "unflip":
+      return "Choose a card to turn face-up";
+    case "return":
+      return "Choose a card to Return";
+    case "buff":
+      return "Choose a card to boost";
+    default:
+      return "Choose a target";
+  }
+}

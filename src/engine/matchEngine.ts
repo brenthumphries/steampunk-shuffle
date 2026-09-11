@@ -430,8 +430,14 @@ function boardCandidates(
   return out;
 }
 
-/** Default automatic target selection: highest effective points, then leftmost/oldest (§5.13). */
-function defaultSelect(matched: OwnedBoardCard[], filter: TargetFilter | undefined, state: MatchState): OwnedBoardCard[] {
+/**
+ * Default automatic target selection: highest effective points, then
+ * leftmost/oldest (§5.13). Exported so a human TargetChooser (plan step 2.1)
+ * can fall back to it for a step it didn't prompt the player on — e.g. a
+ * "flip the highest-point card" effect, where the card's own text already
+ * says which one, not a real choice — without duplicating the sort here.
+ */
+export function defaultSelect(matched: OwnedBoardCard[], filter: TargetFilter | undefined, state: MatchState): OwnedBoardCard[] {
   const ascending = Boolean(filter?.lowestPoints);
   return matched
     .map((oc, i) => ({ oc, i, pts: effectivePoints(state, oc.owner, oc.bc) }))
@@ -451,6 +457,54 @@ function selectTargets(
     return chooseTargets(matched, effect, effect.target).slice(0, count);
   }
   return defaultSelect(matched, effect.target.filter, state).slice(0, count);
+}
+
+/** One targeted onPlay effect a human player must (or may) choose targets for before committing. */
+export interface TargetPreviewStep {
+  effect: Effect & { target: Target };
+  /** Legal targets, mirroring the pool resolveEffect will compute for this same effect. */
+  candidates: OwnedBoardCard[];
+}
+
+const TARGETABLE_EFFECTS = new Set(["flip", "unflip", "return", "buff"]);
+
+/**
+ * Previews, in resolution order, every onPlay effect of `card` that will need
+ * a target if `controllerId` plays it against `state` right now — the human
+ * UI (plan step 2.1) uses this to ask the player to pick targets *before*
+ * calling playTurn, since playTurn resolves On Play synchronously and
+ * atomically. Mirrors resolveEffect's own pool-building so the candidates
+ * here match what resolveEffect will compute, as long as no other play
+ * happens in between (true while the player is still deciding their own
+ * turn). AI target selection doesn't need this — it supplies its own
+ * TargetChooser (or accepts the engine's default) directly to playTurn.
+ */
+export function previewOnPlayTargets(state: MatchState, controllerId: PlayerId, card: Card): TargetPreviewStep[] {
+  const face = card.faces[0];
+  const steps: TargetPreviewStep[] = [];
+  for (const ability of face.abilities ?? []) {
+    if (ability.trigger !== "onPlay") continue;
+    for (const effect of ability.effects) {
+      if (!TARGETABLE_EFFECTS.has(effect.effect)) continue;
+      const withTarget = effect as Effect & { target: Target };
+      let pool: OwnedBoardCard[];
+      if (withTarget.effect === "flip") {
+        pool = boardCandidates(state, withTarget.target.side, controllerId, true, undefined).filter((oc) => !isElusive(oc.bc));
+      } else if (withTarget.effect === "unflip") {
+        pool = boardCandidates(state, withTarget.target.side, controllerId, false, undefined);
+      } else if (withTarget.effect === "return") {
+        pool = boardCandidates(state, withTarget.target.side, controllerId, true, undefined).filter(
+          (oc) => oc.owner === controllerId || !isElusive(oc.bc),
+        );
+      } else {
+        pool = boardCandidates(state, withTarget.target.side, controllerId, true, undefined);
+      }
+      const points = (oc: OwnedBoardCard) => (withTarget.effect === "unflip" ? 0 : effectivePoints(state, oc.owner, oc.bc));
+      const matched = pool.filter((oc) => matchesFilter(activeFace(oc.bc), points(oc), withTarget.target.filter));
+      steps.push({ effect: withTarget, candidates: matched });
+    }
+  }
+  return steps;
 }
 
 // ---------------------------------------------------------------------------

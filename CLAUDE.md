@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after finishing Step 1.6, Sept 11, 2026)
+## Current state (updated after finishing Step 2.1, Sept 11, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -260,12 +260,95 @@ mine:**
   prompt — purely cosmetic, ingested as-is, flagged in case a re-roll is
   wanted later.
 
-**Next task:** Phase 2 (match screen, 2.1) — the natural next step per the
-plan's ordering, and never blocked on art (3.1/3.2 wire art onto frames
-much later). Batch 1 being finished isn't a prerequisite for 2.1 either
-way — it just happened to land first.
+2.1 done. The match screen lives in `src/ui/matchScreen.ts`
+(`mountMatchScreen(root, opts)`, DOM glue only — full rebuild on every
+state change, small trees so this is cheap) driving the real engine
+(`createMatch`/`playTurn`) and AI opponent (`playAITurn`) directly, no
+mock data. Turn-staging logic is pulled out into `src/match/humanTurn.ts`
+(`stagePlay`/`toggleTarget`/`isReadyToConfirm`, pure, unit-tested without
+jsdom) so design.md §6.4's "take a card back before it commits" is real:
+tapping a hand card stages it (nothing is sent to the engine yet); a
+"Play"/"Cancel" bar appears; Cancel just discards the staged pick.
+Engine-facing pieces added alongside it: `previewOnPlayTargets` and
+`defaultSelect` are now exported from `matchEngine.ts` (previously
+private) so the UI can ask "what would this card's On Play need a target
+for, and what are the legal candidates" *before* calling `playTurn`
+(`playTurn` resolves On Play synchronously and atomically, so the target
+has to be known going in) — `src/match/targetChooser.ts` turns the
+player's picks into the `TargetChooser` callback `playTurn` expects,
+falling back to `defaultSelect` for any step the UI didn't prompt on. The
+AI's turn is driven the same way `ss-ship`/`sim.ts` treat everything
+else — real calls, not stubs — via `playAITurn` on a short `setTimeout`
+for pacing; a forced pass (empty hand, design.md §6.2.2 — "no voluntary
+pass") is likewise automatic. `src/ui/cardText.ts` generates rules text
+(keyword chips, "On Play: Flip an opposing card worth 3 or less.") from
+the `Ability`/`Effect` DSL for the card-zoom modal, since cards carry
+structural abilities, not authored prose. Round-end and match-end are
+overlays (`.overlay--round-reveal`, `.overlay--match-over`) that pause on
+a "Continue" tap before the (already-computed) next round renders
+underneath. Card frames are flat CSS keyed off `data-family` (family
+colors from style-bible.md §2) with no illustration — 3.1 hasn't been
+built, so there's nothing to hang art on yet; `card-back.webp` and
+`background-the-snug.webp` (from 1.7's ingested batch) are the only art
+actually used. There's no pub hub yet (2.3), so `src/main.ts`'s taproom
+placeholder grew one temporary "Play a quick match" button that starts a
+real starter-deck-vs-Mudd match at `regular` difficulty directly — 2.3
+replaces this with the real "tonight's patrons" flow, at which point this
+button (and the deck/opponent choice being hardcoded here) goes away.
+Tests: `tests/unit/engine/targetPreview.test.ts`,
+`tests/unit/match/{humanTurn,targetChooser}.test.ts`,
+`tests/unit/ui/cardText.test.ts` (14 new pure-logic tests) plus
+`tests/e2e/match.spec.ts` (3 Playwright smoke tests at the 402×874
+viewport: stage-then-cancel leaves the hand untouched, stage-then-play
+commits and the match keeps moving, card zoom opens and closes). 194
+tests total (project-wide), all passing; `npm run typecheck`, `npm run
+build`, and `npm run test:e2e` all clean. Manually verified end-to-end in
+the browser at the iPhone 17 viewport, playing real (non-scripted, random-
+shuffled) turns against Mudd through a full round: staging/cancel,
+auto-confirm for a single-legal-target card (Séance, Inspector's
+Warrant), a genuinely-automatic AI-triggered Flip (Scotland Yard Announces
+Arrests hit my own board with no prompt, correctly, since it's the AI's
+effect, not mine), Persist carrying a card across the round boundary,
+playing a Location and watching its continuous buff apply, and the round-
+reveal overlay. Added `.claude/launch.json` (Steampunk Shuffle didn't have
+one yet) so `preview_start` can run `npm run dev` for browser-based
+manual verification in future sessions.
+
+**Next task:** 2.2, the deck builder — the match screen currently
+hardcodes the starter deck and Mudd's deck (see above); 2.2 gives the
+player a legal way to build and choose decks, which 2.3's pub hub will
+then use to pick an opponent instead of the hardcoded button.
 
 **Gotchas:**
+- **`previewOnPlayTargets`'s "does this need a human choice" rule treats
+  a `highestPoints`/`lowestPoints` filter as always automatic, even when
+  it's the human's own card being played** — the card text already says
+  "the highest-point card," so there's nothing to choose, and matching
+  the engine's own `defaultSelect` tiebreak (rather than opening it up as
+  a free pick) keeps the human and the AI resolving those cards
+  identically. No v1 card currently gives a human-played card more than
+  one step that actually needs a real choice (checked by grepping every
+  `effect: "flip"/"unflip"/"return"/"buff"` in `src/cards/data/`,
+  documented in `src/match/humanTurn.ts`'s `currentStep` comment) — if a
+  future card does, `toggleTarget`'s "amend the last completed step"
+  fallback is there but untested against a real multi-choice card.
+- **The dev-mode service worker (`devOptions: { enabled: true }` in
+  `vite.config.ts`, from Phase 0) reloads the page once, out of the blue,
+  the first time it takes control of a tab** — hit this mid-match during
+  manual browser verification (looked exactly like a bug: the screen
+  silently reset to the taproom placeholder). It's a generic Workbox/
+  vite-plugin-pwa dev behavior, not anything 2.1 introduced or can fix;
+  future manual testing sessions should expect one unprompted reload
+  early in a tab's life and not chase it as a regression.
+- The match screen's `setTimeout` handle is typed via the bare ambient
+  `setTimeout` (`ReturnType<typeof setTimeout>`), not `window.setTimeout`
+  — with both the `"dom"` lib and `@types/node` in `tsconfig.json`'s
+  `types`, only the bare global's return type resolves without a TS2322
+  error. It's still the real browser timer at runtime; see the comment at
+  `mountMatchScreen`'s `timer` declaration.
+- Opponent hand is shown as a card-back count (`Hand: N`), not a visual
+  fanned stack — a deliberate v1 simplification, not an oversight; revisit
+  if it reads as too plain once real art is wired in (3.1/3.2).
 - **The 2x-retina pixel dimensions (`BASE_SIZE_BY_RATIO` in `tools/
   ingest-art.py`) are a judgment call, not a locked spec — same situation
   1.6 flagged for "which 10 portraits."** No card-window CSS size exists
