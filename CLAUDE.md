@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after Step 1.3, Sept 11, 2026)
+## Current state (updated after Step 1.4, Sept 11, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -88,11 +88,45 @@ step whenever the task can be scripted.
   legality/determinism, a 15-game self-play sweep across difficulty pairings
   for broad ability coverage, and the win-rate exit check. 76 tests total
   (project-wide), all passing.
+- 1.4 done. Balance simulator lives in `tools/sim.ts`, run via `npm run sim`
+  (added `tsx` + `@types/node` as devDependencies; `tools/` is now in
+  `tsconfig.json`'s `include` so it's typechecked too). AI-vs-AI self-play,
+  reporting: per-card effective-vs-printed lift (design.md §7.4, flags avg
+  effective > printed + 3), family average points vs design.md §4's curves,
+  win rate vs random by AI difficulty (regression check on 1.3), and an
+  AI-difficulty mirror win rate. Writes `docs/balance.md` and prints the same
+  report to stdout; first real run: no card-lift outliers, family averages
+  close to target where sampled, in ~40s (well under the 2-minute exit
+  check). Pure helpers (`computeFamilyCurves`, `computeCardLift`) have a unit
+  test in `tests/unit/tools/sim.test.ts`; the game-playing/report path is
+  exercised by actually running the tool, same as `ship.sh`. 88 tests total
+  (project-wide), all passing.
 
-**Next three tasks:** 1.4 balance simulator → 1.5 `ss-card-author` skill +
-card set v1 → 1.6 `ss-art-prompts` skill.
+**Next three tasks:** 1.5 `ss-card-author` skill + card set v1 → 1.6
+`ss-art-prompts` skill → 1.7 `tools/ingest-art.py`.
 
 **Gotchas:**
+- **1.4 only has the starter deck to simulate with — flagged for Brent, not
+  a blocker.** 1.5 hasn't authored the full 60-card set or any opponent
+  decks yet, so `docs/balance.md`'s "starter-vs-Regular win rate" and
+  "Legend-vs-starter win rate" (design.md §12.2, §9.3) are reported as **not
+  yet measurable** rather than faked against a placeholder deck — they need
+  real Regular/Legend-tier opponent decks. The report's AI-difficulty-mirror
+  section (starter deck both sides, different AI difficulty per side) is an
+  interim sanity check on AI strength ordering only, clearly labeled as not
+  the design's real target metric. Family-curve rows are similarly partial
+  (only as many of each family's 9 cards as exist today) and marked so.
+  Once 1.5 lands real card/opponent-deck content, re-point `KNOWN_CARDS` and
+  `KNOWN_DECKS` in `tools/sim.ts` at it — everything downstream (lift,
+  curves, win-rate reporting) is already generic over "whatever decks/cards
+  are known".
+- `tools/sim.ts` reads its card/deck data from the same `tests/unit/.../
+  fixtures/*.ts` files the engine and AI tests already treat as the
+  canonical §8.3 source (`starterDeck.ts`, `houseDeck.ts`), rather than
+  duplicating ~25 card definitions. This is a `tools/` → `tests/` import,
+  which is backwards from the usual dependency direction — deliberate and
+  temporary until 1.5 gives the project a real content module to import
+  from instead.
 - **1.3's exit check doesn't hold at face value — flagged for Brent, not a
   blocker.** The plan says legend should beat random play >95% of the time;
   measured on the starter deck mirrored against itself, even a version of

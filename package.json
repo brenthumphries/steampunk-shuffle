@@ -10,11 +10,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "sim": "tsx tools/sim.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.2",
     "jsdom": "^25.0.1",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
     "vite-plugin-pwa": "^1.3.0",

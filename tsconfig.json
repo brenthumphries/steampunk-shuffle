@@ -12,8 +12,8 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src", "tests/unit", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "tests/unit", "tools", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["tests/e2e", "node_modules", "dist"]
 }
