@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after Step 1.1, Sept 10, 2026)
+## Current state (updated after Step 1.2, Sept 10, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -55,11 +55,49 @@ step whenever the task can be scripted.
   points) as the golden legal fixture, plus Dr Jekyll/Mr Hyde (two-faced
   Transform) and Sherlock Holmes/Robin Hood (reveal, reserved steal) for
   ability-DSL coverage. 45 tests, all passing.
+- 1.2 done. Rules engine lives in `src/engine/` (`matchTypes.ts` for runtime
+  state, `matchEngine.ts` for logic, `rng.ts` for a pure seeded PRNG). Pure
+  TypeScript, no DOM, immutable-from-the-caller's-view (`playTurn()` clones
+  via `structuredClone` and returns a new `MatchState`). Public surface:
+  `createMatch`, `playTurn`, `currentPlayer`, `effectivePoints`,
+  `boardScore`. Covers every `Rules text:` block in design.md §5-§6: On
+  Play/Persist/Friend/Elusive/Location/Flip/Un-flip/Return/Draw
+  N/Transform/Reveal(no-op)/steal(no-op), round scoring, leader alternation,
+  and all four match-end branches (two-rounds / more-rounds-after-three /
+  total-score-after-three / draw-after-three). `startOfRound`/`endOfRound`
+  triggered abilities resolve generically too (needed for Mr Hyde's own
+  end-of-round Flip) even though 1.1's schema comment only mentioned onPlay/
+  continuous. Tests in `tests/unit/engine/`: 24 targeted tests (one full
+  design.md §13.2 tutorial-round-1 replay against real starter/house cards,
+  the rest keyword-by-keyword) plus a 10,000-random-game property test
+  (~9s) asserting no throw, scores never negative, ≤3 rounds, no board card
+  ever face-down once a round's cleanup has run. 70 tests total, all passing.
 
-**Next three tasks:** 1.2 rules engine → 1.3 AI opponent → 1.4 balance
-simulator.
+**Next three tasks:** 1.3 AI opponent → 1.4 balance simulator → 1.5
+`ss-card-author` skill + card set v1.
 
 **Gotchas:**
+- The engine assumes decks are already legal (deck-builder's job later, or
+  `validateDeck` for tests/tools) — it never calls `validateDeck` itself, to
+  keep the two modules decoupled.
+- `createMatch`'s `{ shuffle: false }` option deals a deck in its given
+  array order instead of shuffling — this is the mechanism 2.7's tutorial
+  forced hands are meant to use (design.md §16: "a deck-order override, not
+  special cards"), not a special "forced hand" feature of its own.
+- A targeted effect (flip/unflip/return/buff) never targets its own source
+  card, even if the filter would otherwise match it (see Mr Hyde: "Flip one
+  of your own *other* cards"). This exclusion isn't written down anywhere in
+  the schema — it's a matchEngine.ts convention (`sourceInstanceId`), so a
+  future effect kind that genuinely wants to target itself would need an
+  explicit escape hatch.
+- Continuous buffs (Locations, e.g.) are recomputed live on every
+  `effectivePoints()` call rather than baked into a card when it enters
+  play, so a buff disappears the instant its source leaves — but that means
+  a continuous ability's own filter is matched against *pre-buff* points,
+  not full effective points (documented in `matchesFilter`'s call site),
+  to avoid a circular dependency. No v1 card's continuous ability filters
+  by points, so this hasn't mattered yet — revisit if 1.5 ever authors one
+  that does.
 - The ability DSL (`Effect` in `src/cards/cardTypes.ts`) is structural only
   — it validates shape (trigger/effect kinds, target sides, filters), not
   game semantics. 1.2 owns actually resolving these effects. `steal` is
