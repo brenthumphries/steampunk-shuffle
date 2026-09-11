@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after starting Step 1.5, Sept 11, 2026)
+## Current state (updated after finishing Step 1.6, Sept 11, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -140,10 +140,62 @@ dataSet.test.ts` validates every card and all 16 decks. 162 tests total
 "We're Not Worthy" (Salon) easter eggs aren't authored — both need effect
 kinds the engine doesn't have (see the schema-gap gotcha below).
 
-**Next three tasks:** 1.6 `ss-art-prompts` skill → 1.7
-`tools/ingest-art.py` → Phase 2 (match screen, 2.1).
+1.6 done. `.claude/skills/ss-art-prompts/` (Haiku) is built: reads
+`docs/style-bible.md` for palette/framing/negative-prompt rules and a card/
+asset list, writes a paste-ready CSV prompt sheet, and can build a single
+re-roll prompt with a specific fix folded in. Deterministic part lives in
+`tools/artPrompts.ts` (palette-by-family and aspect-by-category lookups
+straight from the style bible, negative-prompt assembly, order-sensitive
+reference-image resolution per style-bible.md §7's consistency technique,
+and daily-cap chunking at `GEMINI_DAILY_CAP` = 100, plan §1); the skill only
+supplies the creative scene description per asset, same split as
+`ss-card-author`'s flavour text. Unit tests in
+`tests/unit/tools/artPrompts.test.ts` cover the pure helpers (negative-
+prompt assembly, reference-chain resolution across an ordered sheet, CSV
+escaping, chunking); 176 tests total (project-wide), all passing.
+`npm run art-prompts -- <manifest.json> <sheetNumber>` runs it.
+
+**Prompt sheet 1 is generated**: `art/prompts/sheet-1-manifest.json` (the
+authored input) → `art/prompts/prompt-sheet-1.csv` (15 rows, one paste per
+row into Gemini): the 4 Regular-tier opponent portraits (Mudd, Ashby,
+Farrow, Hollis), the 4 Seasoned-tier (Bucket, Lovelace, Adler, Dickens),
+the first 2 Legends in design.md §9.3's table order (Holmes, Moriarty),
+the card back, 3 pub backgrounds (the snug, the back parlour, the cellar —
+the taproom itself was already generated in batch 0), and the app icon.
+Rows are ordered so each family's first portrait becomes that family's
+in-sheet reference for later rows of the same family (Mudd → Bucket;
+Farrow → Adler, Moriarty; Ashby → Bucket, Adler, Holmes; Hollis →
+Dickens), verified by reading the generated CSV, not just by the unit
+tests. Portrait art ids use a `portrait-` prefix (e.g.
+`portrait-sherlock-holmes`) to avoid colliding with the card-art ids
+`sherlock-holmes`/`professor-moriarty` already claimed in
+`src/cards/data/legends.ts` for those legends' signature-card
+illustrations — same asset-id namespace, two different images.
+**Which 10 portraits** wasn't specified anywhere in the design docs, only
+"10 portraits" in the plan table — the selection above (all 4 Regulars +
+all 4 Seasoned + the first 2 Legends by table order) follows design.md
+§12.1's unlock order (Regulars and Seasoned are what a newcomer sees
+before any Legend) as the most defensible reading, but it's a judgment
+call, not a locked spec. Worth confirming with Brent before spending the
+Gemini generations, or revising if he'd rather prioritize differently.
+
+**Next task:** 1.7 `tools/ingest-art.py` (crop/resize/WebP/manifest for
+whatever Brent generates from sheet 1) → Phase 2 (match screen, 2.1).
 
 **Gotchas:**
+- **This step ran on Sonnet, not the Haiku the plan assigns to 1.6** —
+  the session was already on Sonnet when asked to start 1.6 rather than
+  being opened fresh on Haiku, and there's no way for a running session to
+  downgrade its own model mid-conversation. Flagged, not corrected; the
+  skill itself is still written to run on Haiku for every future
+  invocation, so this doesn't compound. If a future session opens
+  specifically to build a plan step, open it on the model the plan lists
+  first, per `CLAUDE.md`'s model-discipline rule.
+- There are 14 untracked `art/Gemini_Generated_Image_*.jpeg` files at the
+  repo root (not under `art/inbox/` or `art/reference/`) — Brent's own
+  in-progress Gemini downloads, not touched by this step. Leave them for
+  1.7's `ingest-art.py` (or Brent) to sort into `art/inbox/` with real
+  asset ids; don't rename or move them from a content-authoring step.
 - **`npm run sim`'s runtime grew past 1.4's original "<2 min" exit check
   once 1.5 added 6 Legend-tier decks** — a first pass at the full
   16-deck report (all 4 Regular decks + all 6 Legend decks, at the
@@ -288,15 +340,16 @@ steampunk-shuffle/
 ├── docs/                # design.md, style-bible.md
 ├── art/
 │   ├── reference/        # style-bible reference images (batch 0)
+│   ├── prompts/          # ss-art-prompts manifests + generated CSV prompt sheets (Step 1.6)
 │   └── inbox/            # final card art drops here for tools/ingest-art.py (Step 1.7)
 ├── public/              # PWA icons, static files served as-is
 ├── src/                 # App source (TypeScript)
 │   └── cards/data/       # Canonical v1 card set + decks (plan step 1.5)
-├── .claude/skills/       # ss-ship, ss-card-author, ...
+├── .claude/skills/       # ss-ship, ss-card-author, ss-art-prompts, ...
 ├── tests/
 │   ├── unit/            # Vitest
 │   └── e2e/             # Playwright
-├── tools/               # Scripts (sim.ts, ingest-art.py — added as later steps need them)
+├── tools/               # Scripts (sim.ts, artPrompts.ts, ingest-art.py — added as later steps need them)
 ├── steampunk-shuffle-plan.md   # The build plan: phases, model assignments, exit checks
 └── README.md
 ```

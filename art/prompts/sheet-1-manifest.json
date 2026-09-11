@@ -1,0 +1,122 @@
+{
+  "_readme": "Input to `npm run art-prompts -- art/prompts/sheet-1-manifest.json 1`. Plan step 1.6, prompt sheet 1: 10 opponent portraits, the card back, 3 pub backgrounds, the app icon. Portrait/background art ids are prefixed to keep this UI-asset namespace separate from card artIds in src/cards/data (e.g. 'sherlock-holmes' is already a card-art id for his signature card — this sheet's 'portrait-sherlock-holmes' is a different asset, the tonight's-patrons roster portrait). Ordered so each family's Regular-tier portrait generates first and becomes that family's in-sheet reference for later rows (style-bible.md §7).",
+  "seed": {
+    "alwaysAttach": ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"],
+    "byFamily": {
+      "foundry": "art/reference/Sir_Charles_Wheatstone-behind-the-bar.jpeg"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "portrait-constable-tobias-mudd",
+      "category": "portrait",
+      "family": "yard",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of a young Metropolitan Police constable in his early twenties: round, earnest face, slightly flushed from hurrying, high-collared gunmetal-blue wool uniform with brass buttons, tall custodian helmet held under one arm rather than worn, a whistle chain visible at his chest. Eyebrows raised, slightly out of breath, caught mid-arrival rather than posed formally. Warm gaslight-amber key light from one side, cool gunmetal-blue ambient fill favouring the uniform, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture, directional Victorian book-plate lighting. Bust-to-shoulders portrait, background a soft blur of a foggy London street corner.",
+      "notes": "design.md §9.1, 'always slightly out of breath.' First Yard portrait — becomes the in-sheet Yard reference for Inspector Bucket below."
+    },
+    {
+      "assetId": "portrait-old-nell-ashby",
+      "category": "portrait",
+      "family": "irregulars",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of an elderly flower seller: weathered, knowing face, one eyebrow raised as if about to tell you half of something, worn shawl over a patched dress, a wicker basket of violets held at her chest. Standing in a doorway lit by a street gaslamp. Warm gaslight-amber key light, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a foggy shopfront and lamp-post.",
+      "notes": "design.md §9.1, \"Violets, guv? Or the other thing?\" First Irregulars portrait — becomes the in-sheet Irregulars reference for Bucket, Adler, and Holmes below."
+    },
+    {
+      "assetId": "portrait-dodgy-reg-farrow",
+      "category": "portrait",
+      "family": "rookery",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of a stocky middle-aged fence behind a pawnshop counter: oxblood-leather waistcoat over a rumpled shirt, sleeves rolled, a loupe pushed up onto his forehead, one hand resting protectively on a ledger. Defensive, faintly offended expression, chin lifted. Warm gaslight-amber key light, oxblood-leather tones dominant in wardrobe and counter, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of pawnshop shelving.",
+      "notes": "design.md §9.1, \"Everything on this table's legitimate. Mostly.\" First Rookery portrait — becomes the in-sheet Rookery reference for Adler and Moriarty below."
+    },
+    {
+      "assetId": "portrait-miss-prudence-hollis",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of a young woman in a modest but sharply tailored verdigris-green Victorian dress, hair pinned severely back, a fountain pen tucked behind one ear, a faint knowing smile as if she's already solved something. Warm gaslight key light with cool verdigris-green ambient fill from drawing-room brocade behind her. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a parlour bookshelf.",
+      "notes": "design.md §9.1, \"I've already worked out how you did it. Sit down.\" First Salon portrait — becomes the in-sheet Salon reference for Dickens below."
+    },
+    {
+      "assetId": "portrait-ada-lovelace",
+      "category": "portrait",
+      "family": "foundry",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Sir Charles's own portrait. Portrait of a Victorian countess in an elegant dress with brass-toned trim, seated near a mechanical difference-engine apparatus, calm analytical expression, one hand resting lightly on a brass lever. Warm brass-and-copper key light, cog-work and rivets rendered with real engineering logic in the soft background blur. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of workshop brass fittings.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.2, \"Your deck has a loop in it. I can see it from here.\" First Foundry portrait; attaches the existing Sir Charles reference (both Foundry)."
+    },
+    {
+      "assetId": "portrait-inspector-bucket",
+      "category": "portrait",
+      "family": "yard",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the Yard constable's portrait. Portrait of a stout, patient plainclothes police inspector in a dark gunmetal-blue coat and waistcoat, one forefinger raised beside his temple as if about to make a point, calm knowing half-smile, sharp watchful eyes. Warm gaslight-amber accent light on one side of his face, cool gunmetal-blue dominant in coat and ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study or informal parlour.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.2, \"I'll just sit here, if I may, and think about you.\" Yard + Irregulars — Yard dominant per style-bible.md's one-dominant-family rule; attaches both the Yard (Mudd) and Irregulars (Ashby) in-sheet references."
+    },
+    {
+      "assetId": "portrait-irene-adler",
+      "category": "portrait",
+      "family": "rookery",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the pawnbroker's and flower seller's portraits. Portrait of a striking, self-possessed Victorian woman in a fitted travelling coat trimmed in oxblood leather, faint knowing smile, direct confident gaze straight at the viewer. Warm gaslight-amber accent light, oxblood-leather tones dominant in wardrobe, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a train platform or hansom-cab door.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.2, \"Good night, Mr Sherlock Holmes.\" Rookery + Irregulars — Rookery dominant; attaches both the Rookery (Farrow) and Irregulars (Ashby) in-sheet references. The only portrait in this set looking straight at the viewer — she's the exception, style-bible.md §6."
+    },
+    {
+      "assetId": "portrait-charles-dickens",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Miss Hollis's portrait. Portrait of a Victorian gentleman with a full beard, animated and expressive mid-gesture as if reading aloud to a room, verdigris-green waistcoat, a walking stick implied at his side. Warm gaslight key light, cool verdigris-green ambient fill from drawing-room brocade. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a lecture hall or parlour.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.2, \"You'll have to wait for the ending. Everyone does.\" Attaches the in-sheet Salon (Hollis) reference."
+    },
+    {
+      "assetId": "portrait-sherlock-holmes",
+      "category": "portrait",
+      "family": "irregulars",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the flower seller's portrait. Portrait of a tall, sharp-featured Victorian gentleman detective, high collar, no deerstalker or cape (accurate to period, not caricature), faintly bored and appraising expression, eyes doing all the work. Warm gaslight-amber key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of Baker Street clutter — papers, a chemistry rack.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised", "no deerstalker cap, no Inverness cape, no calabash pipe"],
+      "notes": "design.md §9.3, \"You've been to the Foundry. It's on your cuff.\" This is the tonight's-patrons roster portrait — distinct from the 'sherlock-holmes' card-art id used for his signature legendary card. Attaches the in-sheet Irregulars (Ashby) reference."
+    },
+    {
+      "assetId": "portrait-professor-moriarty",
+      "category": "portrait",
+      "family": "rookery",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the pawnbroker's portrait. Portrait of a gaunt, high-domed Victorian academic in a dark coat trimmed in oxblood leather, hands loosely clasped, unnervingly still and precise expression. Warm gaslight-amber accent light on one side, oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study with a chalkboard of faint, barely-legible equations.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised", "no legible mathematics or writing on the chalkboard"],
+      "notes": "design.md §9.3, \"You stand fire admirably.\" Distinct from the 'professor-moriarty' card-art id used for his signature legendary card. Attaches the in-sheet Rookery (Farrow) reference."
+    },
+    {
+      "assetId": "card-back",
+      "category": "card-back",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, a card-back design for a Victorian pub card game. A single brass cog-and-gear emblem at the center, with a decorative diamond of four crossed brass struts worked into it — an abstracted nod to a Wheatstone bridge circuit — set on a deep ink-black ground within a parchment-cream border of engraved foliate scrollwork, a single hairline of sovereign gold tracing the emblem's edge. Symmetrical, medallion-like composition, engraved-seal aesthetic. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight catching the brass and gold.",
+      "extraNegatives": ["no monogram or initials, no playing-card suit symbols, no realistic scene or figures, no photographic metal reflections"],
+      "notes": "design.md §1.1/§9.3 — the bridge-circuit motif nods to the real Wheatstone bridge (see Agatha Christie's flavour text). Shared back for every card in the deck; SVG frame (a later Phase-3 step) supplies the border, so keep this self-contained rather than frame-shaped."
+    },
+    {
+      "assetId": "background-the-snug",
+      "category": "background",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom reference. A small, intimate snug room off the main taproom: a low fireplace with a single high-backed wing chair angled toward the flames, oxblood-leather upholstery, a low brass-fitted table, verdigris-green wallpaper faded at the edges, a scatter of foxed newspaper pages and a folded shawl on a side table. Warm amber firelight as the dominant source, cool blue-grey light seeping from a small window. Deep, lived-in detail — worn floorboards, a sleeping cat shape barely visible in shadow near the hearth. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight and firelight with real cast shadows.",
+      "extraNegatives": ["no people in frame"],
+      "notes": "design.md §14.6/§1.4 — the empty wing chair by the fire is the Landlady's, always empty until earned; keep it unoccupied and slightly apart from the room."
+    },
+    {
+      "assetId": "background-the-back-parlour",
+      "category": "background",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom reference. A quieter back parlour used for cards and conversation: a round brass-legged table set for a card game, mismatched chairs, gunmetal-blue window shutters closed against the evening fog, shelves of ledgers and bric-a-brac. A single hanging gaslamp casts a warm pool of amber light over the table while the corners fall into cool shadow. Deep, lived-in detail — worn card-table felt, a brass ashtray, a coat on a hook. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.",
+      "extraNegatives": ["no people in frame"],
+      "notes": "Match room, per plan step 2.x's future match screen — composed with room to lay UI over the lower third (style-bible.md §4)."
+    },
+    {
+      "assetId": "background-the-cellar",
+      "category": "background",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom reference. The pub's stone cellar, where Sir Charles's Foundry machinery lives alongside the ale casks: brass pipework and a small difference-engine apparatus bolted to one wall beside ranked oak barrels, a narrow stone stairway climbing out of frame toward a warm light above, exposed brick and old iron braces. A single caged gaslamp near the machinery casts hard amber light against deep cool shadow elsewhere. Deep, lived-in detail — condensation beading on old pipes, chalk marks on a barrel. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.",
+      "extraNegatives": ["no people in frame"],
+      "notes": "design.md §1.2 — \"one fault in time in the cellar.\" Legends \"come up the cellar stairs\" (§9.3); this is their entrance."
+    },
+    {
+      "assetId": "app-icon",
+      "category": "icon",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, a bold, simple app-icon mark for a Victorian pub card game: a single ornate brass gear interlocked with an abstracted bridge-arch diamond silhouette (echoing a Wheatstone bridge circuit), rendered as one graphic emblem centered on a deep ink-black ground, sovereign-gold rim light tracing the gear teeth. Detail kept large and simple enough to read clearly at thumbnail size. Confident inked contours softened under paint, faint paper-grain texture, a single warm gaslight-amber key light from above. No scene — the emblem fills the frame edge to edge.",
+      "extraNegatives": ["no app name or initials", "no realistic scene or background detail", "no gradients outside the palette", "no fine detail or thin lines that would blur at small sizes"],
+      "notes": "iOS/TestFlight app icon (Phase 4) and PWA icon (public/, Phase 0). Square, full-bleed — no rounded-corner mask baked in, iOS applies its own mask."
+    }
+  ]
+}
