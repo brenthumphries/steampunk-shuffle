@@ -260,6 +260,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     if (opts.highlight) wrap.classList.add("card--highlight");
     if (opts.selected) wrap.classList.add("card--selected");
     if (opts.disabled) wrap.classList.add("card--disabled");
+    wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
 
     wrap.appendChild(el("span", "card-points", String(opts.pointsOverride ?? face.points)));
     wrap.appendChild(el("span", "card-name", face.name));

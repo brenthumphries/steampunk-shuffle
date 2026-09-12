@@ -1,6 +1,8 @@
 // Opponent unlock thresholds and the "legends in town" rotation (plan step
 // 2.3, design.md §12.1/§12.3).
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -118,6 +120,27 @@ describe("Opponent.betPool (plan step 2.5, design.md §11.5)", () => {
       if (opponent.tier !== "seasoned" && opponent.tier !== "legend") continue;
       const rares = opponent.betPool.filter((id) => ACQUIRABLE_CARDS_BY_ID.get(id)!.rarity === "rare");
       expect(rares, `${opponent.id}`).toHaveLength(1);
+    }
+  });
+});
+
+// Plan step 3.2: a real prompt-sheet asset can be ingested into
+// public/art/ without ever being wired into Opponent.portraitArtId — that
+// exact gap (5 legends' portraits sat ingested and unused) is what this
+// pins against recurring.
+describe("Opponent.portraitArtId (plan step 3.2)", () => {
+  const manifest: Record<string, unknown> = JSON.parse(readFileSync(resolve(process.cwd(), "public/art/manifest.json"), "utf-8"));
+
+  it("points every set portraitArtId at a real ingested asset", () => {
+    for (const opponent of OPPONENTS) {
+      if (opponent.portraitArtId === undefined) continue;
+      expect(manifest, `${opponent.id}'s portraitArtId "${opponent.portraitArtId}" isn't in public/art/manifest.json`).toHaveProperty(opponent.portraitArtId);
+    }
+  });
+
+  it("gives every opponent a portrait, now that all six legends and Sir Charles have one ingested", () => {
+    for (const opponent of OPPONENTS) {
+      expect(opponent.portraitArtId, opponent.id).toBeDefined();
     }
   });
 });

@@ -1,0 +1,102 @@
+{
+  "_readme": "Input to `npm run art-prompts -- art/prompts/sheet-5-manifest.json 5`. Plan step 3.2: the 11 real cards that were never in any prompt sheet (five per-deck filler Characters that fill each starter/opponent deck out to 20 — src/cards/data/README.md's 'filler' note — plus the four Seasoned reward cards and Mary Shelley's two easter-egg extras, all of which live as deck-file extras outside the labeled 60 per src/cards/data/README.md, so ss-art-prompts's card-by-card sweep of ALL_CARDS never surfaced them), plus one background asset (background-the-taproom) that was always missing: only the taproom *reference* image (art/reference/) exists, from batch 0, and it was never actually re-generated as a public/art asset the way the-snug/the-back-parlour/the-cellar were in batch 1. Confirmed missing by diffing every artId referenced in src/cards/data/ against public/art/manifest.json's keys (72 needed, 61 covered before this sheet) — see CLAUDE.md's 3.2 entry. Family reference images point at the already-ingested roster portraits, same seed as sheet 4, so these fillers/rewards land visually consistent with the existing cast.",
+  "seed": {
+    "alwaysAttach": ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"],
+    "byFamily": {
+      "yard": "public/art/portrait-constable-tobias-mudd.webp",
+      "irregulars": "public/art/portrait-old-nell-ashby.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp",
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "background-the-taproom",
+      "category": "background",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the attached taproom reference image as closely as possible — same room, same composition, a fresh render for the game's asset pipeline. Wide establishing view of a narrow, gaslit Victorian public house taproom: brass fittings and piping along the ceiling, oxblood leather booths, verdigris copper accents on an old fireplace, gunmetal-blue window frames looking out on a foggy London street, warm amber gaslamps throughout. An empty chair by the fire, slightly apart from the others. A cat asleep on a stool. Deep, lived-in detail — worn floorboards, foxed paper notices, a concertina on a shelf behind the bar. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows, no flat toon shading.",
+      "notes": "design.md §1.1-§1.2 — the taproom itself, the game's main scene (pub hub). The batch-0 reference (art/reference/The_Wheatstone_Bridge_taproom.jpeg) was only ever a style-bible reference image, never run through ingest-art.py as a real public/art asset — style-bible.md gotcha flagged in CLAUDE.md's 3.2 entry. This row re-generates it as one, matching the reference as closely as possible rather than reinterpreting the scene."
+    },
+    {
+      "assetId": "line-fitter",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a young Foundry factory hand tending a belt-driven line of machinery, leather apron over rolled shirtsleeves, oil-smudged hands, a quiet, focused, keep-your-head-down expression — the kind of man who's never once been asked his opinion and prefers it that way. Warm brass-and-copper key light off the machinery behind him, cog-work and drive belts rendered with real engineering logic. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of factory-floor machinery.",
+      "notes": "House deck filler (src/cards/data/decks/houseDeck.ts) — \"Keeps the belts running and the opinions to himself.\" First Foundry row in this sheet; attaches portrait-ada-lovelace as the Foundry reference."
+    },
+    {
+      "assetId": "the-analytical-engine",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Object-study-leaning character portrait: Ada Lovelace's Analytical Engine itself, a large brass difference-engine apparatus with ranked number wheels, punch-card feed, and a maze of precise brass gearing, softly lit as if it were a character in its own right — no human figure in frame. Warm brass-and-copper key light, real engineering logic in every gear and rod. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of Lovelace's workshop.",
+      "notes": "Ada Lovelace's first-win reward card (design.md §9.2, src/cards/data/decks/lovelace.ts) — \"Your deck has a loop in it. I can see it from here.\" Attaches portrait-ada-lovelace for continuity even though the subject is the machine, not her, per style-bible.md's Character framing still applying to this card type."
+    },
+    {
+      "assetId": "abby-normal",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a Foundry laboratory workbench, the subject a single specimen jar on a brass stand wired into a small Tesla-coil-like apparatus, softly glowing, surrounded by a few similar sealed jars on a shelf behind — clinical and curious rather than gruesome, more \"cabinet of Victorian scientific curiosities\" than anything grisly. Warm brass-and-copper key light with a faint eerie blue-green glow from the apparatus itself as a small, contained accent. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of laboratory shelving.",
+      "extraNegatives": ["no gore, no viscera, no visible contents of any jar — the jar reads as sealed and abstract, a prop, not a body part"],
+      "notes": "Mary Shelley's easter-egg extra (design.md §15, src/cards/data/decks/shelley.ts) — a nod to \"Abby Normal,\" played for wit, not gore; keep it a clinical Victorian-curiosity object study, no gore-negative gets any closer to graphic than the base negative prompt already requires."
+    },
+    {
+      "assetId": "eye-gor",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a hunched, loyal Foundry laboratory assistant carrying a lantern slightly stage-left as if leading the way, a lopsided but good-natured expression, patched leather apron over a rough coat. Warm brass-and-copper key light from the lantern itself, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a laboratory corridor.",
+      "notes": "Mary Shelley's easter-egg extra (design.md §15, src/cards/data/decks/shelley.ts) — \"Walk this way.\" Keep him dignified and a touch endearing, not a punchline caricature."
+    },
+    {
+      "assetId": "beat-partner",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist portrait of a second young Metropolitan Police constable walking his beat, gunmetal-blue wool uniform with brass buttons, tall custodian helmet worn (unlike Mudd's, held under his arm), steady and a little more composed than his partner, one hand resting on his truncheon. Warm gaslight-amber key light from a street lamp, cool gunmetal-blue ambient fill favouring the uniform. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a foggy street corner, faintly echoing Mudd's own portrait framing.",
+      "notes": "Constable Mudd's deck filler (src/cards/data/decks/mudd.ts) — \"Walks the other half of Mudd's beat and never once complains about it.\" Attaches portrait-constable-tobias-mudd as the Yard reference so the two visually read as beat partners."
+    },
+    {
+      "assetId": "buckets-forefinger",
+      "category": "scheme",
+      "family": "yard",
+      "prompt": "Small vignette, tight on a single detail: Inspector Bucket's own gunmetal-blue-sleeved hand and raised forefinger held beside his temple, the same knowing gesture from his roster portrait, everything else soft-blurred out of focus behind it — the instant of him making his point rather than a full figure. Warm gaslight-amber accent light on the hand, cool gunmetal-blue dominant in the sleeve and ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.",
+      "notes": "Inspector Bucket's first-win reward card (design.md §9.2, src/cards/data/decks/bucket.ts) — \"I'll just sit here, if I may, and think about you.\" Attaches portrait-inspector-bucket (public/art/portrait-inspector-bucket.webp) by hand alongside the auto-attached Yard reference, for gesture continuity — not in this manifest's byFamily seed since that's fixed to Mudd's portrait; note this for whoever pastes the prompts."
+    },
+    {
+      "assetId": "street-sweeper",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a young street sweeper boy leaning on his broom in a gap between carriages, alert eyes that miss nothing, patched coat, cap pulled low. Warm gaslight-amber key light from a street lamp, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a busy cobbled street corner.",
+      "notes": "Nell Ashby's deck filler (src/cards/data/decks/nellAshby.ts) — \"Clears a path for the carriages and hears every word spoken over his broom.\" Attaches portrait-old-nell-ashby as the Irregulars reference."
+    },
+    {
+      "assetId": "errand-runner",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist portrait of a wiry young errand boy mid-stride, a wrapped parcel under one arm, oxblood-leather waistcoat too big for him, a knowing, slightly cheeky grin as if he already knows the route better than whoever sent him. Warm gaslight-amber key light, oxblood-leather tones in his waistcoat, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a narrow Rookery alley.",
+      "notes": "\"Dodgy\" Reg Farrow's deck filler (src/cards/data/decks/regFarrow.ts) — \"Delivers the parcel, delivers the message, delivers himself right back to Reg.\" Attaches portrait-dodgy-reg-farrow as the Rookery reference."
+    },
+    {
+      "assetId": "the-photograph",
+      "category": "scheme",
+      "family": "rookery",
+      "prompt": "Small vignette: a single sepia-toned photograph in a Victorian card mount, held at an angle as if just drawn from a hidden pocket, a woman's silhouette barely visible in the print itself — a prop and a secret, not a clear likeness. Warm gaslight-amber key light, oxblood-leather tones in a partial glimpse of a coat sleeve holding it, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.",
+      "extraNegatives": ["no legible face or identifiable likeness in the photograph itself — it reads as an old, slightly blurred print, a prop rather than a portrait"],
+      "notes": "Irene Adler's first-win reward card (design.md §9.2, src/cards/data/decks/adler.ts) — \"Good night, Mr Sherlock Holmes.\" The Holmes-canon photograph of Adler herself; keep the print itself indistinct so this doesn't become a second, uncredited Adler portrait."
+    },
+    {
+      "assetId": "church-fete-stall",
+      "category": "gadget",
+      "family": "salon",
+      "prompt": "Object study: a modest church fete charity stall on a trestle table, verdigris-green bunting, a hand-lettered (illegible at this distance) price card, jars of preserves and a tin collection box, shallow depth of field. Warm gaslight key light with cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a churchyard fete.",
+      "extraNegatives": ["any lettering on the price card or bunting must be illegible scribble, not readable text"],
+      "notes": "Miss Prudence Hollis's deck filler (src/cards/data/decks/prudenceHollis.ts) — \"Raises four shillings for the roof fund and considerably more gossip.\" Attaches portrait-miss-prudence-hollis as the Salon reference."
+    },
+    {
+      "assetId": "next-instalment",
+      "category": "gadget",
+      "family": "salon",
+      "prompt": "Object study: a stitched paper serial pamphlet — a Dickens-style monthly instalment — resting half-open on a verdigris-green brocade side table, a bookmark ribbon trailing, shallow depth of field, a cup of tea gone cold beside it. Warm gaslight key light with cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a parlour reading nook.",
+      "extraNegatives": ["no legible text on the pamphlet's pages or cover — texture and typographic suggestion only"],
+      "notes": "Charles Dickens's first-win reward card (design.md §9.2, src/cards/data/decks/dickens.ts) — \"You'll have to wait for the ending. Everyone does.\" Attaches portrait-miss-prudence-hollis as the Salon reference (Dickens's own portrait, portrait-charles-dickens, is also worth attaching by hand alongside it for continuity)."
+    }
+  ]
+}

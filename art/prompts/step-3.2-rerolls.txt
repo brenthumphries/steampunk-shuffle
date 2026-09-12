@@ -1,0 +1,261 @@
+Plan step 3.2 — style-bible re-roll prompts
+================================================================================
+
+Generated from a 4-way parallel visual audit of all 81 ingested assets against docs/style-bible.md. 18 assets flagged (see CLAUDE.md's 3.2 entry for the full audit summary and reasoning).
+P1 = a clear negative-prompt violation (baked-in border, legible text/equations) — same class of thing already flagged for card-back and the Moriarty chalkboard before this audit.
+P2 = a softer family-palette judgment call, not a hard rule violation — worth a look, not a must-fix.
+
+Paste `Attach this image:` + the prompt below into Gemini for a re-roll. Run `npm run ingest-art` afterward the same as any other batch.
+
+================================================================================
+card-back  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Already known (CLAUDE.md): full ornate scrollwork border baked in; a prior reroll improved gearwork detail but kept the border.
+Attach this image: public/art/card-back.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, a card-back design for a Victorian pub card game. A single brass cog-and-gear emblem at the center, with a decorative diamond of four crossed brass struts worked into it — an abstracted nod to a Wheatstone bridge circuit — set on a deep ink-black ground within a parchment-cream border of engraved foliate scrollwork, a single hairline of sovereign gold tracing the emblem's edge. Symmetrical, medallion-like composition, engraved-seal aesthetic. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight catching the brass and gold. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. This asset specifically needs to be completely self-contained gearwork/pattern with zero ornamental border, since 3.1's SVG frame is designed to wrap it.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no monogram or initials, no playing-card suit symbols, no realistic scene or figures, no photographic metal reflections
+
+Aspect ratio 3:4.
+
+================================================================================
+portrait-constable-tobias-mudd  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Rough cream/parchment torn-paper border baked into all four edges.
+Attach this image: public/art/portrait-constable-tobias-mudd.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of a young Metropolitan Police constable in his early twenties: round, earnest face, slightly flushed from hurrying, high-collared gunmetal-blue wool uniform with brass buttons, tall custodian helmet held under one arm rather than worn, a whistle chain visible at his chest. Eyebrows raised, slightly out of breath, caught mid-arrival rather than posed formally. Warm gaslight-amber key light from one side, cool gunmetal-blue ambient fill favouring the uniform, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture, directional Victorian book-plate lighting. Bust-to-shoulders portrait, background a soft blur of a foggy London street corner. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-dodgy-reg-farrow  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same baked-in border as Mudd's portrait.
+Attach this image: public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of a stocky middle-aged fence behind a pawnshop counter: oxblood-leather waistcoat over a rumpled shirt, sleeves rolled, a loupe pushed up onto his forehead, one hand resting protectively on a ledger. Defensive, faintly offended expression, chin lifted. Warm gaslight-amber key light, oxblood-leather tones dominant in wardrobe and counter, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of pawnshop shelving. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-inspector-bucket  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same baked-in border — confirmed by direct visual inspection, not just the audit agent.
+Attach this image: public/art/portrait-inspector-bucket.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the Yard constable's portrait. Portrait of a stout, patient plainclothes police inspector in a dark gunmetal-blue coat and waistcoat, one forefinger raised beside his temple as if about to make a point, calm knowing half-smile, sharp watchful eyes. Warm gaslight-amber accent light on one side of his face, cool gunmetal-blue dominant in coat and ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study or informal parlour. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-irene-adler  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same baked-in border.
+Attach this image: public/art/portrait-irene-adler.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the pawnbroker's and flower seller's portraits. Portrait of a striking, self-possessed Victorian woman in a fitted travelling coat trimmed in oxblood leather, faint knowing smile, direct confident gaze straight at the viewer. Warm gaslight-amber accent light, oxblood-leather tones dominant in wardrobe, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a train platform or hansom-cab door. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-old-nell-ashby  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same baked-in border.
+Attach this image: public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom. Portrait of an elderly flower seller: weathered, knowing face, one eyebrow raised as if about to tell you half of something, worn shawl over a patched dress, a wicker basket of violets held at her chest. Standing in a doorway lit by a street gaslamp. Warm gaslight-amber key light, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a foggy shopfront and lamp-post. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-professor-moriarty  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Baked-in border (new) AND legible chalkboard equations (already known) — two issues, one reroll.
+Attach this image: public/art/portrait-professor-moriarty.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the pawnbroker's portrait. Portrait of a gaunt, high-domed Victorian academic in a dark coat trimmed in oxblood leather, hands loosely clasped, unnervingly still and precise expression. Warm gaslight-amber accent light on one side, oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study with a chalkboard of faint, barely-legible equations. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. Separately, remove or blur any equations on the chalkboard behind him to an illegible scribble — the current version reads legible-ish maths despite the negative prompt (already flagged in CLAUDE.md).
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no legible mathematics or writing on the chalkboard
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-sherlock-holmes  (from sheet 1) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Baked-in border, plus a bad crop leaving visible floor below the bust.
+Attach this image: public/art/portrait-sherlock-holmes.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the flower seller's portrait. Portrait of a tall, sharp-featured Victorian gentleman detective, high collar, no deerstalker or cape (accurate to period, not caricature), faintly bored and appraising expression, eyes doing all the work. Warm gaslight-amber key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of Baker Street clutter — papers, a chemistry rack. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. Also fix the crop so no floor/ground is visible below the frame — bust-to-shoulders only, per style-bible.md §4's portrait framing.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no deerstalker cap, no Inverness cape, no calabash pipe
+
+Aspect ratio 1:1.
+
+================================================================================
+portrait-hercule-poirot  (from sheet 2) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same baked-in border as the sheet-1 portraits.
+Attach this image: public/art/portrait-hercule-poirot.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the Yard constables' portraits. Portrait of a small, fastidiously dressed Belgian gentleman with an immaculately groomed moustache, chin lifted slightly, hands folded with precise satisfaction as if everything in frame has already been arranged to his standard. Warm gaslight-amber accent light, cool gunmetal-blue dominant in a sharply tailored coat and ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a perfectly tidy parlour. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 1:1.
+
+================================================================================
+good-news-everybody  (from sheet 2) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Full ornamental engraved border baked into the headline art.
+Attach this image: public/art/good-news-everybody.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a town crier's bell and an open envelope, engraved-linework aesthetic as if printed rather than painted, gaslight-amber accents in the border rule lines. Faint paper-grain and foxing texture. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. Keep the printed-newspaper masthead composition (columns, headline block) — only the ornamental engraved border needs to go.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene
+
+Aspect ratio 3:4.
+
+================================================================================
+party-time-excellent  (from sheet 3) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Same full-perimeter decorative border baked into the headline art.
+Attach this image: public/art/party-time-excellent.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a factory whistle mid-blast with radiating steam lines, engraved-linework aesthetic as if printed rather than painted, brass-and-copper accents in the border rule lines. Faint paper-grain and foxing texture. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. Keep the printed-newspaper masthead composition — only the ornamental border needs to go.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene
+
+Aspect ratio 3:4.
+
+================================================================================
+cat-burglar-strikes-again  (from sheet 3) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Full ornamental scrollwork border baked into the headline art, on an otherwise well-executed newspaper treatment.
+Attach this image: public/art/cat-burglar-strikes-again.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a cat's paw print over a broken window latch, engraved-linework aesthetic as if printed rather than painted, oxblood-leather accents in the border rule lines. Faint paper-grain and foxing texture. Re-render with the illustration filling the frame completely edge-to-edge — no border, no frame, no vignette, no rough/torn paper edge of any kind around the image; the game applies its own card frame separately in-app. Keep the printed-newspaper masthead composition (the paw-print motif, the column layout) — only the ornamental red/black scrollwork border needs to go.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene
+
+Aspect ratio 3:4.
+
+================================================================================
+professor-moriarty  (from sheet 4) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Already known (CLAUDE.md): legible-ish chalkboard equations, confirmed still present on this card-art version too (distinct image from the portrait).
+Attach this image: public/art/professor-moriarty.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a gaunt, high-domed academic, hands loosely clasped, unnervingly still, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight-amber accent light, oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a study with a chalkboard of faint, barely-legible equations. Remove or blur any equations on the chalkboard to an illegible scribble — the current version reads legible-ish maths (E(v)=..., F(v,r)=...) despite the "no legible mathematics" negative prompt.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no legible mathematics or writing on the chalkboard
+
+Aspect ratio 3:4.
+
+================================================================================
+regs-ledger  (from sheet 3) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: The open ledger shows legible handwritten number columns and what reads as a signature, not just texture.
+Attach this image: public/art/regs-ledger.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: an open pawnshop ledger on a counter, one entry crossed out and rewritten in a different hand, a loupe resting on the open page. Symbolic rather than literal. Warm gaslight-amber key light, oxblood-leather counter tones, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture. Make the ledger's handwriting fully illegible squiggle/texture — no readable number columns or signature, even at a glance.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+
+================================================================================
+the-seasons-most-talked-about-engagement  (from sheet 3) — P1 — clear style-bible violation
+--------------------------------------------------------------------------------
+Why: Currently reads as an ornate wedding-invitation border with a blank interior, not a printed newspaper page — the headline type's required treatment (style-bible.md §4) isn't met at all, not just a border problem.
+Attach this image: public/art/the-seasons-most-talked-about-engagement.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of two entwined wedding rings over a fan of gossiping speech-scroll shapes, engraved-linework aesthetic as if printed rather than painted, verdigris-green accents in the border rule lines. Faint paper-grain and foxing texture. This should read as a printed Victorian newspaper front page — masthead-style composition, columns of (illegible) body text, a bold central motif — not a wedding invitation/certificate. Remove the ring/ribbon/floral-scrollwork invitation framing entirely and replace it with an actual newspaper page layout, matching the other headline cards' treatment (see good-news-everybody / party-time-excellent / cat-burglar-strikes-again once their own border fix lands).
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene, no legible text on the scroll shapes
+
+Aspect ratio 3:4.
+
+================================================================================
+cab-driver  (from sheet 2) — P2 — worth a look, lower confidence
+--------------------------------------------------------------------------------
+Why: Cool blue-grey/black dominates (coat, top hat, fog); only one small lamp accent is warm-toned, so the family-color read leans Yard rather than Irregulars. Softer guidance (style-bible §2's "rule of thumb"), not a hard negative-prompt violation — Brent's call whether it's worth a reroll.
+Attach this image: public/art/cab-driver.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a hansom-cab driver up on his box, muffled in a heavy coat and scarf against the fog, reins loose in one hand, eyes forward with the unbothered look of a man who has seen everything and will mention none of it. Warm gaslight-amber key light from a passing streetlamp, cool ambient fog fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cab rank at night. Shift the dominant lighting/palette warmer — more gaslight amber, less cool gunmetal blue-grey — so this reads as an Irregulars card at a glance, the way the other Irregulars cards do.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+
+================================================================================
+inspectors-warrant  (from sheet 2) — P2 — worth a look, lower confidence
+--------------------------------------------------------------------------------
+Why: No gunmetal blue at all — dominated by warm brown desk wood and an oxblood-red wax seal. Softer guidance, not a hard violation — Brent's call.
+Attach this image: public/art/inspectors-warrant.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: a folded, wax-sealed warrant document resting on a brass-cornered desk beside an ink pot and a half-lifted quill, the seal's ribbon catching a single shaft of gaslight. Symbolic rather than literal — the paper is the whole scene. Warm gaslight-amber key light, cool gunmetal-blue ambient shadow, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture. Add real gunmetal-blue presence to the scene — a glimpse of a Yard uniform sleeve, a police seal, blue-grey evening light through a window — so it reads as Yard, not just warm desk-brown and an oxblood wax seal.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+
+================================================================================
+mary-shelley  (from sheet 4) — P2 — worth a look, lower confidence
+--------------------------------------------------------------------------------
+Why: Dress reads dark olive/verdigris-green rather than brass/copper, though the workshop background is correctly Foundry-toned — borderline, and she's a major legend, so worth a second look before spending a reroll on a good likeness.
+Attach this image: public/art/mary-shelley.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a thoughtful young Victorian woman writer among Foundry workshop brass fittings rather than a writing desk, one hand resting on a half-assembled brass-and-copper framework, a private, slightly mischievous smile, a thin sovereign-gold rim light marking the card as legendary. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop machinery. Warm the dress toward brass/copper-adjacent tones (a bronze or amber-brown rather than dark olive-green) so the card reads Foundry at a glance, matching the workshop machinery already in the background.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 3:4.
+

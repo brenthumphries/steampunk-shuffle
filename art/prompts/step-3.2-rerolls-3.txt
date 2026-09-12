@@ -1,0 +1,16 @@
+Plan step 3.2 — round 3 re-roll prompt for regs-ledger
+================================================================================
+
+Why rounds 1-2 failed: Two straight attempts at "blur/angle the open page" both failed — the model keeps rendering a sharp, fully legible open ledger regardless. Rather than a third variant of the same losing approach, this drops the open-book concept entirely: the ledger is shown CLOSED, with a hand resting on the cover. There is no page for the model to render text onto, so the legibility failure mode is removed at the compositional level instead of being fought with camera/lighting instructions that haven't worked twice.
+
+Attach this image: public/art/regs-ledger.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette, entirely different framing from a page of writing: a thick pawnshop ledger, closed, bound in worn oxblood leather with a tarnished brass clasp holding it shut, resting on a pawnshop counter. A man's weathered hand, one plain ring visible, rests flat and protective on top of the closed cover, as if guarding what's inside rather than inviting anyone to read it — the ledger's pages stay entirely hidden, closed, with no open page, no visible writing, and no legible marks anywhere, including on the spine or cover. An unused loupe and a stub of pencil sit beside it on the counter. Symbolic rather than literal — the secrecy itself is the subject, not any entry in the book. Warm gaslight-amber key light, oxblood-leather tones dominant in the ledger and counter, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no open book, no visible interior pages, no handwriting, no numbers, no legible or implied text of any kind anywhere in the image, including on the cover or spine of the ledger
+
+Aspect ratio 3:4.
+
+Run `npm run ingest-art -- art/prompts/sheet-3-manifest.json --inbox <dir>` afterward (same as rounds 1-2), or just drop it in the usual folder and ask Claude to ingest.

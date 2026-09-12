@@ -181,6 +181,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     if (face) {
       cardEl.dataset.family = face.family;
       cardEl.dataset.rarity = card!.rarity;
+      cardEl.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
       cardEl.appendChild(el("span", "card-points", String(face.points)));
       cardEl.appendChild(el("span", "card-name", face.name));
       const chips = keywordChips(face);
@@ -211,6 +212,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     root.replaceChildren();
 
     const screen = el("div", "pub-hub");
+    screen.style.setProperty("--scene-bg", `url(${artUrl("background-the-taproom")})`);
 
     const header = el("div", "pub-hub-header");
     const titleWrap = el("div", "pub-hub-title-wrap");

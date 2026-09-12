@@ -1002,6 +1002,391 @@ added here anyway since it cost one extra rule and left unguarded would
 be exactly the kind of thing 3.3 would otherwise have to hunt down
 retroactively.
 
+3.2 done, after 3.3-3.5 in session order (each of those ran ahead of it for
+its own reason, already noted in their own entries) — this session finally
+wires the 81 already-ingested assets into the actual UI and audits all of
+them against docs/style-bible.md.
+
+**Wiring (the "wire all art" half).** The card illustration window
+3.1 explicitly left blank is now real: `.card`'s CSS background gained a
+`--illustration` custom property layered between a top-to-bottom scrim
+gradient (for text legibility) and the existing solid-dark fallback fill —
+defaulting to `none` so a card with no art yet (see below) still renders
+exactly as before rather than a broken image. `buildCardEl`
+(`src/ui/matchScreen.ts`) and the four other places that hand-roll a
+`.card` element (`acquisitionScreen.ts`, `bracketScreen.ts`,
+`pubHubScreen.ts`'s reveal overlays, `dedicationScreen.ts`'s dedication
+card) all now set it from each face's real `artId`. Three screen-level
+backgrounds also got wired the same "--custom-property set from JS via
+`import.meta.env.BASE_URL`" way (never a bare CSS `url()` — the subpath-
+deploy gotcha below still applies): the deck builder gets
+`background-the-back-parlour` ("a quieter room used for cards and
+conversation"), the Back Room gets `background-the-cellar` (matches its
+fusing/trading vibe and design.md's "legends come up the cellar stairs"),
+and the pub hub gets none — no `background-the-taproom` asset was ever
+actually generated (see below). The app icon (`public/icons/icon-192.png`/
+`icon-512.png`/`apple-touch-icon.png`) was still 0.3's tiny scaffold
+placeholder the whole time despite a real, good `public/art/app-icon.webp`
+(a brass gear/"SS" monogram) sitting ingested and unused since 1.7 —
+regenerated all three sizes from it with Pillow.
+
+**Found and fixed a real wiring bug, not new content: `matchScreen.ts`'s
+`--table-bg` custom property was being *set* on `.match-screen` at every
+render (`background-the-snug`) but no CSS rule ever consumed
+`var(--table-bg)`** — 2.1 wired the JS half and never the CSS half, so the
+match table has silently had no background image this entire time. One
+line fixed it. Caught by grepping for the property name after noticing
+3.1's card-frame comment still said "the illustration window is still
+blank until 3.2" — worth remembering that a `style.setProperty` with no
+matching CSS `var()` fails completely silently, no console warning, no
+broken-image icon, nothing.
+
+**Found and fixed a second real wiring bug: five opponents' portrait art
+was already ingested and sitting unused, never wired into
+`Opponent.portraitArtId`.** `src/pub/opponents.ts` never set
+`portraitArtId` for Christie, Poirot, Dr Jekyll/Mr Hyde, Mary Shelley, or
+Sir Charles (house tier) — CLAUDE.md's own 3.1/3.5 gotcha said "no
+portrait art yet... only 10 of the cast were in prompt sheet 1," which
+was true when written but stopped being true once sheets 2-4 shipped
+`portrait-agatha-christie`, `portrait-hercule-poirot`,
+`portrait-dr-jekyll-mr-hyde`, `portrait-mary-shelley`, and
+`portrait-sir-charles-wheatstone` (real, already-ingested assets, findable
+by diffing `public/art/manifest.json`'s keys against every
+`Opponent.portraitArtId` in code) — nobody had gone back to wire them in
+once the art existed. Five one-line additions fixed it; a new test
+(`tests/unit/pub/opponents.test.ts`, "Opponent.portraitArtId") pins both
+that every set `portraitArtId` resolves to a real manifest entry and that
+every opponent now has one, specifically so a future asset landing in
+`public/art/` without a matching code change goes red instead of silently
+sitting unused again.
+
+**The dedication screen's "the-landlady" art is dim almost to the point of
+invisibility — this is correct, not a bug.** Her card had to be given a
+fixed `aspect-ratio: 3/4` (it was rendering as a short, wide strip because
+`.card--zoom` sizes itself off content and the dedication card has very
+little text) with its text pinned to the bottom over the scrim's darkest
+band. Once that was fixed, the art underneath reads as a woman seen from
+behind, facing a fire, almost entirely lost to shadow but for a rim of
+warm light — which is exactly style-bible.md §6's rule for her ("never a
+portrait... seen from the bar, face turned toward the fire... in
+silhouette or three-quarter-from-behind... otherwise unlit and
+indistinct — she is a presence, not a character design"). Confirmed by
+eye in the browser, not just inferred from the source file.
+
+**The style-bible audit (the "regenerate any card whose art fails" half)**
+ran as four parallel subagents, each opening ~20 of the 81 real ingested
+files directly and checking them against style-bible.md §2/§4/§5/§6's
+rules (palette, framing, negative prompts, the pub-regulars sheet).
+18 new failures surfaced, on top of the two already known (`card-back`'s
+baked-in border, `portrait-professor-moriarty`'s legible-ish chalkboard
+equations — both re-checked and confirmed still present). Spot-verified a
+sample directly (not just trusting the subagents) before acting on them.
+
+- **A baked-in border/frame is by far the dominant new failure — 11 of the
+  18.** Eight portraits from sheets 1-2 (`portrait-constable-tobias-mudd`,
+  `portrait-dodgy-reg-farrow`, `portrait-inspector-bucket`,
+  `portrait-irene-adler`, `portrait-old-nell-ashby`,
+  `portrait-professor-moriarty`, `portrait-sherlock-holmes` — the last
+  also has a bad crop showing floor below the bust — and
+  `portrait-hercule-poirot`) all carry a rough cream/parchment torn-paper
+  edge the exact same way `card-back` already does, despite the negative
+  prompt explicitly saying "no border or frame, no vignette." Three
+  headline cards (`good-news-everybody`, `party-time-excellent`,
+  `cat-burglar-strikes-again`) separately have a full ornamental
+  engraved/scrollwork border baked in — their actual newspaper-page
+  treatment is otherwise correct, only the border needs to go. This
+  reads like a systemic prompt-adherence gap across at least three
+  different generation sessions, not a one-off — worth tightening the
+  negative-prompt wording itself (`NEGATIVE_PROMPT_BASE` in
+  `tools/artPrompts.ts`) if re-rolling doesn't fully clear it.
+- **`the-seasons-most-talked-about-engagement` (a headline) doesn't fail
+  on a border — it fails the category treatment entirely**, rendering as
+  a wedding-invitation border (rings, ribbon, floral scrollwork) around a
+  blank interior instead of a printed Victorian newspaper front page.
+- **Two legible-text failures beyond the known chalkboard**:
+  `professor-moriarty` (the card-art version, distinct from the portrait)
+  shares the same legible-ish equations as its portrait sibling, confirmed
+  independently; `regs-ledger` shows readable handwritten number columns
+  and what reads as a signature, not just texture.
+- **Three softer, palette-only findings, flagged for Brent rather than
+  auto-queued for a reroll**: `cab-driver` (Irregulars) reads cool
+  gunmetal-blue/black rather than gaslight amber; `inspectors-warrant`
+  (Yard) has no gunmetal blue at all, just warm desk-brown and an oxblood
+  wax seal; `mary-shelley` (Foundry) wears a dark olive/verdigris-leaning
+  dress against an otherwise correctly brass/copper workshop background.
+  These are style-bible §2's "rule of thumb" guidance, not its
+  negative-prompt list — real, but lower-confidence and lower-stakes
+  (Shelley especially: re-rolling a major legend's good likeness over a
+  palette nuance is a real risk, not a free action) — Brent's call, same
+  spirit as every other "flagged, not fixed" judgment call in this file.
+- Everything else — all 38 characters, all 15 portraits bar the 8 above,
+  all 5 gadgets, the other 2 schemes, the other 2 headlines, all 8
+  locations, the 3 backgrounds, and the app icon's monogram — checked out
+  clean: no photoreal/3D/anime rendering, no goggles-and-corsets cosplay,
+  no modern anachronisms, no gore or distorted limbs, family-color reads
+  correct, historical figures recognizable-but-stylised rather than
+  photoreal or caricatured, category framing correct throughout.
+
+All 18 have a ready-to-paste re-roll prompt in the new
+`art/prompts/step-3.2-rerolls.txt` (built with `tools/artPrompts.ts`'s
+existing `buildRerollPrompt`, one call per finding, each folding in a
+specific fix rather than a full re-description) — P1 for the 15 clear
+violations, P2 for the 3 softer palette calls. None of these have actually
+been re-rolled or re-ingested in this session; that's real Gemini spend
+and Brent's call on priority, same division of labour 1.6/1.7 already
+established (Claude writes prompts, Brent generates, `ingest-art.py`
+processes the result).
+
+**A separate, genuine content gap (not a style-bible failure — these
+assets never existed at all): 11 real cards and 1 background had no art
+asset in any of the 4 prompt sheets, ever.** Diffed every `artId`
+referenced in `src/cards/data/` against `public/art/manifest.json`'s keys
+(72 needed, 61 covered) to find them: five per-deck filler Characters that
+pad a starter/opponent deck out to 20 (`line-fitter`, `beat-partner`,
+`street-sweeper`, `errand-runner`, `church-fete-stall` — each deck-local,
+outside the labeled 60, per `src/cards/data/README.md`'s filler note),
+the four Seasoned reward cards (`buckets-forefinger`,
+`the-analytical-engine`, `the-photograph`, `next-instalment` — real, deck-
+file "extras beyond the labeled 60" per the same README), and Mary
+Shelley's two easter-egg extras (`abby-normal`, `eye-gor`). All eleven
+were always outside `ALL_CARDS`, which is exactly why every prior sheet
+(built by working through `src/cards/data/`'s card-by-card `artId`s, per
+`ss-art-prompts`'s own procedure) never surfaced them — nobody's ever
+actually swept the deck-file extras. Plus `background-the-taproom`: only
+a batch-0 *reference* image exists (`art/reference/
+The_Wheatstone_Bridge_taproom.jpeg`), never actually run through
+`ingest-art.py` as a real `public/art` asset the way the-snug/the-back-
+parlour/the-cellar were — which is also why the pub hub, the single most-
+viewed screen in the app, still has no scene background at all. Authored
+all 12 as `art/prompts/sheet-5-manifest.json` → generated
+`prompt-sheet-5.csv`/`.txt` the normal way. **Since ingested — see the
+follow-up note below.**
+**Worth a beat before spending Gemini generations on it**: reward-card and
+easter-egg art not being swept by the normal pipeline is itself worth
+fixing at the source (e.g. `ss-card-author` or a `src/cards/data/
+README.md` convention ensuring every deck-file extra's `artId` gets
+tracked the same way the labeled 60's are) so a sixth sheet doesn't hit
+the same gap once the next reward card or easter egg is authored.
+
+Verified end-to-end in the browser at the 375×812 iPhone viewport: played
+a real tutorial turn and confirmed hand/board cards show their real
+illustration under legible text; opened a full card zoom (Night Watchman)
+and confirmed the art fills the window with the name/ability/flavor
+readable over the scrim; confirmed the match table now shows
+`background-the-snug` for the first time; confirmed Sir Charles and all
+six legends now show real portraits on the pub hub (previously five of
+them were gradient-circle placeholders); opened the deck builder and the
+Back Room and confirmed their new scene backgrounds render (had to lower
+the scrim opacity from `.match-screen`'s `.55/.85` to `.3/.7` for these
+two specifically — the-cellar and the-back-parlour run dark enough on
+their own that the stronger scrim buried them completely at first, caught
+by screenshotting before assuming the CSS was even wrong); confirmed the
+dedication card's new aspect ratio and "the-landlady" art render as
+described above. `npm run typecheck`, `npm test` (358 unit tests, up from
+356 — the 2 new `portraitArtId` tests), `npx playwright test` (28 e2e, all
+passing, unaffected — no screen's testable structure changed), and
+`npm run build` all clean.
+
+**Follow-up, same day: sheet 5's 12 assets generated and ingested.** Brent
+generated all 12 in Gemini and dropped them into `art/manual Gemini
+generations/`, already named to match their assetIds exactly (no typo
+this time, unlike sheet 4's `the-personage-snug`/`the-parsonage-snug`
+mismatch) — copied into `art/inbox/` and run through `npm run ingest-art
+-- art/prompts/sheet-5-manifest.json` (12 ingested, 0 skipped;
+`public/art/manifest.json` now holds 93 assets, up from 81). Every
+`artId` referenced anywhere in `src/cards/data/` now resolves to a real
+ingested asset — confirmed by re-running the same manifest-diff check
+this step used to find the gap in the first place, now empty. Spot-
+checked several of the new images directly (not just trusted the
+pipeline): `background-the-taproom` matches the batch-0 reference closely
+(concertina on the shelf, empty chair, cat on a stool, foggy street
+through the windows), `abby-normal` stayed a tasteful sealed-jar/apparatus
+object study with zero gore, and `the-photograph` correctly kept Adler's
+likeness indistinct in the print itself rather than becoming a second,
+uncredited portrait — all three had specific instructions in the sheet-5
+manifest aimed at exactly these risks, and all three landed as asked.
+Wired `background-the-taproom` into the pub hub the same
+`--scene-bg`-custom-property way as the deck builder/Back Room (with the
+same lighter `.3/.7` scrim, not `.match-screen`'s `.55/.85` — see above),
+closing the one screen-background gap this step's CSS work had
+deliberately left open pending the asset existing. Verified in the
+browser at 375×812: the taproom now renders behind the pub hub's patron
+list. `npm run typecheck`, `npm test` (358, unchanged — no new logic, just
+new assets plus one CSS/JS wiring addition), `npx playwright test` (28
+e2e, all passing), `npm run build` all clean.
+
+**Noticed but deliberately left alone: `art/inbox/` and `art/manual
+Gemini generations/` both still hold a full extra copy of sheet 4's 16
+assets** (`baker-street.jpeg`, `dame-agatha.jpeg`,
+`the-reichenbach-falls.jpeg`, etc., including a correctly-spelled
+`the-parsonage-snug.jpeg` in `art/inbox/` sitting alongside the original
+ingestion's already-fixed copy) — these are stale leftovers from sheet 4's
+original ingestion that were never cleaned out of either folder (the same
+"folder isn't auto-cleared" behavior 1.7's gotchas already describe for
+`art/inbox/`), not new rerolls of anything this step's audit flagged.
+Confirmed they're duplicates, not something new, before ignoring them —
+Brent's message only asked for sheet 5, and none of the 18 style-bible
+re-roll targets from this step's audit are named among them (Brent hasn't
+acted on `step-3.2-rerolls.txt` yet). Worth a cleanup pass whenever
+someone's next in these folders for an unrelated reason, but not touched
+here since it wasn't asked for.
+
+**Follow-up, same day: all 18 rerolls generated and ingested — 14 fully
+fixed, 1 partially fixed, 3 still failing.** Brent generated all 18 in
+Gemini and dropped them into `art/manual Gemini generations/
+step-3.2-rerolls/`, again named exactly to assetId. Since these are
+reroll*s* of existing assetIds (not new ones), `art/inbox/` already had a
+stale copy of each from the original sheets 1-4 ingestion sitting
+unnoticed (see the "noticed but deliberately left alone" note above) —
+overwriting those in place and re-running the normal `ingest-art -- art/
+prompts/sheet-N-manifest.json` would have also silently re-processed
+every *other* stale leftover in `art/inbox/` for that sheet (harmless —
+same source, same output — but wasteful and not clean). Used
+`ingest-art.py`'s existing `--inbox DIR` flag instead: staged just the
+relevant subset of the 18 into 4 scratch directories (8 for sheet 1, 4 for
+sheet 2, 4 for sheet 3, 2 for sheet 4, matching each asset's origin sheet)
+and ran `ingest-art.py <sheet-N-manifest.json> --inbox <scratch-dir>` four
+times — each run only touches the assets actually staged in that scratch
+dir, `public/art/manifest.json` stays at 93 entries (updates in place, no
+new ids), and the real `art/inbox/`'s stale duplicates were never
+touched. Verified every one of the 18 by eye (not just trusting the
+pipeline a second time):
+
+- **14 fully fixed**: `portrait-constable-tobias-mudd`,
+  `portrait-dodgy-reg-farrow`, `portrait-inspector-bucket`,
+  `portrait-irene-adler`, `portrait-old-nell-ashby`,
+  `portrait-sherlock-holmes` (border gone, crop corrected too),
+  `portrait-hercule-poirot`, `good-news-everybody`,
+  `cat-burglar-strikes-again` (both now genuinely full-bleed newspaper
+  pages, no ornamental border), `professor-moriarty` (the card-art
+  version — chalkboard now unreadable scribble), and all three P2 palette
+  calls — `cab-driver` (now reads gaslight-amber Irregulars at a glance),
+  `inspectors-warrant` (real gunmetal blue now present), `mary-shelley`
+  (dress now brass/amber-toned, matching her workshop background).
+- **1 partially fixed**: `portrait-professor-moriarty` — the baked-in
+  border is gone, but the chalkboard behind him still shows legible-ish
+  equations despite the fold-in fix; the card-art sibling
+  (`professor-moriarty`) fixed cleanly from the same instruction, so this
+  looks like generation variance rather than a wording problem.
+- **3 still failing, worth a further look, not re-rolled again here**:
+  `card-back` still has its full ornamental scrollwork border on its
+  *third* attempt (1.7's original, an earlier reroll, and this one) —
+  this specific asset seems resistant to the standard fix; worth trying a
+  more drastically different prompt (e.g. dropping the "engraved seal
+  aesthetic" framing entirely) rather than a fourth near-identical
+  reroll. `party-time-excellent` kept its ornamental border *and* lost
+  almost all its newspaper content in the process (the reroll came back
+  as a near-blank bordered page). `regs-ledger` came back with the
+  handwriting, if anything, more legible than before (a clear cursive
+  signature, readable-ish number columns) — the "illegible squiggle" fix
+  instruction didn't take.
+- **One additional, not-previously-flagged observation**: the-seasons
+  -most-talked-about-engagement's reroll fixed the actual category
+  problem (it's now a real "Daily Universal Register" newspaper front
+  page, not a wedding invitation) but the page carries a thin double-rule
+  border/frame around its own edge — much subtler than the ornamental
+  scrollwork on the three still-failing assets above, and arguably closer
+  to a printed page's own margin rule than a decorative card frame, but
+  technically still a border per style-bible.md §5's literal "no border
+  or frame." Counted as fixed for now given how much better the core
+  treatment is, but worth a second look before calling it fully done.
+
+`npm test` (358, unchanged), `npm run typecheck`, and `npm run build` all
+still clean — no code changed this pass, only ingested assets.
+
+**Follow-up, same day: a round-2 reroll of the 4 still-open assets — 3 of
+4 fixed, diagnosing the actual root cause first this time instead of just
+re-appending the same fix.** Read each failing asset's *original* prompt
+text (not just the negative-prompt list) before writing a new one, and
+found the real problem in three of the four: `card-back`'s and
+`party-time-excellent`'s own base prompts literally asked for a border
+("within a parchment-cream border of engraved foliate scrollwork,"
+"...in the border rule lines") — a direct self-contradiction against the
+negative prompt that no appended fix could ever win, which is why the
+first reroll (round 1, appending a fix via `buildRerollPrompt`) failed on
+both. `portrait-professor-moriarty`'s base prompt asked for a chalkboard
+"of faint, barely-legible equations" — the word "equations" itself
+plausibly primes legible-looking math regardless of the negative prompt.
+All three were rewritten from scratch (new `prompt` text, not an appended
+fix) in `art/prompts/step-3.2-rerolls-2.txt`, generated via
+`tools/artPrompts.ts`'s `buildNegativePrompt`/`ASPECT_BY_CATEGORY`
+directly rather than `buildRerollPrompt` (which only ever appends).
+Ingested the same `--inbox`-scoped-scratch-directory way as round 1 (2 for
+sheet 1, 2 for sheet 3), verified each by eye:
+
+- **`card-back` — fixed.** The scrollwork now genuinely tiles edge-to-edge
+  as a continuous surface pattern, with the brass gear sitting directly on
+  it — no separate border ring. Took a full prompt rewrite; three prior
+  attempts (1.7's original plus two rerolls) never had a chance while the
+  base prompt kept asking for a border.
+- **`party-time-excellent` — fixed**, and no longer sparse either (the
+  round-1 reroll had come back nearly blank). Content now fills the page
+  edge-to-edge with dense columns. **Minor nitpick, not re-rolled over
+  it**: the "greeked" body text came back as actual Latin lorem-ipsum
+  filler ("Lorem ipsum dolor sit amet...") rather than abstract
+  line-marks — literally legible words, technically against "no text,"
+  but conventional placeholder-text convention rather than any real
+  content, and a much smaller concern than the border problem it was
+  chasing. Judgment call to leave as-is.
+- **`portrait-professor-moriarty` — fixed.** The chalkboard now shows only
+  abstract arrows/circles/scribbles, zero numerals or equation-like
+  marks — confirms the "equations" word in the base prompt was the actual
+  trigger, not generation variance as first guessed.
+- **`regs-ledger` — still failing, needs a different approach again, not
+  a third identical reroll.** The requested raking angle/shallow depth of
+  field never materialized — the reroll came back sharp and front-on
+  across the whole page, same as before, with an ink blot added but most
+  of the page (including full number columns and cursive entries on the
+  left) still clearly legible. The "shallow depth of field" instruction
+  seems to not be landing at all through two attempts now; worth trying a
+  structurally different composition next time rather than a third
+  variant of "blur the ledger" — e.g. drop the open-ledger concept
+  entirely in favor of a closed ledger with just a hand resting on the
+  cover, or a scene where the page is turned away from camera.
+
+`npm test` (358, unchanged), `npm run typecheck`, `npm run build` all
+clean — no code changed, only re-ingested assets.
+
+**Follow-up, same day: `regs-ledger`'s round-3 reroll fixed it — this
+closes out every asset the style-bible audit flagged.** Two straight
+attempts at "blur/angle the open page" had failed to stop the ledger's
+handwriting from rendering legibly, so round 3 dropped the open-book
+concept entirely: a *closed* ledger, brass clasp shut, with a hand
+resting on the cover as if guarding it rather than reading it — there's
+no page in frame for anything to be written on. Worked on the first try.
+Source file arrived misnamed (`reqs-ledger.jpeg` for the assetId
+`regs-ledger`) — the same "typo the assetId on the way out of Gemini"
+gotcha 1.7/3.2 already flagged for sheet 4's `the-personage-snug`; caught
+and corrected on copy into the scratch inbox before ingesting, same as
+that precedent. `npm test` (358), `npm run typecheck`, `npm run build` all
+clean.
+
+**Every one of the 18 style-bible-flagged assets from this step's audit is
+now fixed** (17 outright, plus `party-time-excellent`'s accepted
+lorem-ipsum nitpick) across three reroll rounds — 14 in round 1, 3 more in
+round 2, the last one in round 3. Worth remembering for next time a
+reroll doesn't take on the first try: **read the asset's own base scene
+prompt before assuming the negative-prompt list needs to be louder.** Of
+the 4 stubborn cases, 3 turned out to have the base prompt itself asking
+for the exact thing being negative-prompted against (a border, or
+"equations"), and the 4th (`regs-ledger`) turned out to need a different
+*composition*, not different camera/lighting language layered onto the
+same one. A negative prompt can't reliably out-argue the positive prompt
+sitting right next to it.
+
+**Still open, not this step's job:** the `deck-card-tile`/`backroom-tile`
+flat list rows still deliberately carry no art thumbnail (3.1's own
+scoping call, re-confirmed here rather than re-litigated).
+
+**This step ran on Sonnet, not the Haiku the plan assigns to 3.2** — same
+situation as 1.6/2.5/3.4/3.5's flagged gotchas: the session was already
+running on Sonnet when asked to start 3.2 rather than being opened fresh
+on Haiku. Flagged, not corrected — the two wiring bugs this step found
+(the dead `--table-bg` CSS variable, the five un-wired `portraitArtId`s)
+are exactly the kind of thing worth noting stayed hidden across several
+Haiku-and-Sonnet sessions already, not a reason to think Haiku itself
+would've missed them.
+
 3.3 done, ahead of 3.2 in the plan's own order — Brent asked for it directly
 and animation turned out not to depend on 3.2's art wiring (it's DOM/CSS
 motion on top of whatever's already rendering, art or no art), so it was

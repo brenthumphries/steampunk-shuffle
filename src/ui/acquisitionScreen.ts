@@ -26,6 +26,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
+function artUrl(assetId: string): string {
+  return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
+}
+
 function cardDisplayName(cardId: string): string {
   if (cardId.startsWith("foil:")) {
     const base = ACQUIRABLE_CARDS_BY_ID.get(cardId.slice(5));
@@ -163,6 +167,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
       const face = card.faces[0];
       cardEl.dataset.family = face.family;
       cardEl.dataset.rarity = card.rarity;
+      cardEl.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
       cardEl.appendChild(el("span", "card-points", String(face.points)));
       cardEl.appendChild(el("span", "card-name", cardDisplayName(cardId)));
       const chips = keywordChips(face);
@@ -195,6 +200,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     root.replaceChildren();
 
     const screen = el("div", "backroom-screen");
+    screen.style.setProperty("--scene-bg", `url(${artUrl("background-the-cellar")})`);
 
     const header = el("div", "pub-hub-header");
     const backBtn = el("button", "taproom-button taproom-button--secondary", "Back to the bar");

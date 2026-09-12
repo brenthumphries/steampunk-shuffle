@@ -73,8 +73,9 @@ body {
    Match screen (plan step 2.1). Family frame colours from
    docs/style-bible.md §2 / design.md §4. The card frame itself (border
    gradient + rarity ornament, step 3.1) is built from these in the
-   ".card" rules below; the illustration window is still blank until
-   3.2 wires real art.
+   ".card" rules below; the illustration window is wired to real art in
+   step 3.2 via the "--illustration" custom property (set from JS per
+   card, since Card.artId isn't known at CSS-authoring time).
 --------------------------------------------------------------------- */
 
 :root {
@@ -94,6 +95,13 @@ body {
   gap: 0.6rem;
   height: 100%;
   font-size: 0.85rem;
+  /* "--table-bg" is set from JS (background-the-snug.webp) via
+     import.meta.env.BASE_URL — never a bare CSS url(), since the site is
+     served at a subpath (see CLAUDE.md's gotcha on this). */
+  background-image: linear-gradient(rgba(26, 18, 11, 0.55), rgba(26, 18, 11, 0.85)), var(--table-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .match-topbar {
@@ -255,6 +263,11 @@ body {
   --frame-dark: color-mix(in srgb, var(--family) 70%, black 45%);
   --frame-shadow: 0 0 #0000;
   --state-shadow: 0 0 #0000;
+  /* The illustration window (style-bible.md §4): set per-card from JS to
+     a real art asset's url(); defaults to "none" so a card with no art
+     yet (design.md content authored ahead of its art batch) falls back
+     to the plain dark fill below rather than a broken image. */
+  --illustration: none;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -262,9 +275,20 @@ body {
   border-width: 0.32rem 0.14rem 0.14rem 0.14rem;
   border-color: transparent;
   border-radius: 0.35rem;
-  background:
-    linear-gradient(#241a10, #241a10) padding-box,
-    linear-gradient(135deg, var(--frame-light), var(--frame-dark) 55%, var(--frame-light) 100%) border-box;
+  /* Three padding-box layers (scrim, illustration, solid fallback fill)
+     plus the existing border-box frame gradient — the scrim darkens
+     top-to-bottom so the art stays visible near the points badge but the
+     name/ability/flavor text at the bottom stays legible over any art. */
+  background-image:
+    linear-gradient(180deg, rgba(26, 18, 11, 0.15) 0%, rgba(26, 18, 11, 0.55) 55%, rgba(26, 18, 11, 0.88) 100%),
+    var(--illustration),
+    linear-gradient(#241a10, #241a10),
+    linear-gradient(135deg, var(--frame-light), var(--frame-dark) 55%, var(--frame-light) 100%);
+  background-repeat: no-repeat;
+  background-size: cover, cover, auto, auto;
+  background-position: center, center, center, center;
+  background-origin: padding-box, padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, padding-box, border-box;
   box-shadow: var(--frame-shadow), var(--state-shadow);
   color: var(--ink);
   flex-shrink: 0;
@@ -604,8 +628,11 @@ body {
 }
 
 /* ---------------------------------------------------------------------
-   Deck builder (plan step 2.2). Same flat family-color convention as the
-   match screen's cards — no illustration window until 3.1.
+   Deck builder (plan step 2.2). Card tiles keep the flat family-color
+   convention (3.1 deliberately left deck-card-tile/backroom-tile
+   frameless — they're list rows, not physical cards); the screen itself
+   gets the back-parlour background (step 3.2) — "a quieter back parlour
+   used for cards and conversation," a fitting scene for deck-building.
 --------------------------------------------------------------------- */
 
 .deck-builder {
@@ -615,6 +642,15 @@ body {
   height: 100%;
   overflow-y: auto;
   font-size: 0.85rem;
+  /* "--scene-bg" set from JS via import.meta.env.BASE_URL, same reasoning
+     as .match-screen's "--table-bg". Lighter scrim than .match-screen's —
+     the back-parlour/cellar art (unlike the well-lit snug) runs dark
+     enough on its own that .55/.85 buried it entirely; verified by eye
+     in the browser, not just by reading the source images. */
+  background-image: linear-gradient(rgba(26, 18, 11, 0.3), rgba(26, 18, 11, 0.7)), var(--scene-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .deck-builder-header {
@@ -857,9 +893,10 @@ body {
 }
 
 /* ---------------------------------------------------------------------
-   Pub hub (plan step 2.3, design.md §11.2). Same flat-color, no-frame
-   convention as the match screen and deck builder — 3.1's card frame
-   hasn't landed yet.
+   Pub hub (plan step 2.3, design.md §11.2). Gets the taproom background
+   (step 3.2, sheet 5) — the game's main scene, so it's the one place the
+   "--scene-bg" convention's lighter scrim (see .deck-builder's comment)
+   matters most.
 --------------------------------------------------------------------- */
 
 .pub-hub {
@@ -868,6 +905,10 @@ body {
   gap: 0.7rem;
   height: 100%;
   overflow-y: auto;
+  background-image: linear-gradient(rgba(26, 18, 11, 0.3), rgba(26, 18, 11, 0.7)), var(--scene-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .pub-hub-header {
@@ -1088,10 +1129,18 @@ body {
 
 /* -- Dedication screen (plan step 3.5, design.md §14.1) ------------------ */
 
+/* Step 3.2: give the dedication card a real portrait aspect ratio (it has
+   too little text to size itself off content, like every other
+   ".card--zoom", and would otherwise render as a short, wide strip that
+   crops "the-landlady" art down to almost nothing) and push its text to
+   the bottom, over the illustration window's darkest scrim, so her art
+   reads properly above it on the single most special screen in the app. */
 .dedication-card {
+  aspect-ratio: 3 / 4;
   align-items: center;
+  justify-content: flex-end;
   text-align: center;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 1rem 2rem;
   gap: 0.5rem;
 }
 
@@ -1310,6 +1359,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* The cellar background (step 3.2) — Sir Charles's machinery, ale
+     casks, and the room legends "come up the stairs" from (design.md
+     §1.2, §9.3) — fits the Back Room's fusing/trading vibe. Same
+     "--scene-bg" JS-set convention as .deck-builder — same lighter
+     scrim too (see .deck-builder's comment: the source art runs darker
+     than the match screen's already-well-lit snug). */
+  background-image: linear-gradient(rgba(26, 18, 11, 0.3), rgba(26, 18, 11, 0.7)), var(--scene-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .backroom-title {

@@ -1,0 +1,67 @@
+Plan step 3.2 — round 2 re-roll prompts for the 4 still-open assets
+================================================================================
+
+These are NOT the old prompt + a fix appended (that's what round 1 did, via buildRerollPrompt, and it didn't work for 3 of these 4 — see CLAUDE.md's 3.2 entry). Each prompt below is rewritten from scratch: for card-back and party-time-excellent, the ORIGINAL prompt text itself asked for a border ("within a parchment-cream border...", "...in the border rule lines") while the negative prompt separately said no border — a direct self-contradiction no amount of appended fix text could win against. For regs-ledger, the loupe prop and crossed-out-entry framing invited a legible hero shot despite no explicit request for legible text. For portrait-professor-moriarty, the word "equations" in the base prompt is the likely trigger even with a negative prompt fighting it.
+
+Paste `Attach this image:` + the prompt below into Gemini. Run `npm run ingest-art` with the matching sheet manifest afterward (card-back/portrait-professor-moriarty are sheet 1, party-time-excellent/regs-ledger are sheet 3), same as any other batch.
+
+================================================================================
+card-back  (card-back)
+--------------------------------------------------------------------------------
+Why round 1 failed: Root cause found: the ORIGINAL prompt (all 3 prior attempts) literally said "within a parchment-cream border of engraved foliate scrollwork" — asking for a border while also negative-prompting against one. Rewritten from scratch so the scrollwork is the full-bleed pattern itself, not a border around anything.
+What changed this time: Full prompt rewrite, not a fix appended to the old one — the old base description was self-contradicting.
+Attach this image: public/art/card-back.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, a full-bleed card-back pattern for a Victorian pub card game, filling the entire frame edge-to-edge with no border, ring, or margin of any kind — the decorative foliate scrollwork pattern itself extends seamlessly to all four edges of the image, continuing past where a border would normally sit, as if the pattern were cropped from a larger continuous surface. At the center: a single brass cog-and-gear emblem with a decorative diamond of four crossed brass struts worked into it — an abstracted nod to a Wheatstone bridge circuit — a single hairline of sovereign gold tracing the emblem's edge, set directly against the parchment-cream scrollwork ground with no separate ink-black panel or ring isolating it. Symmetrical, engraved-seal aesthetic, but with the ornamental linework treated as an all-over repeating surface pattern rather than a frame around a central medallion. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight catching the brass and gold.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no monogram or initials, no playing-card suit symbols, no realistic scene or figures, no photographic metal reflections, no border, no ring, no frame, no vignette, no distinct edge separating a central emblem from a bordered margin, no card-shaped crop, no rounded corners
+
+Aspect ratio 3:4.
+
+================================================================================
+party-time-excellent  (headline · foundry)
+--------------------------------------------------------------------------------
+Why round 1 failed: Root cause found: the ORIGINAL prompt said "brass-and-copper accents in the border rule lines" — same self-contradiction as card-back. The prior reroll's fix-only approach also came back nearly blank, so this rewrite adds an explicit "must be densely filled" instruction to stop that regression too.
+What changed this time: Full prompt rewrite: "border rule lines" -> internal column rules only; added an explicit density requirement after the last reroll came back mostly blank.
+Attach this image: public/art/party-time-excellent.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page, filling the frame completely edge-to-edge with no perimeter border, frame, or ornamental edge of any kind — the page itself is the full image, cropped as if photographed flat with no margin. Symmetrical masthead composition: a bold central woodcut-style motif of a factory whistle mid-blast with radiating steam lines, engraved-linework aesthetic as if printed rather than painted. Below the masthead, dense columns of small greeked/illegible printed body text (rows of fine horizontal lines suggesting type, not readable words) fill the rest of the page — the page must read as densely typeset, not blank or mostly empty. Thin brass-and-copper vertical rule lines separate the columns from each other only, never running along the outer edge of the page. Faint paper-grain and foxing texture throughout the page surface.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene, no border, no frame, no decorative edge or margin around the page, no blank or empty page — the page must be densely filled with newspaper column content
+
+Aspect ratio 3:4.
+
+================================================================================
+regs-ledger  (scheme · rookery)
+--------------------------------------------------------------------------------
+Why round 1 failed: The original prompt never asked for legible text directly, but "one entry crossed out and rewritten" plus a loupe on the page both invite a hero, in-focus reading of the handwriting — and the fix-only reroll came back if anything more legible. This rewrite removes the loupe (a magnifier's whole point is legibility) and forces shallow focus + an ink blot as structural occlusion, not just a negative-prompt request.
+What changed this time: Dropped the loupe entirely (it was working against the ask); added raking angle, shallow focus, and an ink blot as physical reasons the text can't be read.
+Attach this image: public/art/regs-ledger.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: an open pawnshop ledger on a counter, shown from a low, raking three-quarter angle so the page recedes sharply into soft focus — only the near corner of the page is even close to sharp, and even there the ink lines read as a dense scribble of texture, never as individual legible letters, words, or numbers. A large ink blot pooled over part of one entry obscures it further. Symbolic rather than literal. Warm gaslight-amber key light raking hard across the page, oxblood-leather counter tones, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture, pronounced shallow depth of field blurring most of the page.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no legible handwriting anywhere on the page, no readable numbers, no readable signature — all writing must resolve as abstract ink texture only, no sharp focus across the full page
+
+Aspect ratio 3:4.
+
+================================================================================
+portrait-professor-moriarty  (portrait · rookery)
+--------------------------------------------------------------------------------
+Why round 1 failed: The original prompt's own scene description asked for a chalkboard "of faint, barely-legible equations" — the word "equations" primes the model toward real-looking mathematical notation even with a negative prompt fighting it (this is likely why the card-art sibling's identical prompt succeeded on one roll but this portrait didn't: pure generation variance around the same risky word). This rewrite removes "equations" from the base description entirely and redirects the content toward non-mathematical marks.
+What changed this time: Removed the word "equations" from the base prompt (the likely trigger) and redescribed the chalkboard content as abstract, explicitly non-numeric marks.
+Attach this image: public/art/portrait-professor-moriarty.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the pawnbroker's portrait. Portrait of a gaunt, high-domed Victorian academic in a dark coat trimmed in oxblood leather, hands loosely clasped, unnervingly still and precise expression. Warm gaslight-amber accent light on one side, oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study with a chalkboard covered in faint, smudged chalk marks — abstract scribbles, arrows, and half-erased diagram shapes, deliberately not mathematical notation: no numerals, no letters, no symbols that could be read as an equation.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no legible mathematics or writing on the chalkboard, no numerals, no equals signs, no algebraic symbols, no letters forming words — chalk marks must read as abstract gesture only
+
+Aspect ratio 1:1.
+

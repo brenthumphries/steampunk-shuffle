@@ -64,6 +64,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
+function artUrl(assetId: string): string {
+  return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
+}
+
 export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOptions): () => void {
   const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
   let stored: DeckSlotsState = loadDeckSlotsState();
@@ -85,6 +89,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
 
   function renderSlotList(): HTMLElement {
     const screen = el("div", "deck-builder");
+    screen.style.setProperty("--scene-bg", `url(${artUrl("background-the-back-parlour")})`);
 
     const header = el("div", "deck-builder-header");
     const backBtn = el("button", "action-button action-button--secondary", "Back to the taproom");
@@ -141,6 +146,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     const legality = computeLegality(slot, cardsById);
 
     const screen = el("div", "deck-builder");
+    screen.style.setProperty("--scene-bg", `url(${artUrl("background-the-back-parlour")})`);
 
     const header = el("div", "deck-builder-header");
     const doneBtn = el("button", "action-button action-button--secondary", "Done");

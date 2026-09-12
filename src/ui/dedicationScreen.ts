@@ -23,6 +23,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
+function artUrl(assetId: string): string {
+  return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
+}
+
 /** Mounts the dedication screen into `root` and returns a teardown function. */
 export function mountDedicationScreen(root: HTMLElement, options: DedicationScreenOptions): () => void {
   let step: Step = "card";
@@ -39,6 +43,7 @@ export function mountDedicationScreen(root: HTMLElement, options: DedicationScre
       const card = el("div", "card card--zoom reveal-card dedication-card");
       card.dataset.family = "neutral";
       card.dataset.rarity = "legendary";
+      card.style.setProperty("--illustration", `url(${artUrl("the-landlady")})`);
       card.appendChild(el("p", "dedication-line", "The Wheatstone Bridge"));
       const licensedTo = el("p", "dedication-line");
       licensedTo.append("Licensed to ", el("strong", undefined, "Sara"));
