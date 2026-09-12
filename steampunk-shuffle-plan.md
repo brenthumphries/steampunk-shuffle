@@ -103,6 +103,11 @@ Slack built in: Phase 2 has two weeks for what is ~8 days of Sonnet work; Phase 
 
 | # | Step | Model | Exit check |
 |---|---|---|---|
+| 4.0a | **Batch A: Re-point opponent decks** (PT-32) — move to tier bands (Regular 38–42 · Seasoned 44–48 · Legend 48–54); Nell/Lovelace/Adler/Jekyll first, then others; use `ss-card-author` per deck, `npm run curve` after each | Haiku 4.5 | Every opponent *sensible* column within ±10 of target; `npm run sim` clean |
+| 4.0b | **Batch B: Engine** (PT-3/10/25) — add `hasKeyword` to `TargetFilter`; fix Return detection; discard Schemes/Headlines after On Play | Sonnet 5 | Unit tests per rules block; tutorial script still pins 9-6/7-15/7-6 |
+| 4.0c | **Batch C: Tutorial + match screen** (PT-2/7/8/9/11/12/13/14/22/27/30) — mats don't get overwritten, hand grows, coin toss shown, targeting clarity, points colour-coding | Sonnet 5 | Replay tutorial: every mat readable, round-3 hand fully visible at 402×874 |
+| 4.0d | **Batch D: Ownership** (PT-1/4/16/17/24) — owned = starter + collection; builder tiles show owned count; unowned capped/dimmed; seed slot 1 | Sonnet 5 | Fresh install: slot 1 is "The Village Constable"; no unowned card addable |
+| 4.0e | **Batch E: Hub + gift touches** (PT-5/6/15/18/19/20/21/23/26/28/29/31) — hide Invitational until Oct 30; subtitle hub buttons; Checks explanation | Haiku 4.5 | Invitational invisible day 1; newcomer can name each hub button's function |
 | 4.1 | **Content freeze Oct 16.** Only bug fixes after this. | — | Tagged `v1.0-rc1` |
 | 4.2 | Capacitor wrap: `npm i @capacitor/core @capacitor/ios`, `npx cap add ios`, Preferences + Haptics + StatusBar plugins, splash + icon set generated from the app icon art, `Info.plist` orientation lock (portrait) | Sonnet 5 | `npx cap sync` clean; project opens in Xcode |
 | 4.3 | **Xcode + App Store Connect checklist** for you to execute on the Mac: signing with your team, bundle id, version/build, archive, upload; create the app record; add a TestFlight external group with her email; fill the Beta App Review info | Haiku 4.5 writes; you execute; **Sonnet** if a build error appears | Build shows "Ready to Submit" in App Store Connect **by Oct 20** |

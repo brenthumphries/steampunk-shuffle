@@ -41,14 +41,18 @@ called out inline as a comment on the affected card. Listed here so they
 don't get silently rediscovered, and so a future engine patch has a ready
 punch list:
 
-1. **`TargetFilter` can't check for a keyword** (no "has Friend", "has
-   Persist", "is legendary"). Affects every "each face-up Friend card"
-   card: `The Parsonage Snug` (original 1.1/1.2 content — approximated as
-   "every face-up card"), `The Season's Most Talked-About Engagement`
-   (approximated as "every face-up Character" instead, to avoid
-   over-broadening a third time), `The Landlady` (same as Parsonage Snug).
-   Also blocks `The Overnight Express`'s printed text (needs "has
-   Persist") entirely — see #3.
+1. ~~**`TargetFilter` can't check for a keyword**~~ — **fixed, plan step
+   4.0b (batch B).** `TargetFilter.hasKeyword` (`src/cards/cardTypes.ts`)
+   checks for a keyword's presence on a face, honoured in `matchesFilter`
+   (`src/engine/matchEngine.ts`), which `continuousBuffMap` already calls.
+   `The Parsonage Snug`, `The Season's Most Talked-About Engagement`, and
+   `The Landlady` now all filter on `hasKeyword: "friend"`, matching their
+   printed "each/every face-up Friend card" text exactly — and since The
+   Landlady carries no Friend keyword herself, this also closed gap #5
+   (she no longer buffs herself) for free, with no separate self-exclusion
+   needed. `The Overnight Express` still doesn't say "has Persist" — its
+   rework is tangled with gap #3 (no Location controller), not just the
+   keyword gap, and wasn't touched here.
 2. **`draw` has no `target`/`side`.** "Each player draws N" can't be
    written as one ability; it always resolves for the ability's
    controller only. Affects `Good News, Everybody!` (both the Irregulars
@@ -70,12 +74,13 @@ punch list:
    pick targets independently; you can't say "unflip a card, then buff
    *that* card." Affects `Mary Shelley` — dropped the printed "+2 this
    round" clause, kept the unflip.
-5. **No self-exclusion for continuous buffs.** The `sourceInstanceId`
-   exclusion that keeps a one-shot targeted effect from hitting its own
-   card (design.md's "never targets its own source" convention) doesn't
-   exist for `continuousBuffMap`. `The Landlady`'s "every OTHER face-up
-   Friend card" ends up including herself — a one-card, +1 overstatement,
-   not a systemic issue.
+5. ~~**No self-exclusion for continuous buffs.**~~ — **fixed for free by
+   #1's `hasKeyword` fix (batch B)**: The Landlady carries no Friend
+   keyword herself, so filtering her buff on `hasKeyword: "friend"`
+   already excludes her without a dedicated `sourceInstanceId` exclusion
+   in `continuousBuffMap`. That general exclusion still doesn't exist —
+   only worth adding if a future continuous-buff card's filter would
+   otherwise match its own card.
 6. **No "grant a keyword until end of round" effect.** Blocks design.md
    §15's Dodgeball easter egg (Rookery Scheme *The Five D's*, "gains
    Elusive until end of round") entirely — not authored in v1.

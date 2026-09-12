@@ -148,11 +148,6 @@ export const theHypnofrog: Card = {
   ],
 };
 
-// The Salon's Headline slot. Approximated as "your face-up Characters"
-// rather than "your face-up Friend cards" — TargetFilter can't check for a
-// keyword (see ss-card-author's engine-vocabulary notes); this stays
-// honest about what it actually does rather than reusing The Parsonage
-// Snug's broader (any-card) approximation a third time.
 export const theSeasonsMostTalkedAboutEngagement: Card = {
   id: "the-seasons-most-talked-about-engagement",
   rarity: "uncommon",
@@ -165,7 +160,7 @@ export const theSeasonsMostTalkedAboutEngagement: Card = {
       abilities: [
         {
           trigger: "onPlay",
-          effects: [{ effect: "buff", target: { side: "self", filter: { cardType: "character" } }, amount: 1 }],
+          effects: [{ effect: "buff", target: { side: "self", filter: { hasKeyword: "friend" } }, amount: 1 }],
         },
       ],
       flavor: "Nobody at the Bridge has met either party, which has not slowed the speculation.",

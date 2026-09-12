@@ -27,12 +27,8 @@ export const theParsonageSnug: Card = lockedCard({
       abilities: [
         {
           trigger: "continuous",
-          // Printed text (design.md §8.2) says "each face-up Friend card";
-          // TargetFilter can't check for a keyword, so this — the original
-          // 1.1/1.2 implementation — applies to every face-up card on each
-          // side instead. Precedent for every other "Friend card" ability
-          // in this file; see ss-card-author's engine-vocabulary notes.
-          effects: [{ effect: "buff", target: { side: "each", filter: {} }, amount: 1 }],
+          // Printed text (design.md §8.2): "each face-up Friend card gets +1."
+          effects: [{ effect: "buff", target: { side: "each", filter: { hasKeyword: "friend" } }, amount: 1 }],
         },
       ],
       flavor: "Where the cats sleep. Named for a house in Haworth none of them have visited.",

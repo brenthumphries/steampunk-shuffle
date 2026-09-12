@@ -15,6 +15,26 @@ import {
   partyTimeExcellent,
 } from "../families/foundry.ts";
 
+// Furnace Stoker (Lovelace deck-local card, plan step 4.0a): industrial labor,
+// no Persist or special abilities—vanilla Foundry filler to dilute synergy.
+export const furnaceStoker: Card = {
+  id: "furnace-stoker",
+  rarity: "common",
+  faces: [
+    {
+      name: "Furnace Stoker",
+      type: "character",
+      family: "foundry",
+      points: 1,
+      flavor: "Keeps the fire hot and the gears turning. Asks no questions.",
+      artId: "furnace-stoker",
+    },
+  ],
+};
+
+// The Analytical Engine (Lovelace reward card, plan step 4.0a): reduced from 5 pts
+// to 2 pts and removed from deck composition to dilute synergy. Kept as export
+// for Lost & Found/Pawnbroker acquirable pool (design.md §11.3–§11.4).
 export const theAnalyticalEngine: Card = {
   id: "the-analytical-engine",
   rarity: "rare",
@@ -23,7 +43,7 @@ export const theAnalyticalEngine: Card = {
       name: "The Analytical Engine",
       type: "character",
       family: "foundry",
-      points: 5,
+      points: 2,
       keywords: { persist: true, elusive: true },
       flavor: "Your deck has a loop in it. I can see it from here.",
       artId: "the-analytical-engine",
@@ -41,5 +61,5 @@ export const lovelacesDeck: Deck = [
   { card: brassCog, quantity: 2 },
   { card: sabotage, quantity: 2 },
   { card: partyTimeExcellent, quantity: 2 },
-  { card: theAnalyticalEngine, quantity: 2 },
+  { card: furnaceStoker, quantity: 2 },
 ];

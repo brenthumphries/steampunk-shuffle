@@ -175,6 +175,16 @@ function resolvePlay(state: MatchState, playerId: PlayerId, instance: CardInstan
       resolveEffect(state, effect, playerId, opts?.chooseTargets, instance.instanceId);
     }
   }
+
+  // Schemes and Headlines are one-shot ("On Play, then it's spent" — §3):
+  // discard right after On Play resolves instead of sitting on the board as
+  // a 0-point card, so a later "flip your lowest-point card" effect can't
+  // hit an already-spent Scheme/Headline instead of a real board card.
+  if (face.type === "scheme" || face.type === "headline") {
+    const p = state.players[playerId];
+    p.board = p.board.filter((bc) => bc.instanceId !== instance.instanceId);
+    p.discard.push({ instanceId: instance.instanceId, card: instance.card });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -351,6 +361,7 @@ function matchesFilter(face: CardFace, points: number, filter: TargetFilter | un
   if (filter.minPoints !== undefined && points < filter.minPoints) return false;
   if (filter.family !== undefined && face.family !== filter.family) return false;
   if (filter.cardType !== undefined && face.type !== filter.cardType) return false;
+  if (filter.hasKeyword !== undefined && face.keywords?.[filter.hasKeyword] === undefined) return false;
   // highestPoints/lowestPoints pick among matches (see defaultSelect); they
   // aren't a membership predicate, so they don't participate here.
   return true;

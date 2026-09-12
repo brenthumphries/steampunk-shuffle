@@ -310,11 +310,27 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // Turn handling
   // -------------------------------------------------------------------
 
-  function captureHintSnapshot(): { prevLocationId: string | undefined; prevHandA: Set<string>; prevHandB: Set<string> } {
+  function boardReturnIds(playerId: PlayerId): Set<string> {
+    return new Set(
+      state.players[playerId].board
+        .filter((bc) => bc.faceUp && activeFaceOf(bc.card, bc.faceIndex).keywords?.return)
+        .map((bc) => bc.instanceId),
+    );
+  }
+
+  function captureHintSnapshot(): {
+    prevLocationId: string | undefined;
+    prevHandA: Set<string>;
+    prevHandB: Set<string>;
+    prevBoardReturnA: Set<string>;
+    prevBoardReturnB: Set<string>;
+  } {
     return {
       prevLocationId: state.location?.instanceId,
       prevHandA: new Set(state.players.A.hand.map((c) => c.instanceId)),
       prevHandB: new Set(state.players.B.hand.map((c) => c.instanceId)),
+      prevBoardReturnA: boardReturnIds("A"),
+      prevBoardReturnB: boardReturnIds("B"),
     };
   }
 
@@ -359,7 +375,13 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   function afterCommit(
     prevRoundCount: number,
-    hintSnapshot?: { prevLocationId: string | undefined; prevHandA: ReadonlySet<string>; prevHandB: ReadonlySet<string> },
+    hintSnapshot?: {
+      prevLocationId: string | undefined;
+      prevHandA: ReadonlySet<string>;
+      prevHandB: ReadonlySet<string>;
+      prevBoardReturnA: ReadonlySet<string>;
+      prevBoardReturnB: ReadonlySet<string>;
+    },
   ): void {
     // A single commit can trigger several synchronous render() calls (the
     // idle-phase render right below, then immediately scheduleNext()'s
@@ -386,7 +408,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       const playedB = findPlayedCard(hintSnapshot.prevHandB, "B");
       if (playedA?.faces[0].type === "headline" || playedB?.faces[0].type === "headline") fireHint("headline");
       if (roundJustEnded) {
-        const returnCardLeftTable = [...state.players.A.hand, ...state.players.B.hand].some((c) => c.card.faces[0].keywords?.return);
+        // PT-10: diff "on board, face-up, had Return" (before this turn) against
+        // "now in hand" (after cleanup), per side — not just "any Return card is
+        // in a hand," which also fires for one merely drawn at the round break
+        // (2.7's flagged approximation) and never actually left the table.
+        const handA = new Set(state.players.A.hand.map((c) => c.instanceId));
+        const handB = new Set(state.players.B.hand.map((c) => c.instanceId));
+        const returnCardLeftTable =
+          [...hintSnapshot.prevBoardReturnA].some((id) => handA.has(id)) ||
+          [...hintSnapshot.prevBoardReturnB].some((id) => handB.has(id));
         if (returnCardLeftTable) fireHint("return");
       }
     }

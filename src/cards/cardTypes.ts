@@ -65,6 +65,8 @@ export interface TargetFilter {
   /** Selects the single card with the least effective points on the target side. */
   lowestPoints?: boolean;
   excludeElusive?: boolean;
+  /** Card's active face must carry this keyword (design.md §5.3-§5.8), e.g. "each face-up Friend card." */
+  hasKeyword?: keyof Keywords;
 }
 
 export interface Target {

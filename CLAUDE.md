@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after finishing Step 3.5, Sept 12, 2026)
+## Current state (updated after finishing Step 3.7, Sept 12, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -1766,6 +1766,133 @@ standalone `pwa` category entirely, so `ss-ship`'s Lighthouse step has
 only ever been an informational, non-gating read; the real "offline
 works cold" exit check is the killed-server session above, not a
 Lighthouse score.
+
+3.7 done (Opus, one session, as the plan assigns). The ★ newcomer design
+review lives in `docs/newcomer-review.md`; its findings are filed as
+`PLAYTEST.md` PT-1…PT-32 (the file `ss-playtest` owns, created here in its
+own format so 4.5's "no P1 bugs" gate and any later phone-note triage read
+one backlog) and grouped into five Phase 4 fix batches, added to the plan as
+a new row **4.0** ahead of the Oct 16 freeze. Method was a real cold
+playthrough in the browser at 402×874 (dedication → tutorial → Mudd → every
+hub screen) plus a new deterministic difficulty-curve tool,
+`tools/curve.ts` (`npm run curve -- <regular|seasoned|legend> [humanDial]
+[games]`): the starter deck vs every opponent on its own tier's dial, with
+the starter on `regular` (a fumbling newcomer) or `seasoned` (design.md
+§12.2's "played sensibly"). It complements `tools/sim.ts` rather than
+replacing it — `sim.ts`'s starter-vs-Regular row is 15 games at
+`regular`/`regular`, which understates how easy the Regulars are for
+anyone who has learned the game.
+
+**Six P1s, in the order a newcomer hits them:** (PT-4) the deck builder
+shows 13 empty "Not legal" slots right after "Take the deck" — slot 1 is
+never seeded; (PT-2) every tutorial mat explaining the *player's* own play
+is overwritten ~0.9 s later by the house's next mat (`scheduleNext()`
+doesn't wait on `mat` the way it waits on `introQueue`); (PT-3) The
+Parsonage Snug — a tutorial-locked starter card — buffs every card on
+both sides, because `TargetFilter` still can't check a keyword
+(`src/cards/data/README.md` gap #1; Landlady and Engagement share it);
+(PT-1) nothing in the deck builder is gated by ownership, which makes the
+whole §11 economy decorative and lets a newcomer build a 60-point deck in
+minute twelve; (PT-5) the Birthday Invitational, date and Landlady prize
+included, is printed on the chalkboard and House Rules from day one
+(design.md §14.6 vs §10/§13.4 contradict — flagged for Brent, surprise
+recommended); (PT-32) opponent decks are tuned by printed points, not
+tier: Nell Ashby loses 79 of 80 to the starter, Ada Lovelace (Seasoned,
+58 pts) wins 90–97%, Dr Jekyll/Mr Hyde (a Legend) loses 2:1. **Mudd (42
+pts) is the one deck on target** and the reference for re-pointing the
+rest — recommended bands Regular 38–42 · Seasoned 44–48 · Legend 48–54,
+Brent's nod needed first.
+
+**Two design questions for Brent, filed as such, not as bugs:** PT-5
+above, and PT-25 — spent Schemes/Headlines stay on the board as 0-point
+cards (design.md §3 says "then it's spent"), which clutters the table and
+lets a spent Scheme absorb Cat Burglar's / Abby Normal's self-flip.
+Recommend discarding them after On Play.
+
+**Nothing was fixed in this session, deliberately** — the step's exit
+check is the triaged list, and every P1 is a Phase 4 batch with a model
+assignment, not a one-liner (even PT-2 and PT-6 are best done inside
+batch C rather than piecemeal). No app code changed; `tools/curve.ts` and
+the `curve` npm script are the only additions, `npm run typecheck` clean,
+`npm test` unaffected.
+
+**Verification gotcha for whoever works batch C:** the tutorial-mat
+overwrite (PT-2) is invisible to Playwright's smoke tests and to any
+screenshot taken ≥1 s after a tap — it was caught by polling
+`get_page_text` at 0.4 s / 1.4 s / 2.9 s after playing a card. A fix
+should be checked the same way, not by "the mat is there in the
+screenshot."
+
+4.0b done (Sonnet, as the plan assigns) — batch B: PT-3, PT-10, PT-25.
+
+**PT-3 (`hasKeyword` on `TargetFilter`).** `TargetFilter.hasKeyword?:
+keyof Keywords` (`src/cards/cardTypes.ts`) checks a face's keyword is
+present, honoured in `matchesFilter` (`src/engine/matchEngine.ts`) —
+`continuousBuffMap` already calls `matchesFilter`, so no separate wiring
+was needed there. Re-authored the three cards `src/cards/data/README.md`'s
+gap #1 named as approximations to filter on `hasKeyword: "friend"`,
+matching their printed "each/every face-up Friend card" text exactly:
+`The Parsonage Snug` (`locations.ts`, was "every face-up card"), `The
+Season's Most Talked-About Engagement` (`families/salon.ts`, was "every
+face-up Character"), `The Landlady` (`landlady.ts`, was "every face-up
+card on her side"). Closed gap #5 for free in the process — The Landlady
+carries no Friend keyword herself, so the tighter filter already excludes
+her from her own buff with no dedicated self-exclusion needed in
+`continuousBuffMap`. `The Overnight Express` still doesn't say "has
+Persist" — its rework is tangled with gap #3 (no Location controller),
+not just the keyword gap, and wasn't touched. Both README gaps are marked
+fixed inline. New tests in `tests/unit/engine/keywords.test.ts`: one
+confirming a `hasKeyword`-filtered continuous buff hits a Friend card and
+skips a plain one.
+
+**PT-10 (Return hint false-positive).** `captureHintSnapshot`
+(`src/ui/matchScreen.ts`) now also snapshots, per side, which board
+instanceIds are face-up with the Return keyword *before* the turn that's
+about to commit. `afterCommit`'s "return" hint fires only when one of
+those exact instanceIds shows up in that side's hand afterward — not, as
+before, "does either hand contain any Return-keyword card at all," which
+also fired for a card merely drawn at the round break (2.7's flagged
+approximation) and never actually on the board. This is UI-glue logic
+with no pure module of its own (same as the rest of `matchScreen.ts`), so
+it has no new unit test — verified instead per this file's own
+"matchScreen has no unit tests, e2e/manual only" convention; not
+re-verified live this session since forcing the exact repro (a Return
+card sitting face-up on the board at a real round boundary) needs
+scripted turns beyond this batch's scope, but the diff logic mirrors
+PT-10's own fix note exactly ("diff 'on board, face-up, has Return'
+before cleanup against 'in hand' after, per side").
+
+**PT-25 (spent Schemes/Headlines linger as 0-point board cards).**
+Confirmed with Brent first, since PLAYTEST.md flagged this specific item
+as his call (a rules interpretation of design.md §3's "then it's spent,"
+not just a bug) — he chose to discard. `resolvePlay`
+(`src/engine/matchEngine.ts`) now discards a Scheme or Headline
+immediately after its On Play effects resolve, instead of leaving it on
+the board. Checked every scheme/headline in `src/cards/data/` first: none
+carry a trigger besides `onPlay`, so none needed board presence beyond
+that moment. This also fixes the specific PT-25 repro (Cat Burglar
+Strikes Again / Abby Normal's self-flip hitting a spent Scheme instead of
+a real board card) structurally — once the spent card is gone,
+`boardCandidates` simply can't find it. Two new tests in
+`tests/unit/engine/keywords.test.ts`: a played Scheme/Headline lands in
+discard, not on the board; a "flip your lowest-point card" Headline
+correctly flips the real board card once an earlier Scheme is already
+gone. The tutorial's pinned score line (9-6/7-15/7-6, which plays both
+Inspector's Warrant and Sabotage — both Schemes) is unaffected, since
+Schemes/Headlines are always 0 printed points either way.
+
+Verified in the browser (a separate dev server on port 5174, since
+another session already held 5173): played Inspector's Warrant in a real
+quick match against Mudd and confirmed it resolved its Flip (Constable on
+the Beat went face-down) and then didn't appear on my board at all — the
+board row was empty, not showing a 0-point Scheme. 361 unit tests total
+(project-wide, up from 358), all passing; `npm run typecheck` and `npm
+run build` both clean.
+
+**Still open, carried forward:** batches C (tutorial/match-screen
+readability), D (ownership gating), E (hub/gift-touch polish) per the
+plan's 4.0c/d/e rows — none of PLAYTEST.md's other P1s/P2s were touched
+here, only PT-3/10/25.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed

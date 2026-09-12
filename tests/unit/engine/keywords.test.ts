@@ -242,6 +242,84 @@ describe("Location (design.md §5.6)", () => {
   });
 });
 
+describe("hasKeyword filter (design.md §5.4, plan step 4.0b / PT-3)", () => {
+  it("a continuous buff filtered by hasKeyword only affects cards carrying that keyword", () => {
+    const buffer = makeCard({
+      name: "Buffer",
+      points: 1,
+      abilities: [
+        { trigger: "continuous", effects: [{ effect: "buff", target: { side: "self", filter: { hasKeyword: "friend" } }, amount: 1 }] },
+      ],
+    });
+    const friendCard = makeCard({ name: "Friend Card", points: 2, keywords: { friend: 1 } });
+    const plainCard = makeCard({ name: "Plain Card", points: 2 });
+    const bFiller1 = makeCard({ name: "B filler 1", points: 1 });
+    const bFiller2 = makeCard({ name: "B filler 2", points: 1 });
+
+    const deckA = orderedDeck([buffer, friendCard, plainCard]);
+    const deckB = orderedDeck([bFiller1, bFiller2]);
+
+    let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
+    state = playTurn(state, "A", instanceId("A", buffer));
+    state = playTurn(state, "B", instanceId("B", bFiller1));
+    state = playTurn(state, "A", instanceId("A", friendCard));
+    state = playTurn(state, "B", instanceId("B", bFiller2));
+    state = playTurn(state, "A", instanceId("A", plainCard));
+
+    expect(effectivePoints(state, "A", bc(state, "A", instanceId("A", friendCard)))).toBe(3);
+    expect(effectivePoints(state, "A", bc(state, "A", instanceId("A", plainCard)))).toBe(2);
+  });
+});
+
+describe("Scheme/Headline discard (design.md §3, plan step 4.0b / PT-25)", () => {
+  it("a played Scheme or Headline is discarded right after On Play, not left as a 0-point board card", () => {
+    const scheme = makeCard({ name: "Test Scheme", points: 0, type: "scheme" });
+    const headline = makeCard({ name: "Test Headline", points: 0, type: "headline" });
+    const bFiller = makeCard({ name: "B filler", points: 1 });
+
+    const deckA = orderedDeck([scheme, headline]);
+    const deckB = orderedDeck([bFiller]);
+
+    let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
+    state = playTurn(state, "A", instanceId("A", scheme));
+    expect(state.players.A.board).toHaveLength(0);
+    expect(state.players.A.discard.some((c) => c.instanceId === instanceId("A", scheme))).toBe(true);
+
+    state = playTurn(state, "B", instanceId("B", bFiller));
+    state = playTurn(state, "A", instanceId("A", headline));
+    expect(state.players.A.board).toHaveLength(0);
+    expect(state.players.A.discard.some((c) => c.instanceId === instanceId("A", headline))).toBe(true);
+  });
+
+  it("a later 'flip your lowest-point card' effect cannot hit an already-spent Scheme (PT-25's repro)", () => {
+    const scheme = makeCard({ name: "Test Scheme", points: 0, type: "scheme" });
+    const character = makeCard({ name: "Real Character", points: 3 });
+    const headline = makeCard({
+      name: "Test Headline",
+      points: 0,
+      type: "headline",
+      abilities: [{ trigger: "onPlay", effects: [{ effect: "flip", target: { side: "self", filter: { lowestPoints: true }, count: 1 } }] }],
+    });
+    const bFiller1 = makeCard({ name: "B filler 1", points: 1 });
+    const bFiller2 = makeCard({ name: "B filler 2", points: 1 });
+
+    const deckA = orderedDeck([scheme, character, headline]);
+    const deckB = orderedDeck([bFiller1, bFiller2]);
+
+    let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
+    state = playTurn(state, "A", instanceId("A", scheme));
+    state = playTurn(state, "B", instanceId("B", bFiller1));
+    state = playTurn(state, "A", instanceId("A", character));
+    state = playTurn(state, "B", instanceId("B", bFiller2));
+    state = playTurn(state, "A", instanceId("A", headline));
+
+    // The spent Scheme is already gone, so the only legal target is the real
+    // board card — before the fix, the (still-present) Scheme's 0 points
+    // would have absorbed this instead.
+    expect(bc(state, "A", instanceId("A", character)).faceUp).toBe(false);
+  });
+});
+
 describe("Reserved / no-op effects", () => {
   it("steal is accepted but unresolved in v1 (design.md §16, §9.3)", () => {
     const target = makeCard({ name: "Target", points: 1 });

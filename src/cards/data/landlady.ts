@@ -3,16 +3,9 @@
 
 import type { Card } from "../cardTypes.ts";
 
-// Printed text says "every OTHER face-up Friend card gets +1": two gaps
-// against the current engine (see ss-card-author's engine-vocabulary
-// notes). (1) TargetFilter can't check for a keyword, so — following The
-// Parsonage Snug's precedent (src/cards/data/locations.ts) — this applies
-// to every face-up card on her side instead of just Friend cards. (2)
-// continuousBuffMap has no self-exclusion for a card's own continuous
-// ability (that exclusion exists only for one-shot targeted effects, via
-// sourceInstanceId), so unlike a real Friend keyword this also buffs the
-// Landlady herself by +1 — a small, one-card overstatement versus the
-// printed "OTHER," not a systemic issue.
+// Printed text: "every other face-up Friend card gets +1." She herself
+// carries no Friend keyword, so filtering by hasKeyword: "friend" already
+// excludes her — no separate self-exclusion needed.
 export const theLandlady: Card = {
   id: "the-landlady",
   rarity: "legendary",
@@ -26,7 +19,7 @@ export const theLandlady: Card = {
       abilities: [
         {
           trigger: "continuous",
-          effects: [{ effect: "buff", target: { side: "self", filter: {} }, amount: 1 }],
+          effects: [{ effect: "buff", target: { side: "self", filter: { hasKeyword: "friend" } }, amount: 1 }],
         },
       ],
       flavor: "Her name is on the licence. Everyone else just drinks here.",
