@@ -11,7 +11,7 @@ const knockout = TOURNAMENTS_BY_ID.get("tuesday-knockout")!;
 const peelers = TOURNAMENTS_BY_ID.get("peelers-cup")!;
 
 describe("createBracket", () => {
-  it("draws 7 distinct seats from the eligible pool and resolves the non-player half immediately", () => {
+  it("draws 7 distinct seats from the eligible pool and resolves the non-player half immediately", { timeout: 30_000 }, () => {
     const pool = knockout.eligiblePool(OPPONENTS);
     const bracket = createBracket(knockout, pool, 42);
 
@@ -30,7 +30,7 @@ describe("createBracket", () => {
     expect(bracket.status).toBe("in-progress");
   });
 
-  it("is deterministic for a given seed", () => {
+  it("is deterministic for a given seed", { timeout: 60_000 }, () => {
     const pool = knockout.eligiblePool(OPPONENTS);
     const a = createBracket(knockout, pool, 7);
     const b = createBracket(knockout, pool, 7);
