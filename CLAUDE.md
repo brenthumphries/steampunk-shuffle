@@ -865,10 +865,47 @@ all three matches, and whichever condition actually happens first, in
 whichever of those matches, is when it fires. Same vein as the "matches
 2-4" ambiguity being a judgment call, not a locked spec.
 
-**Next task:** 2.8, the `ss-playtest` skill (plan step 2.8, Haiku 4.5):
-Brent texts notes from his phone; Haiku triages them into `PLAYTEST.md`
-with severity and repro steps. This closes out Phase 2 — Phase 3 (art,
-animation, sound, gift touches) starts at 3.1.
+2.8 done. `.claude/skills/ss-playtest/` (Haiku) is built: takes Brent's
+raw texted playtest notes (freeform, often several observations run
+together in one message) as the skill's `args`, splits them into discrete
+items, and appends a triaged backlog to `PLAYTEST.md` at the repo root —
+no `tools/` script backing this one, since splitting freeform text and
+judging severity is the generative half of plan §2 rule 3's split, not the
+scriptable half. Severity uses the same **P1/P2/P3** language plan step
+4.5 already names for its "no P1 bugs" TestFlight gate (P1 blocking, P2
+bug, P3 balance/polish/idea). Before filing anything new it checks two
+things: whether the same issue is already open in `PLAYTEST.md` (if so, it
+bumps that entry's "Seen" date/count instead of duplicating it), and
+whether it matches a behavior `CLAUDE.md` or `docs/design.md` already
+documents as intentional or a known judgment call (if so, it's filed under
+a separate "Known / already flagged" section instead of a severity bucket,
+so an already-understood behavior doesn't get re-discovered as a new bug).
+The skill only ever appends — it never marks anything Resolved, deletes,
+or rewords an existing entry; that's left for whoever actually fixes an
+item. No unit tests (there's no pure logic to test — this is a Haiku
+judgment pass over free text, same class of thing as `ss-card-author`'s
+flavour-writing half), so it was verified with two dry runs against
+synthetic notes in a scratch `PLAYTEST.md` (real repro-writing,
+correctly recognizing a repeat report and bumping its count instead of
+duplicating it, correctly guessing code locations for a couple of items
+and correctly declining to guess where the note didn't support one,
+correctly routing an ambiguous "AI folded despite a lead" note to "ask
+Brent" rather than assuming either "bug" or "balance" given design.md
+§6.2.2's "no voluntary pass" rule, and correctly recognizing a
+round-reveal-overlay input question as already-documented intentional
+behavior from this file's own 2.1 notes) — the synthetic file was deleted
+afterward rather than committed, since it isn't real playtest data.
+`npm run typecheck` and `npm run build` both clean (this step touched no
+app code).
+
+**This closes out Phase 2.** Phase 3 (art, animation, sound, gift touches)
+starts at 3.1: card frames in SVG/CSS per family and rarity, so cards have
+a real frame to hang illustrations in ahead of 3.2's art wiring.
+
+**Note for whoever runs `ss-playtest` for real:** it only exists to
+*triage* — filing a P1 there doesn't fix anything by itself. Read the
+newly filed items and act on them (or hand them to a session that will)
+the same as any other backlog.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
