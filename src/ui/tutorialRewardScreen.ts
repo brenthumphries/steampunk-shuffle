@@ -5,6 +5,7 @@
 
 import { TUTORIAL_AFTER_MAT, TUTORIAL_REWARD_CHECKS } from "../tutorial/tutorialScript.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { playSound } from "../audio/soundEngine.ts";
 
 export interface TutorialRewardScreenOptions {
   deckName: string;
@@ -49,6 +50,7 @@ export function mountTutorialRewardScreen(root: HTMLElement, options: TutorialRe
   }
 
   render();
+  playSound("brassHit");
 
   return () => {
     torn = true;

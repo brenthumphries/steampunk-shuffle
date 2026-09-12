@@ -9,6 +9,7 @@ import { abilityLines, keywordChips } from "./cardText.ts";
 import { currentMatchIndex, ROUND_NAMES, type BracketRoundIndex, type TournamentBracket } from "../tournaments/bracket.ts";
 import type { Tournament } from "../tournaments/tournaments.ts";
 import type { Opponent } from "../pub/opponents.ts";
+import { playSound } from "../audio/soundEngine.ts";
 
 export interface BracketOutcome {
   bracket: TournamentBracket;
@@ -149,6 +150,9 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
   }
 
   render();
+  // Same "just advanced" flag 3.3 uses to animate the ladder row — set only
+  // right after a bracket match, never on a fresh entry or a plain resume.
+  if (options.justAdvancedIndex !== undefined) playSound("brassHit");
 
   return () => {
     root.replaceChildren();

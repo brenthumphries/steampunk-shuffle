@@ -26,6 +26,7 @@ import { resolvePrize } from "./tournaments/prizes.ts";
 import { checkInvitationalTrigger, clearActiveBracket, loadTournamentState, saveTournamentState, startBracket, updateActiveBracket } from "./tournaments/tournamentState.ts";
 import { TUTORIAL_BEFORE_DEAL, TUTORIAL_HOUSE_DECK, TUTORIAL_MATCH_END_MAT, TUTORIAL_PLAYER_DECK, TUTORIAL_REWARD_CHECKS, TUTORIAL_ROUND_END_MATS, TUTORIAL_TURNS } from "./tutorial/tutorialScript.ts";
 import { HINT_IDS, HINT_TEXT, hasShownHint, isWithinHintWindow, loadTutorialState, markHintShown, markTutorialCompleted, recordMatchPlayed, saveTutorialState, type HintId } from "./tutorial/tutorialState.ts";
+import { playSound, unlockAudio } from "./audio/soundEngine.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -33,6 +34,28 @@ if (!app) {
 }
 
 const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
+
+// Sound (plan step 3.4). iOS needs audio unlocked by a real user gesture —
+// `unlockAudio()` runs synchronously inside the very first tap anywhere in
+// the app, whatever screen that tap happens to land on (the tutorial, most
+// often, since it's a newcomer's first launch). A separate, persistent
+// listener plays a UI click for every button-shaped tap app-wide — every
+// screen's buttons and tappable cards already carry a real `<button>` or
+// `role="button"` element (see src/ui/matchScreen.ts, src/ui/
+// pubHubScreen.ts, etc.), so this one delegated listener covers them all
+// without each screen having to call playSound("click") itself. Card-play/
+// flip/round-reveal/bracket-advance/reward-unwrap sounds aren't plain
+// clicks — those are wired at their specific state-transition points in
+// each screen instead (matchScreen.ts, bracketScreen.ts, pubHubScreen.ts,
+// acquisitionScreen.ts, tutorialRewardScreen.ts).
+document.addEventListener("pointerdown", () => unlockAudio(), { capture: true, once: true });
+document.addEventListener(
+  "click",
+  (event) => {
+    if ((event.target as HTMLElement | null)?.closest("button, [role='button']")) playSound("click");
+  },
+  { capture: true },
+);
 
 let selectedDeck: Deck = starterDeck;
 let selectedDeckName = "The Village Constable";

@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after finishing Step 2.4, Sept 11, 2026)
+## Current state (updated after finishing Step 3.4, Sept 12, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -1067,6 +1067,120 @@ and confirming every new selector sits inside one. `npm run typecheck`,
 CSS plus DOM-diffing glue, not new pure logic), `npx playwright test` (25
 e2e, all passing, unaffected by the timing fix), and `npm run build` all
 clean.
+
+3.4 done. Sound lives in `src/audio/`: `soundEngine.ts` synthesizes four
+effects purely from Web Audio oscillators/noise buffers — no licensed audio,
+matching the plan's "no licensing" requirement — `click` (a short square-
+wave blip), `steam` (filtered noise hiss), `flip` (a triangle-wave pitch
+drop), `brassHit` (a three-note sawtooth chord through a decaying lowpass,
+for round/match/bracket/reward moments). `audioState.ts` persists the mute
+toggle in its own localStorage key, same defensive load/save pattern as
+`pubState.ts`/`deckStorage.ts`, and is now folded into `SaveFile`
+(`src/save/saveFile.ts`) as its `audio` field — design.md §12.4 lists
+"settings" as save content 2.6 deliberately left unbuilt, and mute is the
+first real one. The `AudioContext` is created lazily inside `ensureContext()`
+and never at module load, since jsdom (this project's unit-test
+environment) has no `AudioContext` at all — importing the module has to
+stay safe regardless, so only the mute-state half is unit-tested
+(`tests/unit/audio/`, 9 new tests), and the actual synthesis was verified by
+instrumentation in a real browser instead (see below) — same class of gap
+as `tools/ingest-art.py` (1.7) and the animation work (3.3), both verified
+by running/watching them for real rather than under jsdom.
+
+**Unlock and UI clicks are both wired once, globally, in `src/main.ts`,
+rather than per-screen.** A `pointerdown` listener (`{capture: true, once:
+true}`) calls `unlockAudio()` synchronously inside the app's very first tap
+anywhere — this project's own "iOS web app conventions" section's "audio
+needs a user gesture" requirement — regardless of which screen that tap
+lands on (usually the tutorial, a newcomer's first launch). Separately, a
+persistent capturing `click` listener on `document` plays `"click"` for any
+tap whose target is (or is inside) a real `<button>` or `role="button"`
+element — which turns out to be *every* meaningful tap in this app already
+(every screen's nav buttons, `matchScreen.ts`'s tappable hand/board cards
+and action-bar buttons, `beerMat.ts`'s dismiss button, `pubHubScreen.ts`'s
+patron rows), since none of them needed a new element added to pick up
+sound. This was a deliberate scope call over hand-wiring `playSound("click")`
+into each screen individually: one delegated listener in `main.ts` covers
+the whole app's buttons at zero per-screen cost, and doubles as a second,
+redundant unlock path (creating an `AudioContext` inside a real click
+handler is itself a valid user gesture). The only taps it doesn't cover are
+a couple of plain, non-button dismiss gestures (tapping the zoom overlay's
+backdrop) — accepted as a minor, harmless gap rather than adding `role`
+attributes purely to catch a sound effect.
+
+**Card play/flip/round-reveal/match-over/bracket-advance/reward-unwrap
+sounds are wired at the same specific state-transition points 3.3's
+animation diffing already identified, not read off render-time animation
+flags.** `matchScreen.ts`'s new `playCommitSounds()` diffs the current state
+against `boardAnimSnapshot`/`locationAnimSnapshot` (3.3's own "before this
+commit" baseline) exactly once per `afterCommit()` call — before the
+`queueMicrotask` that updates those snapshots — to decide once whether to
+play `"steam"` (a card or Location newly in play, human's or AI's) and/or
+`"flip"` (a board card's `faceUp` toggled). This mirrors, but is separate
+from, `buildBoardRow`'s own per-render animation-class diff: `render()` can
+run more than once per real commit (3.3's own flagged gotcha — the AI-turn
+phase transition renders synchronously in the same tick), so computing the
+sound decision inside `render()` the way the animation classes do would
+have double-fired a "steam" for the same card. `playSound("brassHit")` is
+called directly at each of round-reveal, match-over (both the
+`afterCommit()` and `continueAfterRoundReveal()` branches — the match can
+complete on either), tournament bracket advance (`bracketScreen.ts`, gated
+on `justAdvancedIndex !== undefined`, the same "just advanced" flag 3.3
+uses for the ladder animation), and every card-reward "unwrap" moment
+(`pubHubScreen.ts`'s first-win/Bar Bet reveal, `acquisitionScreen.ts`'s Lost
+& Found/Tinker's Bench reveal, `tutorialRewardScreen.ts`'s tutorial reward)
+— each fired exactly once, at the specific call site that makes the reveal
+newly visible, not inside a `render()` that could re-run for an unrelated
+reason.
+
+**A small self-syncing mute-toggle widget** (`src/ui/muteToggle.ts`) is
+dropped into the pub hub header and the match screen's topbar — the two
+screens where sound is most audible — rather than every screen, since there
+is no dedicated settings screen yet (design.md §12.4 lists "settings" as
+save content; 3.5 is "gift touches," not a settings screen, so this is the
+same kind of judgment call 2.6 flagged when it left "settings" out of
+`SaveFile`'s shape). It manages its own icon/`aria-pressed` state via a
+`sync()` closure rather than participating in each screen's full-rebuild
+render cycle, so toggling mute mid-match doesn't force a whole match-screen
+redraw just to redraw one button.
+
+**Optional CC0 ambience track: scaffolded, not sourced.** `startAmbience()`
+(called once from `unlockAudio()`) loops `public/audio/ambience.mp3` if it
+exists and silently does nothing if it doesn't — no such file has actually
+been found/licensed yet, same "Brent sources the asset, a tool consumes it"
+split as `art/inbox/`'s Gemini downloads, except there's no ingestion tool
+for audio (a single CC0 loop doesn't need one — it can be dropped straight
+into `public/audio/` once chosen). Verified the no-op path is actually
+silent: the Vite dev server's SPA fallback returns a 200 `text/html` for the
+missing path (not a 404), which the browser correctly fails to decode as
+audio, caught by `startAmbience()`'s own `.catch()` — no console error.
+GitHub Pages (no SPA rewrite configured) will instead return a real 404 for
+the same missing path once deployed, also caught the same way. Not wired
+into the service-worker precache list either way — that's 3.6's job, same
+reasoning as 1.7's un-precached `public/art/*.webp` gotcha below.
+
+Verified in the browser at the iPhone 17 viewport by instrumenting
+`AudioContext.prototype` (wrapping the constructor and
+`createOscillator`/`createBufferSource`) rather than by ear: confirmed
+exactly one `AudioContext` is created, and it reaches `"running"` (not
+`"suspended"`), on the very first real tap anywhere in the app; confirmed a
+full human-play-then-AI-reply exchange produces exactly the expected node
+sequence with no duplicates — one oscillator for staging a hand card, one
+oscillator for tapping "Play," one noise-buffer source for the human's card
+landing (`"steam"`), one more for the AI's reply — proving `playCommitSounds()`
+really does fire once per commit despite `render()` running twice for that
+same AI-turn transition (the exact double-fire risk 3.3's own microtask
+ordering already had to solve, reused here); confirmed the mute toggle
+writes `{"muted":true}` to `localStorage` and the icon (🔊/🔇) reads back
+correctly after a real page reload (the exit check: "mute persists").
+`npm run typecheck`, `npm test` (345 unit tests, up from 336), `npx
+playwright test` (25 e2e, all passing, unaffected — no screen's testable
+structure changed), and `npm run build` all clean.
+
+**This step ran on Sonnet, not the Haiku the plan assigns to 3.4** — same
+situation as 1.6/2.5's flagged gotchas: the session was already running on
+Sonnet when asked to start 3.4 rather than being opened fresh on Haiku.
+Flagged, not corrected.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed

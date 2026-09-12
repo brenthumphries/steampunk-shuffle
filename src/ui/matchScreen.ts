@@ -22,6 +22,8 @@ import { abilityLines, effectPromptLabel, keywordChips } from "./cardText.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { buildMuteToggle } from "./muteToggle.ts";
+import { playSound } from "../audio/soundEngine.ts";
 import type { HintId } from "../tutorial/tutorialState.ts";
 
 const HUMAN: PlayerId = "A";
@@ -141,6 +143,31 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
   let boardAnimSnapshot: Record<PlayerId, Map<string, boolean>> = snapshotBoard(state);
   let locationAnimSnapshot: string | undefined = state.location?.instanceId;
+
+  /**
+   * Plays "steam"/"flip" for whatever this commit just changed, by diffing
+   * against the same pre-commit snapshot buildBoardRow/buildLocationSlot
+   * use for their enter/flip animation classes — computed once here rather
+   * than read off those per-render flags, since afterCommit() is called
+   * exactly once per real game event while render() can run more than once
+   * for it (see afterCommit's own comment on the queued snapshot update).
+   * Must run before that snapshot update lands, so it always sees "before
+   * this commit" state, same reasoning as the animation diff.
+   */
+  function playCommitSounds(): void {
+    let anyPlay = !!state.location && state.location.instanceId !== locationAnimSnapshot;
+    let anyFlip = false;
+    for (const side of [HUMAN, AI]) {
+      const prevBoard = boardAnimSnapshot[side];
+      for (const bc of state.players[side].board) {
+        const prevFaceUp = prevBoard.get(bc.instanceId);
+        if (prevFaceUp === undefined) anyPlay = true;
+        else if (prevFaceUp !== bc.faceUp) anyFlip = true;
+      }
+    }
+    if (anyPlay) playSound("steam");
+    if (anyFlip) playSound("flip");
+  }
 
   // Tutorial script cursor (design.md §13.2) — index into options.tutorial.turns.
   let scriptIndex = 0;
@@ -344,6 +371,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // commit's plays/flips as animated — while a later, unrelated render
     // (opening the zoom modal, a beer mat firing) diffs against the
     // now-updated baseline and replays nothing.
+    playCommitSounds();
     queueMicrotask(() => {
       boardAnimSnapshot = snapshotBoard(state);
       locationAnimSnapshot = state.location?.instanceId;
@@ -363,11 +391,13 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     }
 
     if (roundJustEnded) {
+      playSound("brassHit");
       phase = { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
       render();
       return;
     }
     if (state.status === "complete") {
+      playSound("brassHit");
       phase = { kind: "match-over" };
       render();
       return;
@@ -383,6 +413,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // completion once, before this overlay appeared, so that has to be
     // re-checked here rather than always falling through to scheduleNext().
     if (state.status === "complete") {
+      playSound("brassHit");
       phase = { kind: "match-over" };
       render();
       return;
@@ -606,8 +637,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     screen.style.setProperty("--table-bg", `url(${artUrl("background-the-snug")})`);
 
     const topbar = el("div", "match-topbar");
-    topbar.appendChild(el("span", "match-round-label", `Round ${Math.min(state.round, 3)} of 3`));
-    topbar.appendChild(el("span", "match-rounds-won", `You ${state.roundsWon.A} – ${state.roundsWon.B} ${options.aiName}`));
+    const topbarLabels = el("div", "match-topbar-labels");
+    topbarLabels.appendChild(el("span", "match-round-label", `Round ${Math.min(state.round, 3)} of 3`));
+    topbarLabels.appendChild(el("span", "match-rounds-won", `You ${state.roundsWon.A} – ${state.roundsWon.B} ${options.aiName}`));
+    topbar.appendChild(topbarLabels);
+    topbar.appendChild(buildMuteToggle());
     screen.appendChild(topbar);
 
     const boardArea = el("div", "board-area");

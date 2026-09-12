@@ -13,6 +13,8 @@ import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { buildMuteToggle } from "./muteToggle.ts";
+import { playSound } from "../audio/soundEngine.ts";
 
 /** A card to show the "unwrap" overlay for — a first-win reward (§11.2) or a Bar Bet win (§11.5). Several can queue up from the same match. */
 export interface PendingReveal {
@@ -70,6 +72,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
 
   function dismissReveal(): void {
     revealQueue = revealQueue.slice(1);
+    if (revealQueue[0]) playSound("brassHit");
     render();
   }
 
@@ -211,10 +214,13 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     titleWrap.appendChild(el("h1", "pub-hub-title", "The Wheatstone Bridge"));
     titleWrap.appendChild(el("span", "pub-hub-subtitle", titleForWins(pub.totalWins)));
     header.appendChild(titleWrap);
+    const headerActions = el("div", "pub-hub-header-actions");
     const checksBadge = el("div", "checks-badge");
     checksBadge.appendChild(el("span", "checks-badge-value", String(pub.checks)));
     checksBadge.appendChild(el("span", "checks-badge-label", "Checks"));
-    header.appendChild(checksBadge);
+    headerActions.appendChild(checksBadge);
+    headerActions.appendChild(buildMuteToggle());
+    header.appendChild(headerActions);
     screen.appendChild(header);
 
     const deckRow = el("div", "pub-hub-deck-row");
@@ -257,6 +263,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   }
 
   render();
+  if (revealQueue[0]) playSound("brassHit");
 
   return () => {
     torn = true;

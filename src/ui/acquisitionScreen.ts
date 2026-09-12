@@ -13,6 +13,7 @@ import { rollLostAndFound } from "../pub/lostAndFound.ts";
 import { pawnbrokerWindow, canAfford, buyFromPawnbroker, type PawnbrokerSlot } from "../pub/pawnbroker.ts";
 import { canFuse, fuseChoicesFor, fuse, TINKER_FEE_CHECKS, TINKERS_BENCH_UNLOCK_WINS, type FuseChoice } from "../pub/tinkersBench.ts";
 import { claimLostAndFound, countInCollection, hasClaimedLostAndFoundToday, loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
+import { playSound } from "../audio/soundEngine.ts";
 
 export interface AcquisitionScreenOptions {
   onBack: () => void;
@@ -50,6 +51,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     const card = rollLostAndFound(pub.collection, now);
     persist(claimLostAndFound(pub, card.id, now));
     revealCardId = card.id;
+    playSound("brassHit");
     render();
   }
 
@@ -64,6 +66,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     persist(next);
     fuseSelection = null;
     revealCardId = resultCardId;
+    playSound("brassHit");
     render();
   }
 

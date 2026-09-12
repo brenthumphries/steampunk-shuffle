@@ -54,6 +54,21 @@ body {
   border: 1px solid rgba(242, 230, 208, 0.4);
 }
 
+/* Mute toggle (plan step 3.4) — dropped into the pub hub header and the
+   match screen's topbar; see src/ui/muteToggle.ts. */
+.mute-toggle {
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid rgba(242, 230, 208, 0.4);
+  border-radius: 999px;
+  color: var(--ink);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 /* ---------------------------------------------------------------------
    Match screen (plan step 2.1). Family frame colours from
    docs/style-bible.md §2 / design.md §4. The card frame itself (border
@@ -84,9 +99,15 @@ body {
 .match-topbar {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   font-size: 0.8rem;
   opacity: 0.85;
+}
+
+.match-topbar-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
 .board-area {
@@ -855,6 +876,12 @@ body {
 .pub-hub-subtitle {
   font-size: 0.75rem;
   opacity: 0.7;
+}
+
+.pub-hub-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .checks-badge {
