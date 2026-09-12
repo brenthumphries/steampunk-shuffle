@@ -10,7 +10,7 @@ import { expect, test } from "@playwright/test";
 test.describe("match screen (plan step 2.1)", () => {
   test("staging a card shows Play/Cancel before it commits, and Cancel takes it back (design.md §6.4)", async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
-    await page.getByRole("button", { name: "Play a quick match" }).click();
+    await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
 
     // Whoever leads is decided by a coin toss (design.md §6.1) — wait out
@@ -30,7 +30,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("playing a card commits it to the board and the match keeps moving", async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
-    await page.getByRole("button", { name: "Play a quick match" }).click();
+    await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
 
     const firstCard = page.locator(".hand-row .card--tappable").first();
     await expect(firstCard).toBeVisible({ timeout: 10_000 });
@@ -44,7 +44,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("card zoom opens a full-card detail overlay and closes on tap-away", async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
-    await page.getByRole("button", { name: "Play a quick match" }).click();
+    await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
 
     const zoomBtn = page.locator(".hand-row .card-zoom-btn").first();
     await expect(zoomBtn).toBeVisible({ timeout: 10_000 });

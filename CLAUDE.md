@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after finishing Step 2.1, Sept 11, 2026)
+## Current state (updated after finishing Step 2.4, Sept 11, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -314,12 +314,318 @@ reveal overlay. Added `.claude/launch.json` (Steampunk Shuffle didn't have
 one yet) so `preview_start` can run `npm run dev` for browser-based
 manual verification in future sessions.
 
-**Next task:** 2.2, the deck builder — the match screen currently
-hardcodes the starter deck and Mudd's deck (see above); 2.2 gives the
-player a legal way to build and choose decks, which 2.3's pub hub will
-then use to pick an opponent instead of the hardcoded button.
+2.2 done. The deck builder lives in `src/ui/deckBuilderScreen.ts`
+(`mountDeckBuilderScreen(root, opts)`, same DOM-glue/full-rebuild pattern
+as the match screen) over two pure logic modules: `src/decks/deckSlots.ts`
+(add/remove a copy respecting design.md §7.2's caps — 2 copies of a
+card, 1 of a legendary, 20 cards total — rename, load-another-deck's-
+composition, and `computeLegality`, which runs a slot through the same
+`validateDeck` the engine and `sim.ts` already use so the builder's "why"
+never drifts from deck legality elsewhere) and `src/decks/deckStorage.ts`
+(localStorage read/write of the 13 slots plus which one is selected,
+defensive against missing/corrupt/wrong-shape data). A slot stores card
+ids + quantities, not full `Card` objects, and `slotToDeck` drops any id
+that's gone missing rather than throwing. The screen has two views: a
+slot list (name, live `cards/points` count, a Legal/Not legal badge, a
+Select button disabled unless legal) and a per-slot editor (an editable
+name field, the legality meter with `validateDeck`'s actual error
+strings when illegal, family/type filter dropdowns, and a two-column
+card grid over all 60 v1 cards with +/− controls per card that disable
+at the copy cap or at 20 cards). The name `<input>` is mutated in place
+on `input` rather than triggering a full rebuild, specifically so typing
+doesn't lose cursor position/focus — every other interaction (filters,
++/−, select) does a full rebuild, same "small trees, cheap to redo"
+tradeoff 2.1 made. Wired into `src/main.ts`: the taproom shows the
+currently-selected deck's name and grew a "Build a deck" button; "Play a
+quick match" now plays with whatever legal deck was last selected
+(falling back to the starter deck), still against the hardcoded Mudd —
+2.3's pub hub still owns real opponent selection. Tests:
+`tests/unit/decks/{deckSlots,deckStorage}.test.ts` (17 new pure-logic/
+storage tests) plus `tests/e2e/deckBuilder.spec.ts` (4 Playwright smoke
+tests at the 402×874 viewport: an empty slot reports why it's illegal
+and can't be selected, building/renaming/saving/selecting a legal deck
+persists across a reload, family/type filters narrow the grid, +/−
+respects the copy cap). 211 unit tests total (project-wide, up from
+194), 9 e2e tests total, all passing; `npm run typecheck`, `npm run
+build`, and `npm run test:e2e` all clean. Manually verified end-to-end
+in the browser at the iPhone 17 viewport: opened the builder, added and
+removed copies watching the legality meter update live, used "Start from
+the Village Constable" to reach a legal 20/20 · 37/60 deck, renamed it,
+confirmed the slot list showed it Legal, selected it, and confirmed the
+taproom picked up the new name (including after a reload).
+
+2.3 done. The pub hub lives in `src/ui/pubHubScreen.ts`
+(`mountPubHubScreen(root, opts)`, same DOM-glue/full-rebuild pattern as
+2.1/2.2) over two pure data/logic modules: `src/pub/opponents.ts` (the
+`OPPONENTS` registry — id, tier, deck, AI difficulty, reward card id,
+unlock-win threshold, portrait art id, line — for Sir Charles plus all 14
+real opponents from design.md §9.1-§9.3, plus `tonightsPatrons`/
+`isOpponentInTown`/`legendsInTown` for §11.2/§12.1/§12.3's unlock and
+daily-rotation rules) and `src/pub/pubState.ts` (Checks balance,
+per-opponent win/loss + reward-claimed record, and the reward-card
+collection, with `recordPickupResult` as the one function that turns a
+match result into a Checks/reward delta per design.md §11.1-§11.2). It
+replaces `main.ts`'s temporary "Play a quick match" button and hardcoded
+Mudd opponent entirely — `main.ts` now owns only screen transitions
+(pub hub ↔ match ↔ deck builder) and applies `recordPickupResult` +
+`savePubState` right after a match, in the `onExit` callback, before
+remounting the hub (with a `pendingReveal` prop when a reward was earned).
+`matchScreen.ts`'s `onExit` now passes the final `MatchResult` instead of
+firing with no arguments, and its `difficulty` option accepts either a
+fixed `Difficulty` or `(state: MatchState) => Difficulty` — needed for Dr
+Jekyll/Mr Hyde's per-round AI dial override (design.md §9.3: "Jekyll
+rounds play seasoned, Hyde rounds play legend"), flagged back in 1.3/1.4's
+gotchas as this step's job. `src/pub/opponents.ts` keys that off
+`state.round` (round 1 → seasoned, rounds 2+ → legend) since there's no
+cheap "which face is up" signal to read from the match screen — a
+judgment call, not a locked spec, but it closes that loose end. Its own
+localStorage key (`steampunk-shuffle:pub-state`), same reasoning as
+2.2's deck-slot storage: 2.6 owns the real unified save (collection with
+foil flags, unlock flags, etc., design.md §12.4) and can fold this key in
+once it exists. Tests: `tests/unit/pub/{opponents,pubState}.test.ts` (23
+new pure-logic tests) plus `tests/e2e/pubHub.spec.ts` (3 Playwright smoke
+tests at the 402×874 viewport: fresh-player patron list + 0 Checks,
+tapping a patron starts a match against them, Seasoned/Legend opponents
+appear once win thresholds are seeded in). 234 unit tests total
+(project-wide, up from 211), 12 e2e tests total, all passing; `npm run
+typecheck`, `npm run build`, and `npm run test:e2e` all clean. Manually
+verified end-to-end in the browser at the iPhone 17 viewport: played a
+full pickup match against Mudd to a loss (2 Checks + the 5 daily bonus,
+no reward, his record read "0–1") and then a second full match to a win
+(8 Checks, no second daily bonus same day, the "unwrap" reveal overlay
+showed Sergeant Pike with his flavour text, "Added to your collection,"
+and his patron row updated to "1–1 · Reward claimed").
+
+**Found and fixed a pre-existing bug in `matchScreen.ts` (from 2.1), not
+scope creep — it directly blocked 2.3's own reward/Checks flow.** When the
+round that just ended also completed the match (winning the deciding
+round), `afterCommit()` only ever checks for round-vs-match completion
+once, before the round-reveal overlay appears; `continueAfterRoundReveal()`
+then unconditionally called `scheduleNext()`, which silently no-ops once
+`state.status !== "in-progress"` — so tapping "Continue" left a dead board
+with no match-over overlay and no "Leave the table" button, ever. Hit this
+on the very first manual playtest (won 2-1, round 3 double-counted as
+both a round win and the match win). Fixed by re-checking
+`state.status === "complete"` inside `continueAfterRoundReveal()` and
+routing to the `match-over` phase there too, rather than assuming
+`afterCommit()`'s one check covers both moments. Re-verified the full
+"win 2-1 on the final round" path afterward and it now reaches "Leave the
+table" correctly.
+
+2.4 done. Tournaments live in `src/tournaments/`: `tournaments.ts` (the
+`TOURNAMENTS` registry — the 4 named tournaments from design.md §10's
+table, each an entry-Checks cost, consolation/prize Checks, a prize-card
+descriptor, an `isUnlocked(totalWins, invitationalTriggered)` predicate,
+an `eligiblePool(opponents)` filter, and a `checkEntryDeck(deck)` rule —
+pauper ≤45 printed points for the Peelers' Cup, ≥12 cards from one family
+for the Reichenbach Open, "any legal deck" for the other two), `bracket.ts`
+(the 8-seat single-elimination bracket itself), `tournamentState.ts` (its
+own localStorage key, same reasoning as `pubState.ts`/`deckStorage.ts` —
+persists the active bracket, so a tournament survives a reload, plus the
+Birthday Invitational's `invitationalTriggered` flag), and `prizes.ts`
+(resolves a won tournament's actual prize card — a random uncommon/rare
+for Knockout/Peelers', a random legendary the player doesn't already own
+excluding The Landlady for Reichenbach with its "or 300 Checks if you own
+them all" fallback, and the fixed Landlady card for the Invitational).
+Two new UI screens follow the existing DOM-glue/full-rebuild pattern:
+`src/ui/tournamentsScreen.ts` (the tournament list — locked/unlocked,
+entry-rule pass/fail with a reason, Enter vs Resume) and
+`src/ui/bracketScreen.ts` (a 3-stage ladder — Quarterfinal/Semifinal/Final
+— rather than a literal 8-seat tree diagram; see gotcha below). `src/pub/
+pubState.ts` grew three pure additions: `recordTournamentMatchResult`
+(same shape as `recordPickupResult` but pays no per-match Checks and no
+daily bonus — §11.1 lists "Tournament consolation/prize" as its own row,
+separate from the pickup win/loss rows — while still updating the
+opponent's record, first-win reward, and `totalWins`), `deductChecks`
+(entry fee), and `applyTournamentPayout` (consolation/prize Checks + an
+optional card). `src/main.ts` wires it all: a "The chalkboard" button on
+the pub hub, `enterTournament`/`showBracket`/`startBracketMatch`
+orchestrating entry → bracket → match → payout → back to the bracket,
+and `syncTournamentTrigger()` re-checking the Oct-30 date against `new
+Date()` every time the chalkboard (or the pub hub) is shown, the same
+"recompute fresh on every render" idiom `opponents.ts`'s `legendsInTown`
+already uses.
+
+**The bracket's non-player half is resolved instantly at creation, not
+played out interactively.** An 8-seat single-elimination bracket has the
+player at seat 0 playing exactly 3 matches (QF/SF/Final); the other 6
+opponents' matches (seats 2v3, 4v5, 6v7, and the AI-only semifinal among
+those winners) don't depend on anything the player does, so `createBracket`
+resolves all of them up front via the same headless AI-vs-AI self-play
+`tools/sim.ts` already uses for balance runs (`simulateAIMatch` in
+`bracket.ts`) — draws are broken with a seeded coin-flip
+(`breakTournamentDraw`, design.md §6.3's "the sovereign is tossed," since
+"tournaments cannot end in a draw"). This means the bracket's entire
+opponent lineup (QF/SF/Final) is known and displayable the instant a
+tournament is entered — the ladder in `bracketScreen.ts` isn't a "fog of
+war" bracket that reveals opponents round by round. `weightedDraw`
+(exported from `bracket.ts`) does the Peelers' Cup's "Yard opponents
+favoured" seeding: Mudd and Bucket are hardcoded as the two Yard-affiliated
+Regular/Seasoned opponents (`YARD_AFFILIATED_IDS` in `tournaments.ts`,
+read from `src/cards/data/decks/README.md`'s per-opponent family table,
+since `Opponent` itself carries no family field) and get 5x the pick
+weight of the other six candidates in that 8-opponent pool.
+
+**Manual playtest caught a real bug in `currentMatchIndex` before it ever
+shipped — flagged here so the pattern doesn't get reintroduced.** The
+first version found "the next pending match" purely by scanning
+`playerMatches` for an `"pending"` outcome, which is wrong once the
+bracket is `"eliminated"`: the rounds the player never reached are still
+sitting at `"pending"` (never touched), so a player knocked out in the
+quarterfinal would see the bracket screen still offering "Play Semifinal."
+Fixed by checking `bracket.status !== "in-progress"` first and returning
+`-1` immediately in that case — a unit test now pins this
+(`tests/unit/tournaments/bracket.test.ts`). Caught by the "no-op once
+already decided" test failing during this session, not by an actual bug
+report — worth remembering that a `find`-style helper over match slots
+needs the terminal `status` checked first, not inferred from slot state.
+
+**The bracket ladder shows 3 rows (Quarterfinal/Semifinal/Final), not a
+literal 8-seat tree** — design.md §10 says "brackets are shown as a
+chalkboard by the bar," which could mean a full tree of all 8 names. Since
+the non-player half is resolved instantly (see above) and never
+interactively played, a 3-row ladder covers everything mechanically
+relevant (the player's own path) and was the pragmatic scope call for this
+step; a full visual tree of all 8 seats is left for a later polish pass
+(3.x) if Brent wants the chalkboard flavor to go further.
+
+**Whether a tournament-round win/loss should update `PubState.totalWins`,
+the per-opponent record, and first-win rewards was a judgment call, not
+spelled out card-by-card in design.md.** §12.1's unlock table says "by
+pickup + tournament wins combined," which reads most naturally as *every*
+match win counting, not just winning the whole bracket — so
+`recordTournamentMatchResult` treats each of the 3 bracket matches exactly
+like a pickup win/loss for record-keeping purposes, just with the Checks
+math swapped out for §10's entry/consolation/prize numbers instead of
+§11.1's per-tier win/loss amounts. Worth confirming with Brent, especially
+before 2.6's real save system encodes this shape more permanently — same
+vein as 1.6/1.7/2.3's flagged judgment calls.
+
+**The deck used to enter a tournament isn't locked in for the whole
+bracket** — `startBracketMatch` reads `selectedDeck` (the app's one
+current-deck global, same as pickup games) fresh for each of the 3
+matches, so switching decks in the builder mid-tournament would change
+what the player plays with round to round. Design.md doesn't say either
+way; the deck builder isn't reachable from inside the tournament flow in
+this app, so it's a low-probability edge case, not fixed here. If it ever
+matters, the fix is snapshotting the entering deck onto `TournamentBracket`
+itself rather than reading the global.
+
+**Entry-rule checks (`Tournament.checkEntryDeck`) only run once, at entry
+time** — same reasoning as the deck-not-locked-in gotcha above: if a
+future ownership/collection system (flagged repeatedly since 2.2) ever
+lets an already-entered deck become illegal mid-bracket, nothing re-checks
+it before a later round.
+
+**`portrait-professor-moriarty` and similar opponent portraits sometimes
+render as blank/placeholder in this session's automated browser
+screenshots taken immediately after a DOM rebuild, even though the network
+tab shows the image already loaded 200 OK** — confirmed transient (a
+second screenshot a moment later shows the portrait correctly) during
+manual verification of the bracket ladder. Same "false alarm, not a real
+bug" class as 1.7's `loading="lazy"` note in `art/ingest-preview.html` —
+don't chase this as a regression if it recurs in a future automated
+verification pass.
+
+**The Landlady (`the-landlady`) is still unrestricted in the deck
+builder even though design.md §14.3 says she's "earned by winning the
+Birthday Invitational" and should show as a reserved silhouette until
+then** — this is the same "no card-ownership/collection system gating the
+deck builder" gap 2.2/2.3 already flagged, not something 2.4 introduces,
+but 2.4 is the first step where it's actually possible to *earn* her, which
+makes the gap more visible. `resolvePrize`'s "random legendary" pools
+explicitly exclude her id so she's never handed out as anything but the
+Invitational's own fixed prize — but nothing stops a player from adding her
+to a deck before ever entering that tournament. Whoever builds the real
+ownership system (still flagged as 2.5's natural point of entry) should
+double check this card specifically.
+
+**Next task:** 2.5, other acquisition paths (Lost & Found, Pawnbroker,
+Tinker's Bench, Bar Bet — design.md §11.3-§11.6).
 
 **Gotchas:**
+- **Sir Charles ("house" tier) pays no win/loss Checks and has no reward
+  card of his own — design.md §11.1's earning table names exactly
+  "Regular / Seasoned / Legend," with no "house" row, and he already gave
+  the starter deck as the tutorial's reward.** A pickup game against him
+  still pays the daily first-game-of-day bonus like any pickup game, and
+  his wins don't add to `PubState.totalWins` (the counter that gates
+  Bucket/Seasoned/Legends unlocking) — reasoned from the tutorial win
+  against him not counting toward "0 wins: Newcomer" either, so his
+  ongoing pickup wins shouldn't move that counter differently. Both are
+  judgment calls, not locked spec, in the same vein as 1.6/1.7's flagged
+  ones — worth confirming with Brent, especially before 2.6's real save
+  system encodes this shape more permanently.
+- **A draw pays nothing at all, including the daily bonus, and touches no
+  win/loss record** — design.md §6.3 says a pickup-game draw "pays no
+  reward and counts as neither win nor loss"; `recordPickupResult` treats
+  it as a full no-op (returns the same `PubState` object, not a copy) for
+  exactly that reason, rather than special-casing which parts of the
+  payout to skip.
+- **On a first win, the reward card is paid *in addition to* the normal
+  win Checks, not instead of them** — design.md §11.1 lists "win vs
+  tier" and "first win vs each opponent" as separate table rows (the
+  second prefixed "+", like the daily-bonus row), read as additive. Worth
+  double-checking with Brent if the numbers ever feel too generous once
+  real playtesting starts.
+- **"Legends in town" (design.md §12.3) uses three fixed pairs — (Holmes,
+  Moriarty), (Christie, Poirot), (Jekyll/Hyde, Shelley) — cycling by the
+  player's local calendar day**, which gives every legend exactly one day
+  in three (stronger than design's "at least every third day," and easy
+  to pin in a test). Which legends share a day was never specified
+  anywhere — a judgment call, same vein as 1.6's "which 10 portraits."
+- **There's still no card-ownership/collection system gating the deck
+  builder** (2.2's flagged gotcha) — 2.3 introduces the first real piece
+  of one (`PubState.collection`, reward-card ids earned beyond the base
+  60), but `deckBuilderScreen.ts`'s grid is still every one of the 60 v1
+  cards, unrestricted. Whoever does 2.5's acquisition paths (Lost &
+  Found/Pawnbroker/Tinker's Bench/Bar Bet also feed the same collection)
+  is the natural point to decide whether the builder grid finally gets
+  restricted to owned copies.
+- Christie, Poirot, Dr Jekyll/Mr Hyde, Mary Shelley, and Sir Charles have
+  no portrait art yet (only 10 of the cast were in prompt sheet 1, per
+  1.6's judgment call) — `pubHubScreen.ts` renders a plain gradient circle
+  placeholder for a patron with no `portraitArtId`, same optional-art
+  handling `matchScreen.ts` already had for the AI side-portrait.
+- **There's no card-ownership/collection system yet, so 2.2's deck-
+  builder grid is every one of the 60 v1 cards, unrestricted** — design.md
+  never says the builder should filter to "owned" cards, and the actual
+  acquisition paths (2.3's pickup-game rewards, 2.5's Lost & Found/
+  Pawnbroker/Tinker's Bench/Bar Bet) don't exist yet to have anything to
+  filter by. This is a judgment call, not a locked spec, in the same vein
+  as 1.6/1.7's flagged judgment calls: once 2.3/2.5 introduce a real
+  collection, whoever does that work needs to decide whether the deck
+  builder grid gets restricted to owned copies (likely) and, if so,
+  reconcile it against decks already saved here with cards the player
+  doesn't "own" yet.
+- **The 13 slots start genuinely empty, not pre-seeded with the starter
+  deck** — design.md's §7.2 doesn't say either way. "Start from the
+  Village Constable" (a utility button in the editor, not in the plan's
+  own wording) exists so reaching a legal deck doesn't require memorizing
+  design.md §8.3's decklist by hand, and doubles as the fixture the e2e
+  smoke test uses to reach a legal state without scripting 20 individual
+  taps.
+- **Deck-slot persistence is its own localStorage key
+  (`steampunk-shuffle:deck-slots`), not part of a larger save file** — 2.6
+  owns the real autosave system (design.md §395: collection, Checks, win/
+  loss, unlock flags, etc., as one exportable blob). Whoever builds 2.6
+  should fold this key's data into that blob (or migrate it) rather than
+  leaving two separate persistence mechanisms; `loadDeckSlotsState`/
+  `saveDeckSlotsState` in `src/decks/deckStorage.ts` are the only two
+  functions that would need to change.
+- **Copy limits (2 per card, 1 per legendary) and the 20-card cap are
+  enforced at add-time by silently refusing** (the + button disables) —
+  **but the 60-point cap is not**, so a deck can legitimately sit at 20/20
+  cards and, say, 63/60 points, reported as illegal with `validateDeck`'s
+  own reason text. This asymmetry is deliberate: there's never a legal
+  reason to have a 3rd copy of a card, so refusing it costs nothing, but
+  points are a running total across many different cards — refusing an
+  add because it *would* tip the deck over budget would block perfectly
+  reasonable edits (add an expensive card now, cut a cheap one to
+  compensate later) for no benefit, and would have to guess at the
+  player's next move to do it. If this ever feels wrong in play, the
+  building block for a stricter version is already the same
+  `computeLegality` the meter reads.
 - **`previewOnPlayTargets`'s "does this need a human choice" rule treats
   a `highestPoints`/`lowestPoints` filter as always automatic, even when
   it's the human's own card being played** — the card text already says

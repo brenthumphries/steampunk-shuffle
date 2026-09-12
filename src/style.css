@@ -31,30 +31,10 @@ body {
     max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
 }
 
-.taproom {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 100dvh;
-  text-align: center;
-  gap: 0.5rem;
-}
-
-.taproom h1 {
-  color: var(--amber);
-  font-size: 1.75rem;
+.taproom-deck {
+  opacity: 0.6;
+  font-size: 0.85rem;
   margin: 0;
-}
-
-.taproom p {
-  opacity: 0.7;
-  margin: 0;
-}
-
-.taproom-actions {
-  margin-top: 1rem;
 }
 
 .taproom-button {
@@ -66,6 +46,12 @@ body {
   border-radius: 0.5rem;
   padding: 0.75rem 1.5rem;
   cursor: pointer;
+}
+
+.taproom-button--secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(242, 230, 208, 0.4);
 }
 
 /* ---------------------------------------------------------------------
@@ -221,6 +207,11 @@ body {
   background: transparent;
   color: var(--ink);
   border: 1px solid rgba(242, 230, 208, 0.4);
+}
+
+.action-button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* -- Cards ------------------------------------------------------------ */
@@ -414,4 +405,568 @@ body {
 
 .overlay--zoom {
   background: rgba(10, 6, 2, 0.6);
+}
+
+/* ---------------------------------------------------------------------
+   Deck builder (plan step 2.2). Same flat family-color convention as the
+   match screen's cards — no illustration window until 3.1.
+--------------------------------------------------------------------- */
+
+.deck-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+
+.deck-builder-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.deck-builder-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--amber);
+}
+
+.deck-name-input {
+  flex: 1;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.4);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.deck-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.deck-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.15);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.deck-slot-row--selected {
+  border-color: var(--amber);
+}
+
+.deck-slot-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.deck-slot-info--tappable {
+  cursor: pointer;
+}
+
+.deck-slot-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-slot-meta {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.deck-slot-badge {
+  font-size: 0.65rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+}
+
+.deck-slot-badge--legal {
+  background: rgba(62, 107, 90, 0.35);
+  border: 1px solid #3e6b5a;
+}
+
+.deck-slot-badge--illegal {
+  background: rgba(110, 42, 42, 0.3);
+  border: 1px solid #6e2a2a;
+}
+
+.legality-panel {
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(242, 230, 208, 0.2);
+}
+
+.legality-panel--good {
+  border-color: #3e6b5a;
+}
+
+.legality-panel--bad {
+  border-color: #6e2a2a;
+}
+
+.legality-summary {
+  margin: 0;
+  font-weight: 600;
+}
+
+.legality-reasons {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.deck-utility-row {
+  display: flex;
+}
+
+.deck-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deck-filter-select {
+  flex: 1;
+  font: inherit;
+  color: var(--ink);
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.4);
+  border-radius: 0.4rem;
+  padding: 0.4rem;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.deck-card-tile {
+  --family: var(--family-neutral);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: #241a10;
+  border: 1px solid var(--family);
+  border-top: 0.25rem solid var(--family);
+  border-radius: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.deck-card-tile[data-family="yard"] {
+  --family: var(--family-yard);
+}
+.deck-card-tile[data-family="irregulars"] {
+  --family: var(--family-irregulars);
+}
+.deck-card-tile[data-family="rookery"] {
+  --family: var(--family-rookery);
+}
+.deck-card-tile[data-family="foundry"] {
+  --family: var(--family-foundry);
+}
+.deck-card-tile[data-family="salon"] {
+  --family: var(--family-salon);
+}
+.deck-card-tile[data-family="neutral"] {
+  --family: var(--family-neutral);
+}
+
+.deck-card-tile--included {
+  box-shadow: 0 0 0 1px var(--amber);
+}
+
+.deck-card-points {
+  align-self: flex-start;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 999px;
+  min-width: 1.3rem;
+  text-align: center;
+  padding: 0 0.15rem;
+}
+
+.deck-card-name {
+  font-weight: 600;
+}
+
+.deck-card-meta,
+.deck-card-chips {
+  opacity: 0.7;
+  font-size: 0.68rem;
+}
+
+.deck-card-controls {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding-top: 0.2rem;
+}
+
+.deck-card-btn {
+  font: inherit;
+  font-weight: 700;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 230, 208, 0.4);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.deck-card-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.deck-card-qty {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+/* ---------------------------------------------------------------------
+   Pub hub (plan step 2.3, design.md §11.2). Same flat-color, no-frame
+   convention as the match screen and deck builder — 3.1's card frame
+   hasn't landed yet.
+--------------------------------------------------------------------- */
+
+.pub-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.pub-hub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.pub-hub-title {
+  margin: 0;
+  color: var(--amber);
+  font-size: 1.4rem;
+}
+
+.checks-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  background: #241a10;
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+}
+
+.checks-badge-value {
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.checks-badge-label {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.pub-hub-deck-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.pub-hub-deck-row-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.patron-section-title {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.patron-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.patron-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  cursor: pointer;
+}
+
+.patron-row:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.patron-portrait {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--family-neutral);
+}
+
+.patron-portrait--placeholder {
+  background: linear-gradient(135deg, var(--family-neutral), #241a10);
+}
+
+.patron-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.patron-name {
+  font-weight: 600;
+}
+
+.patron-line {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patron-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+.patron-tier {
+  font-size: 0.62rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid rgba(242, 230, 208, 0.3);
+}
+
+.patron-tier--house {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.patron-tier--seasoned {
+  border-color: var(--family-foundry);
+}
+
+.patron-tier--legend {
+  border-color: var(--family-rookery);
+}
+
+.patron-record,
+.patron-reward {
+  font-size: 0.62rem;
+  opacity: 0.7;
+}
+
+.patron-reward--claimed {
+  opacity: 0.45;
+  font-style: italic;
+}
+
+/* -- Reward reveal (design.md §11.2's "unwrap") -------------------------- */
+
+.reveal-box {
+  max-width: 20rem;
+}
+
+.reveal-card {
+  align-self: center;
+  animation: unwrap 0.5s ease-out;
+}
+
+@keyframes unwrap {
+  from {
+    transform: scale(0.6) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) rotate(2deg);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* -- Tournaments (plan step 2.4, design.md §10) ------------------------- */
+
+.tournaments-screen,
+.bracket-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tournaments-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.tournaments-title {
+  margin: 0;
+  color: var(--amber);
+  font-size: 1.2rem;
+}
+
+.tournaments-deck-line {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.tournament-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tournament-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+}
+
+.tournament-name {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tournament-meta {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.tournament-prize {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--amber);
+}
+
+.tournament-locked,
+.tournament-blocked {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* -- Bracket ladder ------------------------------------------------------ */
+
+.bracket-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bracket-stage {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+}
+
+.bracket-stage--active {
+  border-color: var(--amber);
+}
+
+.bracket-stage-name {
+  width: 5.5rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.bracket-stage-vs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.bracket-opponent-portrait {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--family-neutral);
+}
+
+.bracket-opponent-portrait--placeholder {
+  background: linear-gradient(135deg, var(--family-neutral), #241a10);
+}
+
+.bracket-opponent-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-stage-badge {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.bracket-stage-badge--won {
+  color: var(--amber);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.bracket-stage-badge--lost {
+  opacity: 0.5;
+  font-style: italic;
 }

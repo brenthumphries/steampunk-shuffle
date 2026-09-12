@@ -11,6 +11,7 @@ import {
   currentPlayer,
   effectivePoints,
   playTurn,
+  type MatchResult,
   type MatchState,
   type PlayerId,
   type RoundResult,
@@ -31,9 +32,14 @@ export interface MatchScreenOptions {
   aiDeck: Deck;
   aiName: string;
   aiPortraitArtId?: string;
-  difficulty: Difficulty;
-  /** Called once the player dismisses the match-over overlay. */
-  onExit: () => void;
+  /**
+   * Fixed for most opponents; a function lets an opponent's dial depend on
+   * match state (e.g. Dr Jekyll/Mr Hyde's per-round override, design.md
+   * §9.3 — see src/pub/opponents.ts).
+   */
+  difficulty: Difficulty | ((state: MatchState) => Difficulty);
+  /** Called once the player dismisses the match-over overlay, with the final result. */
+  onExit: (result: MatchResult) => void;
 }
 
 type Phase =
@@ -212,6 +218,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
 
   function continueAfterRoundReveal(): void {
+    // The round that just ended may also have completed the match (e.g. the
+    // second round win) — afterCommit() only checked for round-vs-match
+    // completion once, before this overlay appeared, so that has to be
+    // re-checked here rather than always falling through to scheduleNext().
+    if (state.status === "complete") {
+      phase = { kind: "match-over" };
+      render();
+      return;
+    }
     phase = { kind: "idle" };
     render();
     scheduleNext();
@@ -226,7 +241,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       timer = setTimeout(() => {
         timer = undefined;
         const prevRoundCount = state.roundHistory.length;
-        const result = playAITurn(state, AI, options.aiDeck, options.difficulty, aiSeed);
+        const difficulty = typeof options.difficulty === "function" ? options.difficulty(state) : options.difficulty;
+        const result = playAITurn(state, AI, options.aiDeck, difficulty, aiSeed);
         state = result.state;
         aiSeed = result.nextSeed;
         afterCommit(prevRoundCount);
@@ -366,7 +382,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     box.appendChild(el("p", "overlay-score", `Rounds: You ${state.roundsWon.A} — ${state.roundsWon.B} ${options.aiName}`));
     const btn = el("button", "action-button", "Leave the table");
     btn.type = "button";
-    btn.addEventListener("click", () => options.onExit());
+    btn.addEventListener("click", () => options.onExit(result));
     box.appendChild(btn);
     overlay.appendChild(box);
     return overlay;
