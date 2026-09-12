@@ -4,17 +4,19 @@ import { ALL_CARDS } from "./cards/data/index.ts";
 import { starterDeck } from "./cards/data/decks/starterDeck.ts";
 import type { Difficulty } from "./ai/aiOpponent.ts";
 import type { MatchResult, MatchState } from "./engine/matchEngine.ts";
-import { mountMatchScreen } from "./ui/matchScreen.ts";
+import { mountMatchScreen, type HintOptions } from "./ui/matchScreen.ts";
 import { mountDeckBuilderScreen } from "./ui/deckBuilderScreen.ts";
 import { mountPubHubScreen, type PendingReveal } from "./ui/pubHubScreen.ts";
 import { mountTournamentsScreen } from "./ui/tournamentsScreen.ts";
 import { mountBracketScreen, type BracketOutcome } from "./ui/bracketScreen.ts";
 import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { mountSaveScreen } from "./ui/saveScreen.ts";
+import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
+import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { loadDeckSlotsState } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
-import { applyTournamentPayout, deductChecks, loadPubState, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
+import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
 import { resolveBarBet } from "./pub/barBet.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type MatchContext } from "./save/activeMatch.ts";
 import type { Tournament } from "./tournaments/tournaments.ts";
@@ -22,6 +24,8 @@ import { TOURNAMENTS_BY_ID } from "./tournaments/tournaments.ts";
 import { advanceBracket, breakTournamentDraw, createBracket, currentMatchIndex, type BracketRoundIndex, type TournamentBracket } from "./tournaments/bracket.ts";
 import { resolvePrize } from "./tournaments/prizes.ts";
 import { checkInvitationalTrigger, clearActiveBracket, loadTournamentState, saveTournamentState, startBracket, updateActiveBracket } from "./tournaments/tournamentState.ts";
+import { TUTORIAL_BEFORE_DEAL, TUTORIAL_HOUSE_DECK, TUTORIAL_MATCH_END_MAT, TUTORIAL_PLAYER_DECK, TUTORIAL_REWARD_CHECKS, TUTORIAL_ROUND_END_MATS, TUTORIAL_TURNS } from "./tutorial/tutorialScript.ts";
+import { HINT_IDS, HINT_TEXT, hasShownHint, isWithinHintWindow, loadTutorialState, markHintShown, markTutorialCompleted, recordMatchPlayed, saveTutorialState, type HintId } from "./tutorial/tutorialState.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -67,6 +71,16 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
+
+  const tutorial = loadTutorialState();
+  const hint =
+    tutorial.matchesPlayed >= 4 && !hasShownHint(tutorial, "hub")
+      ? {
+          text: HINT_TEXT.hub,
+          onShown: () => saveTutorialState(markHintShown(loadTutorialState(), "hub")),
+        }
+      : undefined;
+
   teardownScreen = mountPubHubScreen(app!, {
     deckName: selectedDeckName,
     onBuildDeck: startDeckBuilder,
@@ -74,7 +88,9 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     onOpenTournaments: showTournaments,
     onOpenBackRoom: showBackRoom,
     onOpenSaveData: showSaveScreen,
+    onOpenHouseRules: showHouseRules,
     pendingReveals,
+    hint,
   });
 }
 
@@ -90,6 +106,31 @@ function showSaveScreen(): void {
   teardownScreen = undefined;
   app!.replaceChildren();
   teardownScreen = mountSaveScreen(app!, { onBack: () => showPubHub() });
+}
+
+function showHouseRules(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountHouseRulesScreen(app!, { onBack: () => showPubHub() });
+}
+
+/**
+ * design.md §13.3's hint chips, active for the player's 2nd-4th match
+ * (`isWithinHintWindow`) and only ones never shown before. Tutorial matches
+ * don't get this — `startTutorial` mounts the match screen with `tutorial`
+ * instead of `hints`.
+ */
+function buildHintOptions(): HintOptions | undefined {
+  const tutorial = loadTutorialState();
+  if (!isWithinHintWindow(tutorial.matchesPlayed)) return undefined;
+  const active = new Set<HintId>(HINT_IDS.filter((id) => id !== "hub" && !hasShownHint(tutorial, id)));
+  if (active.size === 0) return undefined;
+  return {
+    active,
+    text: HINT_TEXT,
+    onShown: (hint) => saveTutorialState(markHintShown(loadTutorialState(), hint)),
+  };
 }
 
 /**
@@ -109,6 +150,7 @@ function mountMatch(params: {
   difficulty: Difficulty | ((state: MatchState) => Difficulty);
   context: MatchContext;
   resume?: { state: MatchState; aiSeed: number };
+  hints?: HintOptions;
   onFinish: (result: MatchResult) => void;
 }): void {
   teardownScreen?.();
@@ -121,6 +163,7 @@ function mountMatch(params: {
     aiPortraitArtId: params.aiPortraitArtId,
     difficulty: params.difficulty,
     initialState: params.resume,
+    hints: params.hints,
     onStateChange: (state, aiSeed) => {
       saveActiveMatch({ matchState: state, aiSeed, humanDeck: params.humanDeck, humanDeckName: params.humanDeckName, context: params.context });
     },
@@ -132,6 +175,8 @@ function mountMatch(params: {
 }
 
 function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, result: MatchResult): void {
+  saveTutorialState(recordMatchPlayed(loadTutorialState())); // design.md §13.3's "matches 2-4" window
+
   const outcome = result.winner === "draw" ? "draw" : result.winner === "A" ? "win" : "loss";
   let pub = loadPubState();
   const { next, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, new Date());
@@ -159,7 +204,42 @@ function startMatch(opponent: Opponent, stakedCardId: string | null): void {
     aiPortraitArtId: opponent.portraitArtId,
     difficulty: opponent.difficulty,
     context: { kind: "pickup", opponentId: opponent.id, stakedCardId },
+    hints: buildHintOptions(),
     onFinish: (result) => finishPickupMatch(opponent, stakedCardId, result),
+  });
+}
+
+/** The tutorial's forced-script match (plan step 2.7, design.md §13). */
+function startTutorial(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountMatchScreen(app!, {
+    humanDeck: TUTORIAL_PLAYER_DECK,
+    aiDeck: TUTORIAL_HOUSE_DECK,
+    aiName: "Sir Charles",
+    difficulty: "regular",
+    tutorial: {
+      beforeDeal: TUTORIAL_BEFORE_DEAL,
+      turns: TUTORIAL_TURNS,
+      roundEndMats: TUTORIAL_ROUND_END_MATS,
+      matchEndMat: TUTORIAL_MATCH_END_MAT,
+    },
+    onExit: finishTutorial,
+  });
+}
+
+/** design.md §13.2's "After": the reward reveal (starter deck + Checks), then the pub hub opens for the first time. */
+function finishTutorial(): void {
+  savePubState(grantChecks(loadPubState(), TUTORIAL_REWARD_CHECKS));
+  saveTutorialState(markTutorialCompleted(loadTutorialState()));
+
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountTutorialRewardScreen(app!, {
+    deckName: selectedDeckName,
+    onContinue: () => showPubHub(),
   });
 }
 
@@ -295,6 +375,7 @@ function tryResumeActiveMatch(): boolean {
       difficulty: opponent.difficulty,
       context: saved.context,
       resume: { state: saved.matchState, aiSeed: saved.aiSeed },
+      hints: buildHintOptions(),
       onFinish: (result) => finishPickupMatch(opponent, stakedCardId, result),
     });
     return true;
@@ -328,6 +409,12 @@ function tryResumeActiveMatch(): boolean {
 }
 
 refreshSelectedDeck();
-if (!tryResumeActiveMatch()) {
+if (!loadTutorialState().completed) {
+  // A newcomer's very first launch (design.md §13): the tutorial itself
+  // isn't resumable mid-match (see startTutorial) — if the app was killed
+  // partway through, it just deals a fresh one, which is fine since it's
+  // the same deterministic script either way.
+  startTutorial();
+} else if (!tryResumeActiveMatch()) {
   showPubHub();
 }

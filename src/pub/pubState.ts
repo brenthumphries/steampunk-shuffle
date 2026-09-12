@@ -215,6 +215,11 @@ export function deductChecks(state: PubState, amount: number): PubState {
   return { ...state, checks: Math.max(0, state.checks - amount) };
 }
 
+/** Adds Checks outside the pickup/tournament payout flows — currently just the tutorial's fixed reward (design.md §13.2's "After"). */
+export function grantChecks(state: PubState, amount: number): PubState {
+  return { ...state, checks: state.checks + amount };
+}
+
 /** Applies a tournament consolation or prize payout (design.md §10): Checks plus an optional prize card added to the collection. */
 export function applyTournamentPayout(state: PubState, checksEarned: number, prizeCardId: string | null): PubState {
   return {

@@ -7,7 +7,10 @@ import { expect, test } from "@playwright/test";
 test.describe("deck builder (plan step 2.2)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+    });
     await page.reload();
   });
 

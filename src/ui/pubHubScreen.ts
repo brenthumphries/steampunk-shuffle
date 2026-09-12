@@ -12,6 +12,7 @@ import { loadPubState } from "../pub/pubState.ts";
 import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
+import { buildBeerMat } from "./beerMat.ts";
 
 /** A card to show the "unwrap" overlay for — a first-win reward (§11.2) or a Bar Bet win (§11.5). Several can queue up from the same match. */
 export interface PendingReveal {
@@ -27,7 +28,10 @@ export interface PubHubOptions {
   onOpenTournaments: () => void;
   onOpenBackRoom: () => void;
   onOpenSaveData: () => void;
+  onOpenHouseRules: () => void;
   pendingReveals?: PendingReveal[];
+  /** design.md §13.3's hub hint ("You've enough Checks for the Pawnbroker…"), shown once. */
+  hint?: { text: string; onShown: () => void };
 }
 
 const CARDS_BY_ID = ACQUIRABLE_CARDS_BY_ID;
@@ -55,7 +59,14 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   const pub = loadPubState();
   let revealQueue: PendingReveal[] = [...(options.pendingReveals ?? [])];
   let stakePrompt: Opponent | undefined;
+  let hintDismissed = false;
   let torn = false;
+
+  function dismissHint(): void {
+    hintDismissed = true;
+    options.hint?.onShown();
+    render();
+  }
 
   function dismissReveal(): void {
     revealQueue = revealQueue.slice(1);
@@ -224,6 +235,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     saveDataBtn.type = "button";
     saveDataBtn.addEventListener("click", options.onOpenSaveData);
     deckRowButtons.appendChild(saveDataBtn);
+    const houseRulesBtn = el("button", "taproom-button taproom-button--secondary", "House Rules");
+    houseRulesBtn.type = "button";
+    houseRulesBtn.addEventListener("click", options.onOpenHouseRules);
+    deckRowButtons.appendChild(houseRulesBtn);
     deckRow.appendChild(deckRowButtons);
     screen.appendChild(deckRow);
 
@@ -237,6 +252,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     root.appendChild(screen);
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
+    if (options.hint && !hintDismissed) root.appendChild(buildBeerMat(options.hint.text, dismissHint));
   }
 
   render();

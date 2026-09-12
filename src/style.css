@@ -1110,3 +1110,141 @@ body {
 .save-screen-status {
   color: var(--amber);
 }
+
+/* ---------------------------------------------------------------------
+   Beer mat (plan step 2.7, design.md §13.1): Sir Charles's narration and
+   the §13.3 hint chips. Fixed to the bottom of the screen and sized to its
+   content, not full-width/full-height, so it never blocks a legal move
+   underneath it.
+--------------------------------------------------------------------- */
+
+.beer-mat {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+  background: #241a10;
+  border: 1px solid var(--amber);
+  border-radius: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.4);
+}
+
+.beer-mat-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.beer-mat-dismiss {
+  flex: none;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0;
+}
+
+.overlay-tutorial-note {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* ---------------------------------------------------------------------
+   House Rules reference page (plan step 2.7, design.md §13.4).
+--------------------------------------------------------------------- */
+
+.house-rules-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.house-rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.house-rules-title {
+  margin: 0;
+  color: var(--amber);
+}
+
+.house-rules-posted {
+  margin: 0.5rem 0 0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.house-rules-section-title {
+  margin: 0.75rem 0 0;
+  color: var(--amber);
+  font-size: 1rem;
+}
+
+.house-rules-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.house-rules-keywords {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.house-rules-keyword-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.house-rules-keyword-name {
+  font-weight: 600;
+}
+
+.house-rules-keyword-reminder {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.house-rules-tournaments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.house-rules-tournament-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-bottom: 1px solid rgba(242, 230, 208, 0.15);
+  padding-bottom: 0.4rem;
+}
+
+.house-rules-tournament-name {
+  font-weight: 600;
+}
+
+.house-rules-tournament-meta,
+.house-rules-tournament-checks {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}

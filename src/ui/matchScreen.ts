@@ -21,11 +21,37 @@ import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
 import { abilityLines, effectPromptLabel, keywordChips } from "./cardText.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
+import { buildBeerMat } from "./beerMat.ts";
+import type { HintId } from "../tutorial/tutorialState.ts";
 
 const HUMAN: PlayerId = "A";
 const AI: PlayerId = "B";
 const AI_DELAY_MS = 900;
 const PASS_DELAY_MS = 900;
+
+/** One turn of the tutorial's forced script (plan step 2.7, design.md §13.2). */
+export interface ScriptedTurn {
+  side: PlayerId;
+  cardId: string;
+  mat: string;
+}
+
+export interface TutorialMatchOptions {
+  beforeDeal: string[];
+  /** Every turn of the match, in play order — matchScreen drives both sides through it, including the house's, instead of the real AI. */
+  turns: readonly ScriptedTurn[];
+  /** Extra beer-mat text folded into the round-reveal overlay for a round that doesn't also end the match. */
+  roundEndMats: Partial<Record<number, string>>;
+  /** Extra beer-mat text folded into the match-over overlay. */
+  matchEndMat: string;
+}
+
+/** design.md §13.3's hint chips: still-eligible ones (not yet shown, ever), their text, and how to record one as shown. */
+export interface HintOptions {
+  active: ReadonlySet<HintId>;
+  text: Partial<Record<HintId, string>>;
+  onShown: (hint: HintId) => void;
+}
 
 export interface MatchScreenOptions {
   humanDeck: Deck;
@@ -44,6 +70,10 @@ export interface MatchScreenOptions {
   onStateChange?: (state: MatchState, aiSeed: number) => void;
   /** Called once the player dismisses the match-over overlay, with the final result. */
   onExit: (result: MatchResult) => void;
+  /** Plays the tutorial's forced script (design.md §13.2) instead of a normal random-shuffled/AI-driven match. */
+  tutorial?: TutorialMatchOptions;
+  /** design.md §13.3's hint chips — ignored during a tutorial match (see `tutorial`). */
+  hints?: HintOptions;
 }
 
 type Phase =
@@ -75,7 +105,11 @@ function activeFaceOf(card: Card, faceIndex: 0 | 1): CardFace {
 
 /** Mounts the match screen into `root` and returns a teardown function. */
 export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions): () => void {
-  let state: MatchState = options.initialState?.state ?? createMatch(options.humanDeck, options.aiDeck, { seed: Date.now() });
+  let state: MatchState =
+    options.initialState?.state ??
+    (options.tutorial
+      ? createMatch(options.humanDeck, options.aiDeck, { seed: 1, shuffle: false, leader: AI }) // design.md §13.1: "the house always leads" in the tutorial
+      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now() }));
   let aiSeed = options.initialState?.aiSeed ?? (Date.now() ^ 0x9e3779b9);
   // A resumed match may have finished (killed while the match-over overlay
   // was up, before "Leave the table" was tapped) — scheduleNext() no-ops
@@ -88,6 +122,50 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // real browser timer at runtime, just an opaquely-typed handle here.
   let timer: ReturnType<typeof setTimeout> | undefined;
   let torn = false;
+
+  // Tutorial script cursor (design.md §13.2) — index into options.tutorial.turns.
+  let scriptIndex = 0;
+  let introQueue: string[] = options.tutorial ? [...options.tutorial.beforeDeal] : [];
+  // The beer mat currently showing (tutorial narration or a §13.3 hint chip)
+  // — a non-blocking banner, never a full-screen overlay (design.md §13.1:
+  // "never blocking a legal move").
+  let mat: string | null = introQueue[0] ?? null;
+  const hintsFired = new Set<HintId>();
+
+  function fireHint(hint: HintId): void {
+    if (!options.hints || hintsFired.has(hint) || !options.hints.active.has(hint)) return;
+    const text = options.hints.text[hint];
+    if (!text) return;
+    hintsFired.add(hint);
+    mat = text;
+    options.hints.onShown(hint);
+    render();
+  }
+
+  /** The card that left `playerId`'s hand between `before` and the current `state` — undefined for a pass. */
+  function findPlayedCard(before: ReadonlySet<string>, playerId: PlayerId): Card | undefined {
+    const afterIds = new Set(state.players[playerId].hand.map((c) => c.instanceId));
+    for (const id of before) {
+      if (afterIds.has(id)) continue;
+      const onBoard = state.players[playerId].board.find((b) => b.instanceId === id);
+      if (onBoard) return onBoard.card;
+      const discarded = state.players[playerId].discard.find((d) => d.instanceId === id);
+      if (discarded) return discarded.card;
+    }
+    return undefined;
+  }
+
+  function dismissMat(): void {
+    if (introQueue.length > 0) {
+      introQueue = introQueue.slice(1);
+      mat = introQueue[0] ?? null;
+      render();
+      if (introQueue.length === 0) scheduleNext();
+      return;
+    }
+    mat = null;
+    render();
+  }
 
   function clearTimer(): void {
     if (timer !== undefined) {
@@ -178,7 +256,23 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // Turn handling
   // -------------------------------------------------------------------
 
+  function captureHintSnapshot(): { prevLocationId: string | undefined; prevHandA: Set<string>; prevHandB: Set<string> } {
+    return {
+      prevLocationId: state.location?.instanceId,
+      prevHandA: new Set(state.players.A.hand.map((c) => c.instanceId)),
+      prevHandB: new Set(state.players.B.hand.map((c) => c.instanceId)),
+    };
+  }
+
   function handleHandTap(instanceId: string, card: Card): void {
+    if (options.tutorial) {
+      const turn = options.tutorial.turns[scriptIndex];
+      if (!turn || turn.side !== HUMAN || turn.cardId !== card.id) return; // only the scripted card is tappable — see render()'s hand loop
+      scriptIndex += 1;
+      mat = turn.mat;
+      commitHumanPlay(instanceId, undefined);
+      return;
+    }
     phase = { kind: "staging", play: stagePlay(state, HUMAN, instanceId, card) };
     render();
   }
@@ -204,13 +298,30 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   function commitHumanPlay(instanceId: string | undefined, chooser?: TargetChooser): void {
     const prevRoundCount = state.roundHistory.length;
+    const hintSnapshot = captureHintSnapshot();
     state = playTurn(state, HUMAN, instanceId, chooser ? { chooseTargets: chooser } : undefined);
-    afterCommit(prevRoundCount);
+    afterCommit(prevRoundCount, hintSnapshot);
   }
 
-  function afterCommit(prevRoundCount: number): void {
+  function afterCommit(
+    prevRoundCount: number,
+    hintSnapshot?: { prevLocationId: string | undefined; prevHandA: ReadonlySet<string>; prevHandB: ReadonlySet<string> },
+  ): void {
     options.onStateChange?.(state, aiSeed);
-    if (state.roundHistory.length > prevRoundCount) {
+    const roundJustEnded = state.roundHistory.length > prevRoundCount;
+
+    if (options.hints && hintSnapshot) {
+      if (state.location && state.location.instanceId !== hintSnapshot.prevLocationId) fireHint("location");
+      const playedA = findPlayedCard(hintSnapshot.prevHandA, "A");
+      const playedB = findPlayedCard(hintSnapshot.prevHandB, "B");
+      if (playedA?.faces[0].type === "headline" || playedB?.faces[0].type === "headline") fireHint("headline");
+      if (roundJustEnded) {
+        const returnCardLeftTable = [...state.players.A.hand, ...state.players.B.hand].some((c) => c.card.faces[0].keywords?.return);
+        if (returnCardLeftTable) fireHint("return");
+      }
+    }
+
+    if (roundJustEnded) {
       phase = { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
       render();
       return;
@@ -242,6 +353,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   function scheduleNext(): void {
     if (torn || state.status !== "in-progress") return;
+    if (options.tutorial && introQueue.length > 0) return; // wait for "before the deal" to be dismissed
     const acting = currentPlayer(state);
     if (acting === AI) {
       phase = { kind: "ai-turn" };
@@ -249,11 +361,23 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       timer = setTimeout(() => {
         timer = undefined;
         const prevRoundCount = state.roundHistory.length;
-        const difficulty = typeof options.difficulty === "function" ? options.difficulty(state) : options.difficulty;
-        const result = playAITurn(state, AI, options.aiDeck, difficulty, aiSeed);
-        state = result.state;
-        aiSeed = result.nextSeed;
-        afterCommit(prevRoundCount);
+        if (options.tutorial) {
+          const turn = options.tutorial.turns[scriptIndex];
+          if (!turn || turn.side !== AI) throw new Error("tutorial script is out of sync with the match state");
+          const inst = state.players[AI].hand.find((c) => c.card.id === turn.cardId);
+          if (!inst) throw new Error(`tutorial script expected "${turn.cardId}" in the house's hand`);
+          state = playTurn(state, AI, inst.instanceId);
+          scriptIndex += 1;
+          mat = turn.mat;
+          afterCommit(prevRoundCount);
+        } else {
+          const hintSnapshot = captureHintSnapshot();
+          const difficulty = typeof options.difficulty === "function" ? options.difficulty(state) : options.difficulty;
+          const result = playAITurn(state, AI, options.aiDeck, difficulty, aiSeed);
+          state = result.state;
+          aiSeed = result.nextSeed;
+          afterCommit(prevRoundCount, hintSnapshot);
+        }
       }, AI_DELAY_MS);
     } else if (state.players[HUMAN].hand.length === 0) {
       // "If your hand is empty you pass. There is no voluntary pass." (design.md §6.2.2)
@@ -262,8 +386,9 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       timer = setTimeout(() => {
         timer = undefined;
         const prevRoundCount = state.roundHistory.length;
+        const hintSnapshot = captureHintSnapshot();
         state = playTurn(state, HUMAN);
-        afterCommit(prevRoundCount);
+        afterCommit(prevRoundCount, hintSnapshot);
       }, PASS_DELAY_MS);
     }
     // Otherwise it's the human's turn with cards in hand — wait for a tap.
@@ -303,6 +428,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     }
     for (const bc of board) {
       const isCandidate = candidateIds.has(bc.instanceId);
+      // design.md §13.3's Elusive hint: a tap on a face-up, non-candidate,
+      // Elusive card while a Flip is being staged means the player just
+      // tried to target it — `excludeElusive` already keeps it out of
+      // `candidateIds`, so without this it's simply untappable and silent.
+      const isElusiveFlipAttempt = !isCandidate && bc.faceUp && step?.step.effect.effect === "flip" && (activeFaceOf(bc.card, bc.faceIndex).keywords?.elusive ?? false);
       row.appendChild(
         buildCardEl(bc.card, bc.faceIndex, {
           size: "mini",
@@ -310,7 +440,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
           pointsOverride: bc.faceUp ? effectivePoints(state, playerId, bc) : undefined,
           highlight: isCandidate,
           selected: isCandidate && (step?.selected.includes(bc.instanceId) ?? false),
-          onPrimary: isCandidate ? () => handleTargetTap(bc.instanceId) : undefined,
+          onPrimary: isCandidate ? () => handleTargetTap(bc.instanceId) : isElusiveFlipAttempt ? () => fireHint("elusive") : undefined,
           onZoom: bc.faceUp ? () => openZoom(bc.card, bc.faceIndex) : undefined,
         }),
       );
@@ -362,7 +492,13 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     } else if (phase.kind === "human-pass") {
       bar.appendChild(el("p", "action-prompt", "No cards in hand — passing…"));
     } else if (phase.kind === "idle" && state.status === "in-progress") {
-      bar.appendChild(el("p", "action-prompt", currentPlayer(state) === HUMAN ? "Your turn — tap a card to play it." : ""));
+      let prompt = currentPlayer(state) === HUMAN ? "Your turn — tap a card to play it." : "";
+      if (options.tutorial && currentPlayer(state) === HUMAN) {
+        const turn = options.tutorial.turns[scriptIndex];
+        const name = turn ? state.players[HUMAN].hand.find((c) => c.card.id === turn.cardId)?.card.faces[0].name : undefined;
+        if (name) prompt = `Play this one: ${name}.`;
+      }
+      bar.appendChild(el("p", "action-prompt", prompt));
     }
     return bar;
   }
@@ -373,6 +509,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const title = result.winner === "tie" ? "Round tied" : result.winner === HUMAN ? "You took the round" : `${options.aiName} took the round`;
     box.appendChild(el("h2", "overlay-title", `Round ${result.round}: ${title}`));
     box.appendChild(el("p", "overlay-score", `You ${result.scores[HUMAN]} — ${result.scores[AI]} ${options.aiName}`));
+    const tutorialNote = options.tutorial?.roundEndMats[result.round];
+    if (tutorialNote) box.appendChild(el("p", "overlay-tutorial-note", tutorialNote));
     const btn = el("button", "action-button", "Continue");
     btn.type = "button";
     btn.addEventListener("click", continueAfterRoundReveal);
@@ -388,6 +526,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const title = result.winner === "draw" ? "The match is a draw" : result.winner === HUMAN ? "You took the table" : `${options.aiName} took the table`;
     box.appendChild(el("h2", "overlay-title", title));
     box.appendChild(el("p", "overlay-score", `Rounds: You ${state.roundsWon.A} — ${state.roundsWon.B} ${options.aiName}`));
+    if (options.tutorial) box.appendChild(el("p", "overlay-tutorial-note", options.tutorial.matchEndMat));
     const btn = el("button", "action-button", "Leave the table");
     btn.type = "button";
     btn.addEventListener("click", () => options.onExit(result));
@@ -432,15 +571,20 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const handRow = el("div", "hand-row");
     const stagedInstanceId = phase.kind === "staging" ? phase.play.instanceId : undefined;
     const handInteractive = phase.kind === "idle" && state.status === "in-progress" && currentPlayer(state) === HUMAN;
+    // Tutorial mode restricts every player turn to the one scripted card
+    // (design.md §13.1) — every other hand card is untappable, so the
+    // beer-mat narration always lands on the exact score it names.
+    const tutorialExpectedCardId = options.tutorial && handInteractive ? options.tutorial.turns[scriptIndex]?.cardId : undefined;
     for (const inst of state.players[HUMAN].hand) {
       const isStaged = inst.instanceId === stagedInstanceId;
+      const tappable = options.tutorial ? handInteractive && inst.card.id === tutorialExpectedCardId : handInteractive;
       handRow.appendChild(
         buildCardEl(inst.card, 0, {
           size: "mini",
           faceUp: true,
           selected: isStaged,
-          disabled: !handInteractive && !isStaged,
-          onPrimary: handInteractive ? () => handleHandTap(inst.instanceId, inst.card) : undefined,
+          disabled: !tappable && !isStaged,
+          onPrimary: tappable ? () => handleHandTap(inst.instanceId, inst.card) : undefined,
           onZoom: () => openZoom(inst.card, 0),
         }),
       );
@@ -454,6 +598,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     if (phase.kind === "round-reveal") root.appendChild(buildRoundRevealOverlay(phase.result));
     if (phase.kind === "match-over") root.appendChild(buildMatchOverOverlay());
     if (zoomed) root.appendChild(buildZoomOverlay());
+    if (mat) root.appendChild(buildBeerMat(mat, dismissMat));
   }
 
   options.onStateChange?.(state, aiSeed);

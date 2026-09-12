@@ -761,13 +761,114 @@ of those steps builds the underlying feature should add its own field to
 `SaveFile`/`buildSaveFile`/`applySaveFile` rather than this step guessing at
 a shape nothing consumes yet.
 
-**Next task:** 2.7, tutorial (design.md §13, plan step 2.7): the
-barkeep-narrated first match against Sir Charles with forced draws on both
-sides (design.md §13.1 — the engine already supports a deck-order override
-via `createMatch`'s `{shuffle: false}`, flagged as exactly this mechanism
-back in 1.2's gotchas), beer-mat narration that slides in and dismisses
-without blocking a legal move, hint chips for the next 3 matches, and a
-"House Rules" reference page.
+2.7 done. The tutorial (design.md §13) lives in `src/tutorial/`:
+`tutorialScript.ts` (the forced player/house decks — real starter/House
+cards, reordered so `createMatch`'s `{shuffle: false}` deals design.md
+§13.2's exact hands and draws; the player's deck is trimmed to just the 12
+cards the script ever draws rather than a full 20, since `createMatch`
+doesn't require a legal deck and the other 8 would only ever sit unseen —
+and the 18-turn script itself, the "before the deal"/round-end/match-end
+beer-mat text, and the 10-Checks reward amount) and `tutorialState.ts`
+(its own localStorage key, same pattern as `pubState.ts`/`deckStorage.ts`:
+`completed`, `matchesPlayed`, and which of design.md §13.3's hint chips
+have ever been shown — folded into `SaveFile` this step, closing 2.6's
+flagged gap). `src/ui/matchScreen.ts` grew an optional `tutorial` mode
+(forced turns for *both* sides — the house's scripted plays go through
+`playTurn` directly instead of `playAITurn`, and the human's hand is
+restricted so only the one scripted card is tappable and tapping it
+commits immediately, skipping the normal stage/confirm bar entirely) and
+an optional `hints` mode (design.md §13.3's four in-match chips: Location,
+Elusive, Return, Headline) — both share a new non-blocking "beer mat"
+banner component (`src/ui/beerMat.ts`, fixed-position, tap-to-dismiss,
+never a full-screen overlay, since design.md §13.1 requires narration to
+never block a legal move). Two small new screens:
+`src/ui/tutorialRewardScreen.ts` (the reward reveal — the starter deck
+"formally" plus 10 Checks — and Sir Charles's closing beer mat) and
+`src/ui/houseRulesScreen.ts` (design.md §13.4's reference page; every
+number on it — deck-legality caps, per-tier Checks, the tournament table —
+is read live from the same constants/registries the rest of the app
+enforces, not retyped, so it can't drift). `src/main.ts` now checks
+`tutorialState.completed` before anything else at boot: an incomplete
+tutorial always wins over both the pub hub and a resumable active match.
+The pub hub grew a "House Rules" button and design.md §13.3's fifth
+("hub") hint, shown once a player's 4th match is done. Tests:
+`tests/unit/tutorial/{tutorialScript,tutorialState}.test.ts` (10 new —
+`tutorialScript.test.ts` replays all 18 forced turns through the real
+engine end to end and pins the exact `9-6 / 7-15 / 7-6` score line from
+design.md §13.2, extending 1.2's round-1-only replay test to the whole
+match) plus additions to `save/saveFile.test.ts`; 336 unit tests total
+(project-wide, up from 327), all passing. `tests/e2e/tutorial.spec.ts`
+(new, 3 Playwright smoke tests: a fresh player lands in the tutorial, only
+the scripted card is tappable once the intro mats are dismissed, playing
+it commits and shows the right beer mat) plus **every existing e2e spec
+needed a `tutorial-state` seed added to its `localStorage.clear()`
+`beforeEach`** (`smoke`, `match`, `pubHub`, `deckBuilder`, `tournaments`,
+`backRoom` — a fresh player now lands in the tutorial, not the pub hub,
+which is exactly the behavior 2.7 exists to add, but it meant every prior
+step's "start from a clean slate" fixture had to be updated to mean
+"clean slate, tutorial already done" instead). 25 e2e tests total (up
+from 22), all passing; `npm run typecheck` and `npm run build` both
+clean. Manually verified end-to-end in the browser at the iPhone 17
+viewport: cleared storage, landed in the tutorial against Sir Charles,
+dismissed both intro beer mats, watched Sir Charles auto-play Apprentice
+Fitter with his own beer mat sliding in, confirmed only Constable on the
+Beat was tappable and highlighted with "Play this one: Constable on the
+Beat." showing, tapped it, and watched it commit instantly (no
+Play/Cancel bar) with the score updating to 3 and his next beer mat
+("Three beats two…") appearing — exactly design.md §13.2's script. Also
+opened the House Rules page directly and confirmed every section renders
+(house rules, six-sentence summary, all 11 keywords, deck-legality line,
+all 4 tournaments, Checks table) with real numbers pulled from
+`cardTypes.ts`/`pubState.ts`/`tournaments.ts`.
+
+**Design decision, not spelled out in design.md, made here — worth
+confirming with Brent:** §13.1 says the player is "prompted... for six of
+nine turns and free for three," but §13.2's own script names a specific
+card for *all nine* of the player's turns, with no indication of which
+three would have been "free," and the beer-mat lines quote exact
+cumulative scores that would be wrong if the player played something
+else. Rather than guess which three turns don't matter (and invent
+narration for whatever a free choice might produce, which design.md
+doesn't provide), this implementation forces all nine — "so his narration
+lands every time" (§13.1's own stated reason) reads as the load-bearing
+requirement, and forcing every turn is the only way to guarantee it
+without adding content. Same vein as 1.6/2.4's flagged judgment calls; if
+Brent wants three genuinely free turns, the cut points are already
+labeled `side`/`cardId` in `src/tutorial/tutorialScript.ts`'s
+`TUTORIAL_TURNS` and the fix is deciding which three and what the
+alternate mat text should say when the player deviates.
+
+**Two of design.md §13.3's four in-match hint chips are approximate, not
+exact, detections — flagged in `matchScreen.ts`'s `afterCommit`, not
+fixed here.** "The first Return card leaves the table" is detected as "a
+Return-keyword card is sitting in either hand right after a round ends,"
+which is really only correct if that card just *arrived* there via
+end-of-round cleanup — a Return card drawn normally into hand (never
+played) would false-positive the same way. "The first time the player
+tries to Flip an Elusive card" is detected as any tap on a face-up,
+non-candidate, Elusive card while a Flip step is staged, regardless of
+which side it's on or whether it would've matched the effect's other
+filters anyway. Both are flavor-only (no gameplay consequence, just which
+turn a one-time tip appears on) and were judged not worth the extra
+engine-side plumbing a fully precise version would need; the other two
+(Location, Headline) are exact, diffed directly off `MatchState` before
+and after each commit.
+
+**design.md §13.3's "matches 2-4" window is read as "any of the player's
+2nd through 4th matches," not "match 2 specifically gets the Location
+hint, match 3 specifically gets Return+Headline."** A single played match
+might never trigger a given condition on the exact match design.md
+names for it (no Location card might come up in match 2 at all), and
+there's no content for "the hint just never lands" — so
+`isWithinHintWindow` just keeps every not-yet-shown hint eligible across
+all three matches, and whichever condition actually happens first, in
+whichever of those matches, is when it fires. Same vein as the "matches
+2-4" ambiguity being a judgment call, not a locked spec.
+
+**Next task:** 2.8, the `ss-playtest` skill (plan step 2.8, Haiku 4.5):
+Brent texts notes from his phone; Haiku triages them into `PLAYTEST.md`
+with severity and repro steps. This closes out Phase 2 — Phase 3 (art,
+animation, sound, gift touches) starts at 3.1.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed

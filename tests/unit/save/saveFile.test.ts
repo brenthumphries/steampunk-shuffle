@@ -8,6 +8,7 @@ import { loadDeckSlotsState, saveDeckSlotsState } from "../../../src/decks/deckS
 import { defaultPubState, loadPubState, recordPickupResult, savePubState } from "../../../src/pub/pubState.ts";
 import { applySaveFile, buildSaveFile } from "../../../src/save/saveFile.ts";
 import { defaultTournamentState, loadTournamentState } from "../../../src/tournaments/tournamentState.ts";
+import { defaultTutorialState, loadTutorialState, markTutorialCompleted, saveTutorialState } from "../../../src/tutorial/tutorialState.ts";
 
 beforeEach(() => {
   localStorage.clear();
@@ -20,6 +21,7 @@ describe("buildSaveFile", () => {
     expect(file.pub).toEqual(defaultPubState());
     expect(file.tournament).toEqual(defaultTournamentState());
     expect(file.activeMatch).toBeNull();
+    expect(file.tutorial).toEqual(defaultTutorialState());
   });
 
   it("reflects real edits made through each store", () => {
@@ -42,6 +44,7 @@ describe("applySaveFile / buildSaveFile round trip", () => {
     const slots = createEmptySlots();
     slots[0] = addCopy(slots[0]!, ALL_CARDS[0]!);
     saveDeckSlotsState({ slots, selectedIndex: 0 });
+    saveTutorialState(markTutorialCompleted(defaultTutorialState()));
 
     const exported = buildSaveFile();
 
@@ -53,6 +56,8 @@ describe("applySaveFile / buildSaveFile round trip", () => {
     expect(loadPubState()).toEqual(exported.pub);
     expect(loadDeckSlotsState()).toEqual(exported.deckSlots);
     expect(loadTournamentState()).toEqual(exported.tournament);
+    expect(loadTutorialState()).toEqual(exported.tutorial);
+    expect(loadTutorialState().completed).toBe(true);
   });
 
   it("rejects a file that isn't a save at all", () => {

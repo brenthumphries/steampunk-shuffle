@@ -8,8 +8,16 @@ import { expect, test } from "@playwright/test";
 // overlay.
 
 test.describe("match screen (plan step 2.1)", () => {
-  test("staging a card shows Play/Cancel before it commits, and Cancel takes it back (design.md §6.4)", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
+    // A brand-new player lands in the tutorial (design.md §13) instead of
+    // the pub hub — these tests exercise the generic match screen, not the
+    // tutorial's forced script, so seed it already done.
+    await page.evaluate(() => localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] })));
+    await page.reload();
+  });
+
+  test("staging a card shows Play/Cancel before it commits, and Cancel takes it back (design.md §6.4)", async ({ page }) => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
 
@@ -29,7 +37,6 @@ test.describe("match screen (plan step 2.1)", () => {
   });
 
   test("playing a card commits it to the board and the match keeps moving", async ({ page }) => {
-    await page.goto("/steampunk-shuffle/");
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
 
     const firstCard = page.locator(".hand-row .card--tappable").first();
@@ -43,7 +50,6 @@ test.describe("match screen (plan step 2.1)", () => {
   });
 
   test("card zoom opens a full-card detail overlay and closes on tap-away", async ({ page }) => {
-    await page.goto("/steampunk-shuffle/");
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
 
     const zoomBtn = page.locator(".hand-row .card-zoom-btn").first();
@@ -59,7 +65,6 @@ test.describe("match screen (plan step 2.1)", () => {
   });
 
   test("reloading mid-match resumes it instead of restarting (plan step 2.6, design.md §12.4)", async ({ page }) => {
-    await page.goto("/steampunk-shuffle/");
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
 
     const firstCard = page.locator(".hand-row .card--tappable").first();

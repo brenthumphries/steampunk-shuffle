@@ -16,6 +16,7 @@ import { loadDeckSlotsState, saveDeckSlotsState, type DeckSlotsState } from "../
 import { loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
 import { defaultTournamentState, loadTournamentState, saveTournamentState, type TournamentState } from "../tournaments/tournamentState.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type ActiveMatchSave } from "./activeMatch.ts";
+import { defaultTutorialState, loadTutorialState, saveTutorialState, type TutorialState } from "../tutorial/tutorialState.ts";
 
 export const SAVE_FILE_VERSION = 1;
 
@@ -26,9 +27,11 @@ export interface SaveFile {
   deckSlots: DeckSlotsState;
   tournament: TournamentState;
   activeMatch: ActiveMatchSave | null;
+  /** design.md §12.4 lists "tutorial/hint progress" as one of the save's contents (plan step 2.7). */
+  tutorial: TutorialState;
 }
 
-/** Gathers the current state of all four stores into one exportable object. */
+/** Gathers the current state of all five stores into one exportable object. */
 export function buildSaveFile(now: Date = new Date()): SaveFile {
   return {
     version: SAVE_FILE_VERSION,
@@ -37,6 +40,7 @@ export function buildSaveFile(now: Date = new Date()): SaveFile {
     deckSlots: loadDeckSlotsState(),
     tournament: loadTournamentState(),
     activeMatch: loadActiveMatch(),
+    tutorial: loadTutorialState(),
   };
 }
 
@@ -66,6 +70,7 @@ export function applySaveFile(data: unknown): ApplySaveFileResult {
   savePubState(file.pub as PubState);
   saveDeckSlotsState(file.deckSlots as DeckSlotsState);
   saveTournamentState((file.tournament as TournamentState | undefined) ?? defaultTournamentState());
+  saveTutorialState((file.tutorial as TutorialState | undefined) ?? defaultTutorialState());
   if (file.activeMatch) {
     saveActiveMatch(file.activeMatch as ActiveMatchSave);
   } else {
