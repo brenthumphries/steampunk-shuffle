@@ -22,6 +22,13 @@ export interface BracketScreenOptions {
   opponentsById: ReadonlyMap<string, Opponent>;
   onPlayMatch: (opponent: Opponent, matchIndex: BracketRoundIndex) => void;
   onLeave: () => void;
+  /**
+   * The match index that was just resolved to produce `outcome.bracket`
+   * (plan step 3.3's "tournament bracket advance") — set only right after
+   * a bracket match, never on a fresh entry or a plain resume, so the
+   * ladder only animates the stage that actually just changed.
+   */
+  justAdvancedIndex?: BracketRoundIndex;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -46,6 +53,10 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
     const opponent = opponentsById.get(slot.opponentId);
     const row = el("div", "bracket-stage");
     if (index === activeIndex) row.classList.add("bracket-stage--active");
+    if (index === options.justAdvancedIndex) row.classList.add("bracket-stage--advanced");
+    if (index === activeIndex && options.justAdvancedIndex !== undefined && index === options.justAdvancedIndex + 1) {
+      row.classList.add("bracket-stage--just-active");
+    }
 
     row.appendChild(el("span", "bracket-stage-name", ROUND_NAMES[index]));
 

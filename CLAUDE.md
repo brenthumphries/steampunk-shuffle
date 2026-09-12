@@ -985,6 +985,89 @@ added here anyway since it cost one extra rule and left unguarded would
 be exactly the kind of thing 3.3 would otherwise have to hunt down
 retroactively.
 
+3.3 done, ahead of 3.2 in the plan's own order — Brent asked for it directly
+and animation turned out not to depend on 3.2's art wiring (it's DOM/CSS
+motion on top of whatever's already rendering, art or no art), so it was
+built as asked rather than blocked on plan sequencing. Card play, flip,
+round reveal, tournament bracket advance, and card-reward "unwrap" (the
+plan's own five-item list) are all in `src/style.css` as self-contained
+`@keyframes`, every one gated behind `@media (prefers-reduced-motion:
+no-preference)` (matching 3.1's foil-shimmer precedent) and animating only
+`transform`/`opacity` (compositor-only, same reasoning as 3.1's shimmer).
+
+**The hard part wasn't the CSS — it was that every screen in this app does
+a full teardown/rebuild on each render (`root.replaceChildren()`, no
+persistent DOM node from one state to the next), so there's no "old
+element" to `transition` toward a "new element."** Every animation here is
+instead a one-shot keyframe applied via a class the caller adds only on
+the render where something actually changed, using an "anim snapshot" diff
+(`src/ui/matchScreen.ts`'s `boardAnimSnapshot`/`locationAnimSnapshot`:
+instanceId → faceUp, captured each commit) rather than anything DOM-based:
+a board/Location card not in the snapshot gets `.card--play-enter`
+(translateY+scale+fade in); a card whose faceUp flipped since the snapshot
+gets `.card--flip` (a 2D scaleX(1)→0→1 "coin flip" — the element already
+carries its final, correct content for this render, so there's no need to
+model both faces at once, just a motion cue that it turned over). Round
+reveal (and, for free, every other overlay — match-over, card zoom, reward
+reveal) gets a generic `.overlay`/`.overlay-box` fade+pop-in, since they
+all share those two classes already. The reward "unwrap" animation already
+existed (an ad-hoc `.reveal-card { animation: unwrap ... }` added during
+2.3-2.5, unguarded) — 3.3's actual work there was just adding the
+reduced-motion guard, not building the motion from scratch.
+
+**Bracket advance needed one new option threaded through, since
+`bracketScreen.ts` is a fresh mount every time (main.ts's `showBracket`),
+with no memory of what the bracket looked like before this match.**
+`finishTournamentMatch` (`src/main.ts`) now captures `currentMatchIndex
+(bracket)` — the slot that's about to be resolved — *before* calling
+`advanceBracket`, and passes it through `showBracket` as
+`justAdvancedIndex` on `BracketScreenOptions`. `bracketScreen.ts`'s
+`buildStageRow` uses it to mark the just-resolved row `.bracket-stage
+--advanced` (badge pops in) and the row that becomes active as a result
+`.bracket-stage--just-active` (slides into focus) — set only on that one
+mount, never on a fresh tournament entry or a plain resume (both pass no
+`justAdvancedIndex`), so the ladder doesn't replay this every time the
+screen is reopened.
+
+**Found and fixed a real bug in this step's own first draft, not
+pre-existing — flagged so the pattern doesn't get reintroduced.** The
+obvious approach — update the anim snapshot at the end of every `render()`
+call, right after building the board — is wrong, because `scheduleNext()`
+triggers a second, synchronous `render()` (the idle→"ai-turn"/"human-pass"
+phase change) in the *same tick* as the commit's own render, before the
+browser ever paints either one. Updating the snapshot inside `render()`
+meant the second (only-ever-painted) render already saw the
+just-committed card as "known," so the human's own play never visibly
+animated — only the AI's reply did, since nothing re-renders in the gap
+before its 900ms `setTimeout`. Fixed by moving the snapshot update out of
+`render()` entirely and into a `queueMicrotask()` scheduled once per
+commit, inside `afterCommit()` — microtasks run only after the *whole*
+synchronous call stack (both renders) finishes, so every render triggered
+by one commit sees the same "before this commit" baseline, while a later,
+unrelated render (opening the zoom modal, a beer mat firing) sees the
+already-updated one and replays nothing. Caught by instrumenting the live
+page with `element.getAnimations()` mid-playtest, not by the test suite —
+Playwright's smoke tests don't assert on transient animation classes and
+wouldn't have caught a "class applied to a frame nobody paints" bug.
+
+Verified in the browser at a phone-width viewport: played several live
+turns against Mudd and confirmed via `getAnimations()` that
+`.card--play-enter` lands on a freshly-played card's *next* render and is
+gone by the one after; watched a real round-reveal overlay render cleanly
+with the new pop-in. Also injected synthetic elements (`.card--flip`,
+`.overlay`/`.overlay-box`, `.reveal-card`, `.bracket-stage--advanced
+.bracket-stage-badge`, `.bracket-stage--just-active`) directly into the
+live page and used `getAnimations()`/`effect.getKeyframes()` to confirm
+each one actually runs and only ever touches `transform`/`opacity` — same
+verification technique 3.1 used for the foil shimmer, extended to every
+new keyframe this step added. Checked the reduced-motion gating by walking
+`document.styleSheets` for `CSSMediaRule`s matching `prefers-reduced-motion`
+and confirming every new selector sits inside one. `npm run typecheck`,
+`npm test` (336 unit tests, all passing — no new ones needed; this step is
+CSS plus DOM-diffing glue, not new pure logic), `npx playwright test` (25
+e2e, all passing, unaffected by the timing fix), and `npm run build` all
+clean.
+
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
   on GitHub's shared CI runner during the 2.5 ship despite already having

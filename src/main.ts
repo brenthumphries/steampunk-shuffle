@@ -290,7 +290,7 @@ function enterTournament(tournament: Tournament): void {
   showBracket(tournament, bracket);
 }
 
-function showBracket(tournament: Tournament, bracket: TournamentBracket, payout?: BracketOutcome["payout"]): void {
+function showBracket(tournament: Tournament, bracket: TournamentBracket, payout?: BracketOutcome["payout"], justAdvancedIndex?: BracketRoundIndex): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
@@ -300,11 +300,13 @@ function showBracket(tournament: Tournament, bracket: TournamentBracket, payout?
     opponentsById: OPPONENTS_BY_ID,
     onPlayMatch: (opponent, matchIndex) => startBracketMatch(tournament, bracket, opponent, matchIndex),
     onLeave: showTournaments,
+    justAdvancedIndex,
   });
 }
 
 function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracket, opponent: Opponent, result: MatchResult): void {
   const outcome = result.winner === "draw" ? breakTournamentDraw(Date.now()) : result.winner === "A" ? "win" : "loss";
+  const advancedIndex = currentMatchIndex(bracket); // the match slot this result just resolved, before advanceBracket moves the bracket past it
 
   let pub: PubState = loadPubState();
   pub = recordTournamentMatchResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome);
@@ -328,7 +330,7 @@ function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracke
 
   savePubState(pub);
   saveTournamentState(tournamentState);
-  showBracket(tournament, nextBracket, payout);
+  showBracket(tournament, nextBracket, payout, advancedIndex === -1 ? undefined : advancedIndex);
 }
 
 function startBracketMatch(tournament: Tournament, bracket: TournamentBracket, opponent: Opponent, matchIndex: BracketRoundIndex): void {

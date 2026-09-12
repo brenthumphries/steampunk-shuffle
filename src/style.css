@@ -442,6 +442,56 @@ body {
   --state-shadow: 0 0 0 2px var(--amber), 0 0 8px 2px var(--amber);
 }
 
+/* -- Animation (plan step 3.3) ------------------------------------------
+   Every screen here does a full teardown/rebuild on each state change
+   (see the file-header comments), so there's no persistent DOM node to
+   `transition` between an old and new visual state — these are all
+   self-contained @keyframes that play once on the freshly-built element
+   instead, driven by a class the caller adds only on the render where
+   something actually changed (matchScreen.ts's board/location "anim
+   snapshot" diffing, bracketScreen.ts's `justAdvancedIndex`). Every rule
+   here only animates `transform`/`opacity` (compositor-only, same
+   reasoning as 3.1's foil shimmer) and is gated on
+   `prefers-reduced-motion: no-preference` so a reduced-motion viewer sees
+   the final state immediately with no motion at all. */
+
+@keyframes card-play-enter {
+  from {
+    transform: translateY(14px) scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* A 2D "coin flip" (scaleX to 0 and back) rather than a true two-sided 3D
+   flip — the element being animated already carries its final, correct
+   content for this render (there's no persistent old element to show the
+   other side of), so the flip reads as "this card just turned over"
+   without needing to model both faces at once. */
+@keyframes card-flip {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card--play-enter {
+    animation: card-play-enter 0.28s ease-out;
+  }
+  .card--flip {
+    animation: card-flip 0.4s ease-in-out;
+  }
+}
+
 .card-zoom-btn {
   position: absolute;
   top: 0.1rem;
@@ -497,6 +547,39 @@ body {
 
 .overlay--zoom {
   background: rgba(10, 6, 2, 0.6);
+}
+
+/* Every overlay (round-reveal, match-over, reward reveal, card zoom) is
+   freshly built on mount, so a light pop-in here is a one-line way to
+   cover "round reveal" animation (plan step 3.3) without a bespoke rule
+   per overlay kind. */
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-pop-in {
+  from {
+    transform: scale(0.92) translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .overlay {
+    animation: overlay-fade-in 0.15s ease-out;
+  }
+  .overlay-box {
+    animation: overlay-pop-in 0.22s ease-out;
+  }
 }
 
 /* ---------------------------------------------------------------------
@@ -915,7 +998,12 @@ body {
 
 .reveal-card {
   align-self: center;
-  animation: unwrap 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-card {
+    animation: unwrap 0.5s ease-out;
+  }
 }
 
 @keyframes unwrap {
@@ -1074,6 +1162,43 @@ body {
 .bracket-stage-badge--lost {
   opacity: 0.5;
   font-style: italic;
+}
+
+/* "Tournament bracket advance" (plan step 3.3): the row whose match was
+   just resolved (`justAdvancedIndex`, main.ts's `finishTournamentMatch`)
+   pops its badge in, and the row that becomes active as a result slides
+   into focus — only on that one mount, not every time the bracket screen
+   is shown (bracketScreen.ts only sets `justAdvancedIndex` right after a
+   match, never on a fresh entry or a plain resume). */
+@keyframes badge-pop-in {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bracket-stage-advance-in {
+  from {
+    transform: translateX(-10px);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bracket-stage--advanced .bracket-stage-badge {
+    animation: badge-pop-in 0.3s ease-out;
+  }
+  .bracket-stage--just-active {
+    animation: bracket-stage-advance-in 0.35s ease-out;
+  }
 }
 
 /* ---------------------------------------------------------------------

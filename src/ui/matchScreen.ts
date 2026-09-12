@@ -123,6 +123,25 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   let timer: ReturnType<typeof setTimeout> | undefined;
   let torn = false;
 
+  // Animation (plan step 3.3): this screen fully rebuilds its DOM on every
+  // render (see the file-header comment), so there's no persistent card
+  // element to animate a transition on. Instead these snapshots capture
+  // "what the board/location looked like as of the last render" so the
+  // next render can diff against them and flag exactly which cards are
+  // newly played (not in the snapshot) or just flipped (same instanceId,
+  // faceUp toggled) — everything else renders with no animation class at
+  // all. Updated at the end of every render(), so a re-render that isn't
+  // caused by a board change (opening the zoom modal, a beer mat firing)
+  // never replays an animation a prior render already showed.
+  function snapshotBoard(s: MatchState): Record<PlayerId, Map<string, boolean>> {
+    return {
+      A: new Map(s.players.A.board.map((bc) => [bc.instanceId, bc.faceUp])),
+      B: new Map(s.players.B.board.map((bc) => [bc.instanceId, bc.faceUp])),
+    };
+  }
+  let boardAnimSnapshot: Record<PlayerId, Map<string, boolean>> = snapshotBoard(state);
+  let locationAnimSnapshot: string | undefined = state.location?.instanceId;
+
   // Tutorial script cursor (design.md §13.2) — index into options.tutorial.turns.
   let scriptIndex = 0;
   let introQueue: string[] = options.tutorial ? [...options.tutorial.beforeDeal] : [];
@@ -187,6 +206,10 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     pointsOverride?: number;
     onPrimary?: () => void;
     onZoom?: () => void;
+    /** This card just entered play (board or Location) since the last render — plays the "card play" animation. */
+    enterAnimation?: boolean;
+    /** This card's faceUp flipped since the last render — plays the "flip" animation. */
+    flipAnimation?: boolean;
   }
 
   function buildCardEl(card: Card, faceIndex: 0 | 1, opts: CardBuildOpts): HTMLElement {
@@ -194,6 +217,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const wrap = el("div", `card card--${opts.size}`);
     wrap.dataset.family = face.family;
     wrap.dataset.rarity = card.rarity;
+    if (opts.enterAnimation) wrap.classList.add("card--play-enter");
+    if (opts.flipAnimation) wrap.classList.add("card--flip");
 
     if (!opts.faceUp) {
       wrap.classList.add("card--facedown");
@@ -308,6 +333,21 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     prevRoundCount: number,
     hintSnapshot?: { prevLocationId: string | undefined; prevHandA: ReadonlySet<string>; prevHandB: ReadonlySet<string> },
   ): void {
+    // A single commit can trigger several synchronous render() calls (the
+    // idle-phase render right below, then immediately scheduleNext()'s
+    // "ai-turn"/"human-pass" phase render) before the browser ever paints —
+    // only the last one painted matters, and it must still see this
+    // commit's changes as new. Deferring the baseline update to a
+    // microtask means it only takes effect once this whole synchronous
+    // commit has finished rendering, so every render in that chain diffs
+    // against the *previous* commit's board and correctly shows this
+    // commit's plays/flips as animated — while a later, unrelated render
+    // (opening the zoom modal, a beer mat firing) diffs against the
+    // now-updated baseline and replays nothing.
+    queueMicrotask(() => {
+      boardAnimSnapshot = snapshotBoard(state);
+      locationAnimSnapshot = state.location?.instanceId;
+    });
     options.onStateChange?.(state, aiSeed);
     const roundJustEnded = state.roundHistory.length > prevRoundCount;
 
@@ -424,6 +464,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const step = phase.kind === "staging" ? currentStep(phase.play) : undefined;
     const candidateIds = new Set(step?.step.candidates.filter((oc) => oc.owner === playerId).map((oc) => oc.bc.instanceId) ?? []);
     const board = state.players[playerId].board;
+    const prevBoard = boardAnimSnapshot[playerId];
     if (board.length === 0) {
       row.appendChild(el("p", "board-empty", "—"));
     }
@@ -434,6 +475,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       // tried to target it — `excludeElusive` already keeps it out of
       // `candidateIds`, so without this it's simply untappable and silent.
       const isElusiveFlipAttempt = !isCandidate && bc.faceUp && step?.step.effect.effect === "flip" && (activeFaceOf(bc.card, bc.faceIndex).keywords?.elusive ?? false);
+      const prevFaceUp = prevBoard.get(bc.instanceId);
       row.appendChild(
         buildCardEl(bc.card, bc.faceIndex, {
           size: "mini",
@@ -443,6 +485,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
           selected: isCandidate && (step?.selected.includes(bc.instanceId) ?? false),
           onPrimary: isCandidate ? () => handleTargetTap(bc.instanceId) : isElusiveFlipAttempt ? () => fireHint("elusive") : undefined,
           onZoom: bc.faceUp ? () => openZoom(bc.card, bc.faceIndex) : undefined,
+          enterAnimation: prevFaceUp === undefined,
+          flipAnimation: prevFaceUp !== undefined && prevFaceUp !== bc.faceUp,
         }),
       );
     }
@@ -453,7 +497,14 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const wrap = el("div", "location-slot");
     if (state.location) {
       const loc = state.location;
-      wrap.appendChild(buildCardEl(loc.card, loc.faceIndex, { size: "mini", faceUp: true, onZoom: () => openZoom(loc.card, loc.faceIndex) }));
+      wrap.appendChild(
+        buildCardEl(loc.card, loc.faceIndex, {
+          size: "mini",
+          faceUp: true,
+          onZoom: () => openZoom(loc.card, loc.faceIndex),
+          enterAnimation: locationAnimSnapshot !== loc.instanceId,
+        }),
+      );
     } else {
       wrap.appendChild(el("p", "location-empty", "No Location in play"));
     }
