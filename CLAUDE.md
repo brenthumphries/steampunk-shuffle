@@ -682,6 +682,19 @@ collection with real acquisition paths exists (flagged repeatedly since
 2.2/2.3/2.4/2.5).
 
 **Gotchas:**
+- **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
+  on GitHub's shared CI runner during the 2.5 ship despite already having
+  an explicit 30s timeout (vs. ~9s locally)** — same class of flakiness as
+  `18412d8`'s bracket-simulation fix, just on a test that already had
+  *some* headroom and still weren't enough that run. Bumped to 60s
+  (commit `8c9c270`); unrelated to 2.5's own changes (this test lives in
+  the engine, not the pub/acquisition code 2.5 touched) — it just happened
+  to surface on that ship. If this test times out again even at 60s,
+  don't keep doubling blindly — consider whether the runner is
+  meaningfully slower now (the same CI run's annotations noted GitHub
+  forcing Node 20 actions onto Node 24 runners) or whether the test
+  itself has grown more expensive as more content/engine paths were added
+  (same shape as the `npm run sim` runtime-growth gotcha below).
 - **Sir Charles ("house" tier) pays no win/loss Checks and has no reward
   card of his own — design.md §11.1's earning table names exactly
   "Regular / Seasoned / Legend," with no "house" row, and he already gave
