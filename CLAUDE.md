@@ -243,6 +243,23 @@ it to make manual pasting into Gemini easier; it's now written
 automatically alongside every sheet's CSV, and sheet 1's regenerated copy
 already reflects it.
 
+**Batches 2-4 are also complete, ingested in later sessions** (not
+narrated in as much detail here as batch 1 above, but all real, verified
+WebP in `public/art/`): sheet 2's 23 assets, sheet 3's 27, and sheet 4's
+16 (the 8 Locations, the 6 Legends' 7 signature-card portraits since Dr
+Jekyll/Mr Hyde is two faces, and The Landlady). `public/art/manifest.json`
+holds all 81 assets across all four sheets; every row in
+`art/prompts/sheet-{1,2,3,4}-manifest.json` has a matching entry, checked
+by diffing assetIds. Sheet 4's source files arrived in `art/manual Gemini
+generations/` already named to (almost) match their assetIds — one typo
+(`the-personage-snug.jpeg` for the manifest's `the-parsonage-snug`) had to
+be corrected on copy into `art/inbox/` before ingesting, same "match by
+assetId, not by eye" requirement 1.6/1.7 already established.
+`professor-moriarty`'s chalkboard (the signature-card version, distinct
+from `portrait-professor-moriarty`) has the same legible-ish-equations
+issue already flagged for the portrait version — cosmetic, ingested as-is,
+not re-rolled.
+
 **Two quality issues flagged for Brent, not fixed here — his call, not
 mine:**
 - **`card-back` has a full ornate scrollwork border baked into the

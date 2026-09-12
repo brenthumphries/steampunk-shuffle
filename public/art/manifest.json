@@ -63,6 +63,14 @@
     "sourceFile": "art/inbox/background-the-snug.jpeg",
     "width": 804
   },
+  "baker-street": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/baker-street.jpeg",
+    "width": 600
+  },
   "baker-street-irregular": {
     "category": "character",
     "family": "irregulars",
@@ -159,6 +167,14 @@
     "sourceFile": "art/inbox/cracksman.jpeg",
     "width": 600
   },
+  "dame-agatha": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/dame-agatha.jpeg",
+    "width": 600
+  },
   "detective-sergeant-vale": {
     "category": "character",
     "family": "yard",
@@ -173,6 +189,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:38+00:00",
     "sourceFile": "art/inbox/difference-engine.jpeg",
+    "width": 600
+  },
+  "dr-henry-jekyll": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/dr-henry-jekyll.jpeg",
     "width": 600
   },
   "emily": {
@@ -223,6 +247,14 @@
     "sourceFile": "art/inbox/good-news-everybody.jpeg",
     "width": 600
   },
+  "hercule-poirot": {
+    "category": "character",
+    "family": "yard",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/hercule-poirot.jpeg",
+    "width": 600
+  },
   "hiawatha": {
     "category": "character",
     "family": "irregulars",
@@ -239,12 +271,28 @@
     "sourceFile": "art/inbox/inspectors-warrant.jpeg",
     "width": 600
   },
+  "mary-shelley": {
+    "category": "character",
+    "family": "foundry",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/mary-shelley.jpeg",
+    "width": 600
+  },
   "miss-hollis-authoress": {
     "category": "character",
     "family": "salon",
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:39+00:00",
     "sourceFile": "art/inbox/miss-hollis-authoress.jpeg",
+    "width": 600
+  },
+  "mr-edward-hyde": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/mr-edward-hyde.jpeg",
     "width": 600
   },
   "nells-basket": {
@@ -415,6 +463,14 @@
     "sourceFile": "art/inbox/portrait-sir-charles-wheatstone.jpeg",
     "width": 640
   },
+  "professor-moriarty": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/professor-moriarty.jpeg",
+    "width": 600
+  },
   "regs-ledger": {
     "category": "scheme",
     "family": "rookery",
@@ -463,6 +519,14 @@
     "sourceFile": "art/inbox/sergeant-pike.jpeg",
     "width": 600
   },
+  "sherlock-holmes": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/sherlock-holmes.jpeg",
+    "width": 600
+  },
   "skeleton-key": {
     "category": "gadget",
     "family": "rookery",
@@ -487,12 +551,44 @@
     "sourceFile": "art/inbox/telegraph-boy.jpeg",
     "width": 600
   },
+  "the-bow-street-office": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-bow-street-office.jpeg",
+    "width": 600
+  },
+  "the-concertina-works": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-concertina-works.jpeg",
+    "width": 600
+  },
+  "the-gasworks": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-gasworks.jpeg",
+    "width": 600
+  },
   "the-hypnofrog": {
     "category": "character",
     "family": "salon",
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:39+00:00",
     "sourceFile": "art/inbox/the-hypnofrog.jpeg",
+    "width": 600
+  },
+  "the-landlady": {
+    "category": "character",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:59+00:00",
+    "sourceFile": "art/inbox/the-landlady.jpeg",
     "width": 600
   },
   "the-lookout": {
@@ -509,6 +605,38 @@
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:36+00:00",
     "sourceFile": "art/inbox/the-mudlark.jpeg",
+    "width": 600
+  },
+  "the-overnight-express": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-overnight-express.jpeg",
+    "width": 600
+  },
+  "the-parsonage-snug": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-parsonage-snug.jpeg",
+    "width": 600
+  },
+  "the-reading-room": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-reading-room.jpeg",
+    "width": 600
+  },
+  "the-reichenbach-falls": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-09-12T13:58:58+00:00",
+    "sourceFile": "art/inbox/the-reichenbach-falls.jpeg",
     "width": 600
   },
   "the-seasons-most-talked-about-engagement": {

@@ -155,3 +155,8 @@ dev-dist/
 /art/inbox/*
 !/art/inbox/README.md
 
+# Same role as art/inbox/ above — Brent's own staging folder for raw
+# Gemini downloads before they're matched to an assetId and copied into
+# art/inbox/. Never consumed by tooling directly, never archived.
+/art/manual Gemini generations/
+
