@@ -142,4 +142,8 @@ export const TUTORIAL_MATCH_END_MAT =
 
 export const TUTORIAL_REWARD_CHECKS = 10;
 
-export const TUTORIAL_AFTER_MAT = "The others'll play you now. Mudd's the easy one. Don't tell him I said so.";
+// PT-31: Checks were never introduced in-fiction — the first mention was
+// this deck reward's own cold "and 10 Checks," with no explanation until
+// House Rules. One line here does it.
+export const TUTORIAL_AFTER_MAT =
+  "Checks. The pub's coin. The back room takes them. The others'll play you now. Mudd's the easy one. Don't tell him I said so.";

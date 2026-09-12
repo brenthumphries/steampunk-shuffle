@@ -44,6 +44,14 @@ export interface RoundResult {
   round: number;
   scores: Record<PlayerId, number>;
   winner: PlayerId | "tie";
+  /**
+   * Each side's board exactly as it stood at round end — after endOfRound
+   * abilities resolve, before the Persist/Return/discard cleanup sweep
+   * (PT-9). The UI's round-reveal overlay shows this instead of the live
+   * (already-swept) board so the round's actual finish is visible for a
+   * beat, not an empty or next-round table.
+   */
+  finalBoard: Record<PlayerId, BoardCard[]>;
 }
 
 export interface MatchResult {

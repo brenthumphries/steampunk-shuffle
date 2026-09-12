@@ -6,17 +6,21 @@
 // which is mutated in place on every keystroke instead of triggering a
 // rebuild, so the player doesn't lose cursor position/focus while typing.
 //
-// There's no card-ownership/collection system yet (that's plan steps 2.3's
-// reward flow and 2.5's acquisition paths) — every one of the 60 v1 cards
-// is available to every deck here, with one named exception: The Landlady
-// (design.md §14.3, plan step 3.5), reserved until the Birthday
-// Invitational is won. Restricting the rest of the grid to "owned" cards
-// is a later step's job, not this one's.
+// Ownership gating (plan step 4.0d, PT-1): the grid is still every one of
+// the 60 v1 cards (expanding it to include collection-only extras like the
+// Seasoned reward cards is a separate, not-yet-done step), but a card's
+// owned copies (src/decks/ownership.ts) now cap how many of it can be
+// added — an unowned card renders dimmed, with no +/− controls, but stays
+// zoomable (a wishlist). The Landlady's design.md §14.3 "Reserved" case
+// (plan step 3.5) is folded into this same unowned-tile path now, keeping
+// only her specific flavor text as a per-card override.
 
 import { CARD_TYPES, FAMILIES, type Card, type CardType, type Deck, type Family } from "../cards/cardTypes.ts";
 import { ALL_CARDS } from "../cards/data/index.ts";
 import { starterDeck } from "../cards/data/decks/starterDeck.ts";
-import { keywordChips } from "./cardText.ts";
+import { abilityLines, keywordChips } from "./cardText.ts";
+import { buildCardZoomOverlay } from "./cardZoom.ts";
+import { ownedCopies } from "../decks/ownership.ts";
 import {
   addCopy,
   computeLegality,
@@ -38,7 +42,7 @@ export interface DeckBuilderOptions {
   onSelectDeck?: (deck: Deck, deckName: string) => void;
 }
 
-type View = { kind: "list" } | { kind: "editor"; slotIndex: number; family: Family | "all"; type: CardType | "all" };
+type View = { kind: "list" } | { kind: "editor"; slotIndex: number; family: Family | "all"; type: CardType | "all"; ownedOnly: boolean };
 
 const FAMILY_LABEL: Record<Family, string> = {
   yard: "The Yard",
@@ -72,6 +76,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
   const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
   let stored: DeckSlotsState = loadDeckSlotsState();
   let view: View = { kind: "list" };
+  let zoomed: Card | null = null;
   let torn = false;
 
   function persist(): void {
@@ -110,7 +115,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
       info.appendChild(el("span", "deck-slot-name", slot.name));
       info.appendChild(el("span", "deck-slot-meta", `${legality.totalCards}/20 cards · ${legality.totalPoints}/60 pts`));
       info.addEventListener("click", () => {
-        view = { kind: "editor", slotIndex: index, family: "all", type: "all" };
+        view = { kind: "editor", slotIndex: index, family: "all", type: "all", ownedOnly: false };
         render();
       });
       info.classList.add("deck-slot-info--tappable");
@@ -141,7 +146,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
   // Slot editor
   // -------------------------------------------------------------------
 
-  function renderEditor(slotIndex: number, family: Family | "all", type: CardType | "all"): HTMLElement {
+  function renderEditor(slotIndex: number, family: Family | "all", type: CardType | "all", ownedOnly: boolean): HTMLElement {
     const slot = stored.slots[slotIndex] ?? createEmptySlot(slotIndex);
     const legality = computeLegality(slot, cardsById);
 
@@ -200,7 +205,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     }
     familySelect.value = family;
     familySelect.addEventListener("change", () => {
-      view = { kind: "editor", slotIndex, family: familySelect.value as Family | "all", type };
+      view = { kind: "editor", slotIndex, family: familySelect.value as Family | "all", type, ownedOnly };
       render();
     });
     filters.appendChild(familySelect);
@@ -216,10 +221,24 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     }
     typeSelect.value = type;
     typeSelect.addEventListener("change", () => {
-      view = { kind: "editor", slotIndex, family, type: typeSelect.value as CardType | "all" };
+      view = { kind: "editor", slotIndex, family, type: typeSelect.value as CardType | "all", ownedOnly };
       render();
     });
     filters.appendChild(typeSelect);
+
+    // PT-24: "there's no collection view" — falls out of PT-1's owned
+    // counts for free once the grid can filter down to just what's owned.
+    const ownedOnlyLabel = el("label", "deck-filter-owned-only");
+    const ownedOnlyCheckbox = el("input") as HTMLInputElement;
+    ownedOnlyCheckbox.type = "checkbox";
+    ownedOnlyCheckbox.checked = ownedOnly;
+    ownedOnlyCheckbox.addEventListener("change", () => {
+      view = { kind: "editor", slotIndex, family, type, ownedOnly: ownedOnlyCheckbox.checked };
+      render();
+    });
+    ownedOnlyLabel.appendChild(ownedOnlyCheckbox);
+    ownedOnlyLabel.appendChild(document.createTextNode("Owned only"));
+    filters.appendChild(ownedOnlyLabel);
     screen.appendChild(filters);
 
     const pub = loadPubState();
@@ -230,34 +249,48 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
       if (family !== "all" && face.family !== family) continue;
       if (type !== "all" && face.type !== type) continue;
 
-      // design.md §14.3: The Landlady is "the last card in the collection...
-      // earned by winning the Birthday Invitational. Until then it shows in
-      // the collection as a silhouette with 'reserved'." There's still no
-      // general ownership system gating this grid (see this file's own
-      // header comment) — this is a narrow, card-specific exception for the
-      // one card design.md calls out by name, not a first cut at that
-      // system.
-      if (card.id === "the-landlady" && !pub.collection.includes("the-landlady")) {
-        const reserved = el("div", "deck-card-tile deck-card-tile--reserved");
-        reserved.appendChild(el("span", "deck-card-points", "?"));
-        reserved.appendChild(el("span", "deck-card-name", "The Landlady"));
-        reserved.appendChild(el("span", "deck-card-meta", "Reserved — earned by winning the Birthday Invitational"));
-        grid.appendChild(reserved);
-        continue;
-      }
-
-      const qty = quantityInSlot(slot, card.id);
-      const maxCopies = card.rarity === "legendary" ? 1 : 2;
+      const owned = ownedCopies(card.id, pub.collection);
+      if (ownedOnly && owned === 0) continue;
 
       const tile = el("div", "deck-card-tile");
       tile.dataset.family = face.family;
-      if (qty > 0) tile.classList.add("deck-card-tile--included");
-
       tile.appendChild(el("span", "deck-card-points", String(face.points)));
       tile.appendChild(el("span", "deck-card-name", face.name));
       tile.appendChild(el("span", "deck-card-meta", `${TYPE_LABEL[face.type]} · ${card.rarity}`));
       const chips = keywordChips(face);
       if (chips.length > 0) tile.appendChild(el("span", "deck-card-chips", chips.join(" · ")));
+      for (const line of abilityLines(face)) tile.appendChild(el("p", "deck-card-ability", line));
+
+      const zoomBtn = el("button", "deck-card-zoom-btn", "i");
+      zoomBtn.type = "button";
+      zoomBtn.setAttribute("aria-label", `Show full card: ${face.name}`);
+      zoomBtn.addEventListener("click", () => {
+        zoomed = card;
+        render();
+      });
+      tile.appendChild(zoomBtn);
+
+      if (owned === 0) {
+        // PT-1 (unowned tiles dimmed but zoomable — a wishlist) folds in
+        // design.md §14.3's Landlady "Reserved" case (plan step 3.5) as
+        // just this one card's own note text, rather than a separate
+        // code path.
+        tile.classList.add("deck-card-tile--unowned");
+        tile.appendChild(
+          el(
+            "span",
+            "deck-card-unowned-note",
+            card.id === "the-landlady" ? "Reserved — earned by winning the Birthday Invitational" : "Not yet owned",
+          ),
+        );
+        grid.appendChild(tile);
+        continue;
+      }
+
+      const qty = quantityInSlot(slot, card.id);
+      const maxCopies = Math.min(owned, card.rarity === "legendary" ? 1 : 2);
+      if (qty > 0) tile.classList.add("deck-card-tile--included");
+      tile.appendChild(el("span", "deck-card-owned", `Owned: ${owned}`));
 
       const controls = el("div", "deck-card-controls");
       const minusBtn = el("button", "deck-card-btn", "−");
@@ -291,7 +324,15 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
   function render(): void {
     if (torn) return;
     root.replaceChildren();
-    root.appendChild(view.kind === "list" ? renderSlotList() : renderEditor(view.slotIndex, view.family, view.type));
+    root.appendChild(view.kind === "list" ? renderSlotList() : renderEditor(view.slotIndex, view.family, view.type, view.ownedOnly));
+    if (zoomed) {
+      root.appendChild(
+        buildCardZoomOverlay(zoomed, 0, () => {
+          zoomed = null;
+          render();
+        }),
+      );
+    }
   }
 
   render();

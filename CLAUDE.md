@@ -1894,6 +1894,417 @@ readability), D (ownership gating), E (hub/gift-touch polish) per the
 plan's 4.0c/d/e rows — none of PLAYTEST.md's other P1s/P2s were touched
 here, only PT-3/10/25.
 
+4.0c done (Sonnet, as the plan assigns) — batch C: PT-2/7/8/9/11/12/13/14/22/27/30, all in `src/ui/matchScreen.ts` plus supporting engine/CSS changes.
+
+**PT-7 (layout) + PT-8 (hand wrap).** `#app` was `min-height: 100dvh` with
+no `height`, so every screen's `height: 100%` (`.match-screen`, and
+`.deck-builder`/`.pub-hub`/`.tournaments-screen`'s `overflow-y: auto`
+regions) resolved against nothing and just sized to content — the match
+screen used well under half the phone, hand cards were 3.6×4.9rem at
+0.65rem (10.4px) text. Fixed at the root: `#app { height: 100dvh; display:
+flex; flex-direction: column }`, `.match-screen { flex: 1; min-height: 0
+}` (the `min-height: 0` matters — a flex item's default `min-height: auto`
+refuses to shrink below its own content height, which is exactly what
+would defeat this fix for a screen with a full hand/both boards). The
+other three screens already had their own `overflow-y: auto`, which per
+the flexbox spec already zeroes their automatic minimum size (an
+overflow value other than `visible` does that) — so they needed no
+matching change, confirmed by leaving them alone and testing all three
+still scroll correctly. `.card--mini` grown ~1.5× to 5.4×7.3rem at 0.75rem
+(12px). `.hand-row` now wraps (`flex-wrap: wrap`) instead of scrolling
+horizontally with no iOS scrollbar affordance, capped at two rows'
+height with `overflow-y: auto` as a fallback for a hand too large even
+for that (round 3 can reach 8-9 cards). Verified via `getBoundingClientRect()`
+in a real browser (`.match-screen` fills the full 874px viewport) and
+visually (a real 6-card hand wrapped to two rows correctly).
+
+**PT-9 (round-reveal shows the wrong board).** `RoundResult` gained
+`finalBoard: Record<PlayerId, BoardCard[]>` (`matchTypes.ts`), populated
+in `finishRound()` (`matchEngine.ts`) right after `endOfRound` abilities
+resolve but before the Persist/Return/discard cleanup sweep — exactly
+"how the round actually ended," not the following round's already-cleared
+board. `matchScreen.ts`'s `buildBoardRow`/`buildSideLabel` take an
+optional frozen-board/score override; `render()` supplies `finalBoard`
+and `result.scores` while `phase.kind === "round-reveal"`, using a
+stand-in `MatchState` whose board is that snapshot so `effectivePoints`
+still sees correct continuous buffs (the Location itself doesn't change
+at round end, so reusing live `state.location` is safe). New test in
+`tests/unit/engine/roundsAndMatch.test.ts` pins that the snapshot
+includes a card cleanup discards a moment later. Two existing tests
+asserted `roundHistory`/`RoundResult` with exact `toEqual` — switched to
+`toMatchObject`/a field-picking map so the new field doesn't break them
+(`tutorialRound1.test.ts`, `tutorialScript.test.ts`).
+
+**PT-11 (no coin toss) + PT-30 (no leader announcement).** A new
+`coin-toss` phase shows "Heads."/"Tails.", who leads, and "Game on."
+before the first turn of any fresh match — gated on `!options.initialState
+&& !options.tutorial`, so a resumed match or the tutorial (which already
+narrates "the house always leads" itself) skips it; the initial
+`scheduleNext()` call at mount is likewise gated so it doesn't fire before
+the overlay is dismissed. The round-reveal overlay now also names the
+*next* round's leader ("Sir Charles leads round 2.") — safe to read
+`state.leader`/`state.round` there since PT-22 (below) guarantees this
+overlay never shows for a match-ending round, so they're always
+next-round's values by the time it renders. House Rules' round-rules
+sentence about who takes a tie now also states the leader-swap rule
+(design.md §6.2.4), still exactly six sentences (folded into an existing
+one rather than adding a seventh).
+
+**PT-12 (auto-target preview) — found and fixed a real pre-existing bug
+along the way.** `StagedPlay` gained `allTargetableSteps` (every
+targetable onPlay effect, including ones `steps` drops for having zero
+candidates) purely for display; the confirm bar now iterates it and shows
+`describeAutoTarget()` (new, `cardText.ts`) — "Flips Charlotte." or "No
+legal target — it does nothing." — plus highlights the auto-chosen board
+card. Building this exposed that `stagePlay`'s auto-`selected` computation
+for a "highest/lowest points" filter with multiple candidates was slicing
+the *raw, unsorted* candidate list, not the engine's own point-sorted
+`defaultSelect` — so a human playing e.g. Scotland Yard Announces Arrests
+against their own multi-card board could have had the wrong card
+auto-targeted (and, since the chooser trusts `selected` when non-empty,
+this wasn't just a display bug — it would have actually flipped/bought/
+returned the wrong card at commit). Fixed by using `defaultSelect` in
+`stagePlay` itself. A new test in `tests/unit/match/humanTurn.test.ts`
+pins the correct pick where the old code would have picked wrong (the
+higher-point card played *second*, hence second in board order); the
+existing "highest-points never needs a choice" test only checked
+`needsChoice`, never `selected`, so it hadn't caught this. Verified the
+"no legal target" case live (staging Séance with no face-down cards on
+the board); the named-target case is covered by the new unit tests
+exercising the same `describeAutoTarget`/`allTargetableSteps` path.
+
+**PT-13 (anonymous card backs).** A dimmed name + printed points label
+now sits over the card-back art in `buildCardEl`'s face-down branch —
+both players already saw the card before it flipped, so this hides
+nothing real. Verified visually (injected a synthetic face-down element
+into the live page, since forcing a real Flip mid-session wasn't reached
+in this pass).
+
+**PT-14 (match-over overlay hides the payout) + PT-22 (two overlays for
+a deciding round).** `MatchScreenOptions.previewResult?: (result) =>
+string | null` — a pure, read-only preview `main.ts` supplies
+(`formatPickupReward`, calling `recordPickupResult` on a freshly-loaded
+`PubState` and discarding the returned state, never touching PubState for
+real) — renders a "+N Checks / + Card Name (first win!)" line on the
+match-over overlay; matchScreen itself still knows nothing about
+PubState. Separately, `afterCommit` now checks `state.status ===
+"complete"` *before* choosing round-reveal vs. match-over, so a round
+that also ends the match skips straight to the one overlay that matters
+(its own per-round score line moved into `buildMatchOverOverlay`) instead
+of showing round-reveal, then match-over right behind it on the next tap.
+Both verified live in the same real match: it ended on round 2, and the
+single resulting overlay read "Round 2: You 6 — 8 Constable Tobias
+Mudd" / "Rounds: You 0 — 2..." / "+7 Checks" (a loss plus the
+first-game-of-day bonus) / "Leave the table".
+
+**PT-27 (no visual cue for a buffed/reduced card).** A face-up board
+card's points badge gets `.card-points--boosted` (green) or
+`.card-points--reduced` (grey) when its effective points differ from
+printed — never applied to a hand/zoom card, since `pointsOverride` is
+only ever passed for a face-up board card. Verified visually: two Friend
+cards buffing each other showed green "4"s (2 printed + 2 Friend) beside
+an unbuffed card's plain-colored points.
+
+**PT-2 (tutorial mat overwritten) — the trickiest one, caused its own
+regression before landing.** `scheduleNext()` now returns early in
+tutorial mode while `mat !== null`, and `dismissMat()` calls it again once
+the mat clears — so the house's reply can't overwrite the player's own
+mat `AI_DELAY_MS` later, the exact bug PT-2 named. Verified this half live
+by polling `get_page_text` at 0.4s/1.9s after playing a card, per this
+file's own verification gotcha for this exact bug (round 1 replay,
+Constable on the Beat's mat survived past `AI_DELAY_MS` this time). But
+the very next round transition then **stalled completely** in the same
+manual test: the round-ending turn's own mat is set (in
+`scheduleNext`'s/`handleHandTap`'s tutorial branches) *before*
+`afterCommit` runs, and nothing ever explicitly dismisses it once the
+round-reveal overlay's "Continue" takes over instead (that button calls
+`continueAfterRoundReveal`, not `dismissMat`) — so the new gate waited on
+a mat nobody could ever clear, and Sir Charles's round-2 turn never fired.
+Fixed by having `afterCommit` clear `mat` itself (tutorial mode only —
+non-tutorial hints aren't gated the same way and stay visible alongside
+the overlay on purpose) at the exact point it transitions into
+round-reveal or match-over. Re-verified the full round-1-to-round-2
+transition live afterward and confirmed the house's turn fires correctly
+this time. Worth remembering for whoever touches `scheduleNext`'s gating
+logic again: a new blocking condition on the *next* turn needs an escape
+hatch everywhere the *current* turn's state can end without going through
+the normal dismiss path (here, a round/match boundary skips dismissal
+entirely).
+
+Also fixed a latent inconsistency found while writing PT-9's tests: two
+places asserted `state.roundHistory`/`RoundResult` with an exact
+`toEqual` that would have broken the moment `finalBoard` existed —
+already covered above, listed here only because it's the kind of thing
+worth grep'ing for (`toEqual` against a whole engine-state object) before
+adding a field to `MatchState`/`RoundResult` in the future.
+
+366 unit tests total (project-wide, up from 361 — 5 new: `finalBoard`'s
+round-snapshot test, the humanTurn zero-candidates test and its
+`defaultSelect` regression assertion, and the 3 `describeAutoTarget`
+tests), all passing; 28 e2e tests, all passing (`tests/e2e/match.spec.ts`'s
+four tests needed a `dismissCoinToss()` helper added to their setup, since
+PT-11's overlay now blocks the hand until dismissed). `npm run typecheck`
+and `npm run build` both clean.
+
+**Still open, carried forward:** batches D (ownership gating) and E
+(hub/gift-touch polish) per the plan's 4.0d/e rows.
+
+4.0d done (Sonnet, as the plan assigns) — batch D: PT-1/4/16/17/24, real card ownership.
+
+**PT-1 (ownership) + PT-4 (seed slot 1).** New `src/decks/ownership.ts`:
+`ownedCopies(cardId, collection)` = the starter deck's fixed quantity for
+that id (0 if it isn't a starter card) plus matching `PubState.collection`
+entries, counting a `foil:<id>` entry (`src/pub/tinkersBench.ts`'s
+`foilId`) toward its base card — a foil is the same card, cosmetically
+upgraded, not a separately-ownable variant (Tinker's Bench's own fuse
+already treats it that way: two base copies go in, one foil comes out).
+`deckBuilderScreen.ts`'s grid now shows "Owned: N" and caps the "+"
+button at `Math.min(owned, maxCopies)`; a zero-owned card renders dimmed
+(`.deck-card-tile--unowned`) with no +/− controls at all, but keeps its
+zoom button — "unowned tiles dimmed but zoomable (a wishlist)," per the
+fix note. design.md §14.3's Landlady "Reserved" case (plan step 3.5) used
+to be its own separate DOM branch; it's now just this one card's own note
+text (`card.id === "the-landlady" ? "Reserved — earned by..." : "Not yet
+owned"`) inside the same unowned-tile path — she has no Friend keyword or
+starter presence, so `ownedCopies` naturally returns 0 until the
+Invitational adds her to `collection`, no special-casing needed there.
+
+New `seedStarterDeckIfMissing` (`src/decks/deckStorage.ts`): seeds slot 1
+with the starter composition, named "The Village Constable" and selected,
+whenever no slot is already legal *and* slot 1 is itself still empty (so
+it never clobbers a slot the player has actually started building in).
+Called from two places in `main.ts` — `finishTutorial` (the immediate
+fresh-completion case) and `bootAfterDedication`'s returning-player branch
+(a backfill for a save that completed the tutorial before this fix
+existed) — both idempotent, safe to call on every relevant boot.
+
+**Judgment call, resolved, not just flagged: PT-1's fix note asked
+whether base-60 cards should become Bar-Bet-stakeable, now that an
+ownership system exists to make that meaningful.** Decided no — reread
+`src/pub/barBet.ts`'s own header comment (which had conflated two
+different things) and design.md's literal text: "stake one card from your
+collection," where `PubState.collection`'s own doc comment has always
+specifically meant "owned beyond the base 60." `stakeableCards` already
+only offered `collection` entries; that was never an artifact of the
+missing ownership system, it was design.md's own scope. Rewrote the
+header comment to say so plainly, and to separate out the one part of
+that file's old comment that's still a real, narrower gap: nothing
+checks whether losing a staked card would drop the player below what a
+saved deck's entries assume they own (design.md's "not one that would
+make any saved deck illegal — the builder shows which"). Left open —
+design.md frames it as a UI nicety, not a hard rule the bet must enforce,
+and it's a general "does a saved deck still match current ownership"
+question that's broader than Bar Bet alone (also true after a Tinker's
+Bench fuse, say).
+
+**PT-16 (no ability text/zoom on deck-builder tiles) + PT-17 (same on
+Pawnbroker tiles), done together.** New shared `src/ui/cardZoom.ts`
+(`buildCardZoomEl`/`buildCardZoomOverlay`) — extracted from
+`matchScreen.ts`'s own card-zoom pattern per CLAUDE.md's 3.1 gotcha
+("worth doing whenever one of them needs a fourth near-identical copy"),
+but deliberately *not* rewired into `matchScreen.ts` itself: that file's
+`buildCardEl` shares a lot of code between its mini/zoom sizes already,
+and migrating it wasn't needed to fix either PT item. `deckBuilderScreen.ts`'s
+`deck-card-tile` and `acquisitionScreen.ts`'s Pawnbroker `backroom-tile`
+both gained ability-text lines (`abilityLines` from `cardText.ts`, already
+shared) and an `(i)` zoom button wired to the new module. `bracketScreen.ts`/
+`pubHubScreen.ts`'s own hand-rolled `.card` builders (reveal overlays)
+weren't touched — PT-16/17's repro steps only named the deck builder and
+the Pawnbroker, and those reveal cards already show more than a
+name/rarity line (points, chips, flavor) via `acquisitionScreen.ts`'s
+existing `buildRevealOverlay`, just not ability text — a smaller,
+different gap not filed as either PT item, left alone here.
+
+**PT-24 (no collection view) — fell out of PT-1 for free, exactly as
+its own note predicted.** An "Owned only" checkbox in the deck builder's
+filter row hides any card with zero owned copies; no new code beyond one
+filter condition and a checkbox.
+
+Tests: `tests/unit/decks/ownership.test.ts` (new, 6 tests),
+`tests/unit/decks/deckStorage.test.ts` gained 3 tests for
+`seedStarterDeckIfMissing` (seeds correctly, no-ops once any slot is
+legal, refuses to clobber a touched slot 1) — 375 unit tests total
+(project-wide, up from 366), all passing. `tests/e2e/deckBuilder.spec.ts`
+needed real changes, not just additions: slot 1 is no longer guaranteed
+empty on a fresh install (that's the whole point of PT-4), so the four
+existing tests that built a deck from an empty first slot now target slot
+2 instead, and a new test pins PT-4's actual behavior directly (slot 1
+pre-seeded, legal, selected). Two more new tests cover PT-1 (an unowned
+card is dimmed/zoomable/no-controls) and PT-24 (the owned-only filter).
+`tests/e2e/backRoom.spec.ts` gained one test for PT-17 (a Pawnbroker tile
+shows points/type and opens a real zoom overlay). 34 e2e tests total (up
+from 32), all passing. `npm run typecheck` and `npm run build` both
+clean.
+
+Verified live in the browser at the 402×874 viewport: opened the deck
+builder on a fresh install and confirmed slot 1 reads "The Village
+Constable · 20/20 · 37/60 · Legal · Selected" with the other 12 slots
+empty; opened its editor and confirmed owned starter cards show "Owned:
+N", ability text, and correctly-capped +/− (2/2 for Constable on the
+Beat), while unowned cards (Constable Reeve, Detective Sergeant Vale)
+render dimmed with "Not yet owned" and no +/− but a working zoom button
+showing the full card (art, flavor, everything); confirmed The Landlady's
+tile carries her specific "Reserved" note inside the same dimmed
+treatment; checked "Owned only" and watched the 60-card grid narrow to
+exactly the 14 owned starter cards; opened the Pawnbroker and confirmed
+its tiles now show points, ability text (e.g. "On Play: Draw 2." on
+Nell's Basket), and a working zoom button.
+
+**Still open, carried forward:** batch E (hub/gift-touch polish) per the
+plan's 4.0e row. Also still open, not this batch's job: the deck
+builder's grid pool is still exactly `ALL_CARDS` (the labeled 60) —
+collection-only extras like the four Seasoned reward cards remain
+un-addable even once owned, since expanding the grid's pool was out of
+scope for a "gate what's already there" fix; and, per the Bar Bet
+judgment call above, no saved deck is re-validated against current
+ownership after the fact.
+
+4.0e done (Sonnet, not the Haiku the plan assigns — see the model-discipline
+gotcha at the end of this entry) — batch E: PT-5/6/15/18/19/20/21/23/26/28/
+29/31, hub navigation and gift-touch polish.
+
+**PT-5 (Birthday Invitational spoiled).** PLAYTEST.md flagged this as
+"Brent's call" between design.md §14.6's surprise and §10/§13.4's literal
+table-listing — resolved without stopping to ask, since the plan's own
+4.0e exit check ("Invitational invisible day 1") already reads as having
+settled it in favour of surprise. Both `tournamentsScreen.ts`'s tournament
+list and `houseRulesScreen.ts`'s tournament table now `continue` past the
+`birthday-invitational` row entirely (name, date, and prize included)
+until `TournamentState.invitationalTriggered` — not a locked "by
+invitation" placeholder row, fully absent. `houseRulesScreen.ts` gained an
+`invitationalTriggered` option for this (`main.ts`'s `showHouseRules` now
+loads `TournamentState` and calls `syncTournamentTrigger()` first, same
+pattern `showTournaments` already used). Two existing e2e tests in
+`tests/e2e/tournaments.spec.ts` had to change, not just gain assertions —
+they previously asserted a "Locked" row with the full name visible before
+the trigger, which is exactly what this fix removes; both now assert the
+row's absence instead. A new `tests/e2e/houseRules.spec.ts` (this screen
+had no e2e coverage at all before this batch) covers the same rule on the
+House Rules page plus PT-29 below.
+
+**PT-15 (hub navigation).** `pubHubScreen.ts`'s render order changed:
+"Tonight's patrons" now renders immediately after the header, before any
+button row — a newcomer's first legible content is who to play, not five
+buttons. "The chalkboard"/"The back room" became two-line `hub-action-tile`
+buttons (title + a plain-English subtitle: "Tournaments" /
+"Lost & Found, Pawnbroker, Tinker's Bench"); Playwright's default
+substring name-matching means existing `getByRole("button", {name:
+"The chalkboard"})`-style selectors still resolve against the longer
+combined text, so no e2e assertion needed to change. "Save & data" sank
+to a small underlined `.taproom-button--tertiary` link beside House
+Rules instead of owning its own row — the fix note's "sink under House
+Rules," not "remove."
+
+**PT-21 (Bar Bet interposes on every tap).** `handlePatronTap` no longer
+checks `canOfferBarBet` at all — tapping a patron row always starts the
+match directly now, full stop. A new opt-in chip (`.patron-barbet-chip`,
+labelled "Bar bet") appears on an eligible row instead; its click handler
+calls `event.stopPropagation()` before opening the stake overlay, since
+it's a real `<button>` nested inside the row's own `role="button"`
+div — without the stop, the click would bubble up and *also* fire
+`handlePatronTap`, starting an unstaked match in the same tap that opened
+the stake prompt. The overlay's own copy changed from "you'll take one of
+theirs too" to naming the opponent's actual `betPool` cards via a new
+`joinWithOr` helper ("you'll take one of theirs — Charlotte, Telegraph
+Boy or Anonymous Tip"). `tests/e2e/pubHub.spec.ts`'s old single Bar-Bet
+test (which tapped the patron row itself to trigger the old automatic
+prompt) had to be replaced, not extended — split into one test for the
+chip + named cards and one confirming a plain row tap now bypasses the
+prompt entirely.
+
+**PT-26 (unearned reward card buyable at the Pawnbroker).** `pawnbroker.ts`
+gained `unclaimedRewardCardIds(state)` — every `Opponent.rewardCardId`
+whose `PubState.opponents[id].rewardClaimed` isn't yet true — and the
+random-rotation fill loop (not the pawned-cards section, which only ever
+shows cards the player already earned and then lost) now skips any card
+in that set. Two new tests in `pawnbroker.test.ts`: the reward card never
+appears across 60 sampled days while unclaimed, and does appear at least
+once across 300 sampled days once claimed (a probabilistic assertion,
+not a pinned day, since the fill order is seeded PRNG over ~50 cards —
+accepted the same way `lostAndFound.ts`'s own weighted-random tests
+already do).
+
+**PT-6/PT-20/PT-31, all on the tutorial reward screen, done together
+since they're the same one-time moment.** PT-6: `You've been given the
+${deckName} deck` → `You've been given ${deckName}, and N Checks` — the
+deck name already carries its own "The" ("The Village Constable"), so
+the old wording always doubled it on the one screen every player sees
+exactly once. PT-20: `tutorialRewardScreen.ts` now shows a
+`.reveal-card`-styled deck card (`card-back`'s art, the deck's name) and
+a new `.checks-disc` component (a circular brass "10 / CHECKS" badge,
+staggered in with the existing `unwrap` keyframe at a short delay) instead
+of a bare text paragraph — the same unwrap treatment `pubHubScreen.ts`/
+`acquisitionScreen.ts`'s own reveal overlays already use, reused rather
+than reinvented. PT-31: `TUTORIAL_AFTER_MAT` (Sir Charles's closing beer
+mat, already shown right alongside the reward overlay) now opens with
+"Checks. The pub's coin. The back room takes them." before its existing
+line — the first and, until House Rules, only in-fiction mention of what
+Checks even are. Verified live by scripting a full 18-turn tutorial
+playthrough in the browser (dismiss-mat / play-tappable-card /
+continue-overlay, looped via `element.click()` until the reward screen's
+text appeared) rather than by inspecting source — confirmed the exact
+rendered copy and the deck-card-plus-disc visual.
+
+**PT-28 (dedication's second beat is a text box on black).** The greeting
+step now sets `--scene-bg` to `background-the-taproom` on the overlay
+(same JS-set convention `pubHubScreen.ts`/`deckBuilderScreen.ts`/
+`acquisitionScreen.ts` already use) and shows a circular
+`portrait-sir-charles-wheatstone` image above his line — both assets were
+already ingested and sitting unused for this specific screen. Verified
+live.
+
+**PT-19 (reveal cards crop to a short strip).** One line:
+`.reveal-card { aspect-ratio: 3/4 }` (`src/style.css`), the exact fix
+3.2 already gave `.dedication-card` for the identical
+"`.card--zoom` sizes off content" reason. Verified live against a fresh
+Lost & Found pull, whose art previously rendered as a thin cropped band
+and now fills a proper portrait frame.
+
+**PT-18 (chalkboard never explains what a tournament is) + PT-23
+("Lose" reads as a penalty) + PT-29 (card types undefined), the three
+smallest fixes.** `tournamentsScreen.ts` gained one static line under its
+title ("Three matches, single elimination, seven opponents drawn from
+the pool.") and its prize-line wording changed from `Lose: N Checks` to
+`Consolation: N Checks`. `houseRulesScreen.ts` gained a new "Card types"
+section, one line each verbatim from design.md §3's type table
+(Character/Gadget/Scheme/Location/Headline), styled identically to the
+existing Keywords list — the House Rules e2e test scopes its assertion to
+`.house-rules-keywords` `.first()` since "Location" is also a keyword
+name a few sections further down the same page.
+
+Tests: 2 new in `pawnbroker.test.ts` (PT-26) — 377 unit tests total
+(project-wide, up from 375), all passing.
+`tests/e2e/houseRules.spec.ts` is new (2 tests); `tests/e2e/pubHub.spec.ts`'s
+Bar Bet test was replaced with two (PT-21); `tests/e2e/tournaments.spec.ts`'s
+two Invitational-adjacent tests were rewritten, not just extended (PT-5).
+35 e2e tests total, all passing. `npm run typecheck` and
+`npm run build` both clean.
+
+Verified live in the browser at the 402×874 viewport, end to end: the pub
+hub's new layout (patrons first, subtitled tiles, sunk Save & data); House
+Rules' new Card types section and the Invitational's absence pre-trigger,
+then presence after seeding `invitationalTriggered: true`; the chalkboard's
+new description line and "Consolation" wording, same absence/presence
+check; a seeded Bar-Bet-eligible pub hub showing the opt-in chip on five
+rows, opening the stake overlay by name (not by tapping the row) and
+confirming it names Mudd's actual bet pool; a fresh Lost & Found claim
+rendering full-bleed portrait art instead of a cropped strip; the
+dedication screen's second beat with the taproom and Sir Charles's
+portrait behind the line; and a scripted full tutorial playthrough ending
+on the reward screen's new deck-card-plus-Checks-disc visual with the
+corrected copy and Sir Charles's new Checks-explaining mat line.
+
+**This closes out every PLAYTEST.md item from plan step 3.7's newcomer
+review except PT-32 (batch A, opponent deck re-pointing — tracked
+separately, git status shows it's already in progress in
+`src/cards/data/decks/{nellAshby,lovelace,adler,jekyll}.ts` from an
+earlier session).**
+
+**This step ran on Sonnet, not the Haiku the plan assigns to 4.0e** — same
+situation as 1.6/2.5/3.2/3.4/3.5's flagged gotchas: the session was
+already running on Sonnet when asked to proceed to batch E rather than
+being opened fresh on Haiku. Flagged, not corrected.
+
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
   on GitHub's shared CI runner during the 2.5 ship despite already having
@@ -1945,7 +2356,9 @@ here, only PT-3/10/25.
   cards, unrestricted. Whoever does 2.5's acquisition paths (Lost &
   Found/Pawnbroker/Tinker's Bench/Bar Bet also feed the same collection)
   is the natural point to decide whether the builder grid finally gets
-  restricted to owned copies.
+  restricted to owned copies. **Resolved, plan step 4.0d** —
+  `src/decks/ownership.ts` + the deck builder's owned-gating; see that
+  entry.
 - Christie, Poirot, Dr Jekyll/Mr Hyde, Mary Shelley, and Sir Charles have
   no portrait art yet (only 10 of the cast were in prompt sheet 1, per
   1.6's judgment call) — `pubHubScreen.ts` renders a plain gradient circle
@@ -1961,7 +2374,9 @@ here, only PT-3/10/25.
   collection, whoever does that work needs to decide whether the deck
   builder grid gets restricted to owned copies (likely) and, if so,
   reconcile it against decks already saved here with cards the player
-  doesn't "own" yet.
+  doesn't "own" yet. **Resolved, plan step 4.0d** (a saved deck's own
+  entries aren't retroactively re-validated against ownership, though —
+  see that entry's own flagged follow-up).
 - **The 13 slots start genuinely empty, not pre-seeded with the starter
   deck** — design.md's §7.2 doesn't say either way. "Start from the
   Village Constable" (a utility button in the editor, not in the plan's

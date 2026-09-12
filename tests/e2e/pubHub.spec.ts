@@ -54,7 +54,29 @@ test.describe("pub hub (plan step 2.3)", () => {
 
   // Bar Bet (plan step 2.5, design.md §11.5): unlocked at 3 wins, and only
   // offered once there's something in the collection to stake.
-  test("tapping an eligible patron offers a Bar Bet stake before the match starts", async ({ page }) => {
+  test("PT-21: an eligible patron shows an opt-in Bar Bet chip naming what's on offer, not an automatic prompt", async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "steampunk-shuffle:pub-state",
+        JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
+      );
+    });
+    await page.reload();
+
+    // Tapping the row itself starts the match directly — no interposed prompt.
+    const muddRow = page.locator(".patron-row").filter({ hasText: "Constable Tobias Mudd" });
+    await expect(muddRow.getByRole("button", { name: "Bar bet" })).toBeVisible();
+
+    await muddRow.getByRole("button", { name: "Bar bet" }).click();
+    await expect(page.getByText("Stake a card against Constable Tobias Mudd?")).toBeVisible();
+    // Names the opponent's actual stakes, not "one of theirs" unnamed (Mudd's betPool includes Telegraph Boy).
+    await expect(page.getByText(/Telegraph Boy/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Play without staking" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  });
+
+  test("PT-21: tapping a patron row directly starts the match, without interposing a Bar Bet prompt", async ({ page }) => {
     await page.evaluate(() => {
       localStorage.setItem(
         "steampunk-shuffle:pub-state",
@@ -64,9 +86,6 @@ test.describe("pub hub (plan step 2.3)", () => {
     await page.reload();
 
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
-    await expect(page.getByText("Stake a card against Constable Tobias Mudd?")).toBeVisible();
-
-    await page.getByRole("button", { name: "Play without staking" }).click();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
   });
 });

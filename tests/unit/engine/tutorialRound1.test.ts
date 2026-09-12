@@ -76,7 +76,7 @@ describe("Tutorial round 1 (design.md §13.2)", () => {
 
     // Round end: "Round's yours." Player (A) took round 1, 9-6.
     expect(state.round).toBe(2);
-    expect(state.roundHistory[0]).toEqual({ round: 1, scores: { A: 9, B: 6 }, winner: "A" });
+    expect(state.roundHistory[0]).toMatchObject({ round: 1, scores: { A: 9, B: 6 }, winner: "A" });
     // "House leads, the first time" but lost round 1, so the house leads round 2.
     expect(state.leader).toBe("B");
 

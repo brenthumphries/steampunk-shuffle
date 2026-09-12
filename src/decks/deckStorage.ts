@@ -5,7 +5,8 @@
 // until then the deck builder needs *some* persistence to save, rename,
 // and select decks at all.
 
-import { createEmptySlots, DECK_SLOT_COUNT, type DeckSlot, type DeckSlotEntry } from "./deckSlots.ts";
+import type { Card, Deck } from "../cards/cardTypes.ts";
+import { computeLegality, createEmptySlots, DECK_SLOT_COUNT, loadDeckInto, renameSlot, slotTotalCards, type DeckSlot, type DeckSlotEntry } from "./deckSlots.ts";
 
 const STORAGE_KEY = "steampunk-shuffle:deck-slots";
 
@@ -41,6 +42,27 @@ export function loadDeckSlotsState(): DeckSlotsState {
   } catch {
     return defaultState();
   }
+}
+
+/**
+ * PT-4: the tutorial ends "Take the deck. It was always going to be
+ * yours," but the builder used to show 13 empty, illegal slots — the
+ * hub's "Deck: The Village Constable" was an in-memory fallback
+ * (`main.ts`'s `refreshSelectedDeck`) the builder itself never reflected.
+ * Seeds slot 1 with the starter composition, named "The Village
+ * Constable," and selects it — but only when no slot is already legal
+ * (so a returning player who's since built their own decks is untouched)
+ * and slot 1 is itself still empty (so this never overwrites something
+ * the player has actually started building there). Called both right at
+ * tutorial completion and as a boot-time backfill for a save that
+ * completed the tutorial before this fix existed.
+ */
+export function seedStarterDeckIfMissing(state: DeckSlotsState, starter: Deck, cardsById: ReadonlyMap<string, Card>): DeckSlotsState {
+  if (state.slots.some((s) => computeLegality(s, cardsById).valid)) return state;
+  const first = state.slots[0];
+  if (!first || slotTotalCards(first) > 0) return state;
+  const seeded = renameSlot(loadDeckInto(first, starter), "The Village Constable");
+  return { slots: state.slots.map((s, i) => (i === 0 ? seeded : s)), selectedIndex: 0 };
 }
 
 export function saveDeckSlotsState(state: DeckSlotsState): void {

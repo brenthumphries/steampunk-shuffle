@@ -43,7 +43,7 @@ export function mountTournamentsScreen(root: HTMLElement, options: TournamentsSc
     row.appendChild(el("h3", "tournament-name", tournament.name));
     row.appendChild(el("p", "tournament-meta", `${tournament.whenLabel} · ${tournament.fieldLabel}`));
     row.appendChild(el("p", "tournament-meta", `Entry: ${tournament.entryRuleLabel}${tournament.entryChecks > 0 ? ` · ${tournament.entryChecks} Checks` : " · free"}`));
-    row.appendChild(el("p", "tournament-prize", `Win: ${tournament.prizeChecks} Checks + ${prizeCardLabel(tournament.prizeCard)} · Lose: ${tournament.consolationChecks} Checks`));
+    row.appendChild(el("p", "tournament-prize", `Win: ${tournament.prizeChecks} Checks + ${prizeCardLabel(tournament.prizeCard)} · Consolation: ${tournament.consolationChecks} Checks`));
 
     if (!unlocked) {
       row.appendChild(el("p", "tournament-locked", "Locked"));
@@ -88,10 +88,18 @@ export function mountTournamentsScreen(root: HTMLElement, options: TournamentsSc
     header.appendChild(el("h1", "tournaments-title", "The Chalkboard"));
     screen.appendChild(header);
 
+    // PT-18: nothing on this screen said what a tournament actually is.
+    screen.appendChild(el("p", "tournaments-deck-line", "Three matches, single elimination, seven opponents drawn from the pool."));
     screen.appendChild(el("p", "tournaments-deck-line", `Entering with: ${options.deckName}`));
 
     const list = el("div", "tournament-list");
-    for (const tournament of TOURNAMENTS) list.appendChild(buildRow(tournament));
+    for (const tournament of TOURNAMENTS) {
+      // PT-5: the Birthday Invitational (name, date, prize) is meant to be a
+      // surprise (design.md §14.6) — invisible entirely until its date
+      // trigger fires, not just shown "Locked" with every detail printed.
+      if (tournament.id === "birthday-invitational" && !options.invitationalTriggered) continue;
+      list.appendChild(buildRow(tournament));
+    }
     screen.appendChild(list);
 
     root.appendChild(screen);

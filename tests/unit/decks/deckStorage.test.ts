@@ -2,9 +2,11 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { addCopy, createEmptySlots, DECK_SLOT_COUNT } from "../../../src/decks/deckSlots.ts";
-import { loadDeckSlotsState, saveDeckSlotsState } from "../../../src/decks/deckStorage.ts";
+import { addCopy, createEmptySlots, DECK_SLOT_COUNT, loadDeckInto, renameSlot } from "../../../src/decks/deckSlots.ts";
+import { loadDeckSlotsState, saveDeckSlotsState, seedStarterDeckIfMissing } from "../../../src/decks/deckStorage.ts";
 import { ALL_CARDS } from "../../../src/cards/data/index.ts";
+import { starterDeck } from "../../../src/cards/data/decks/starterDeck.ts";
+import type { Card } from "../../../src/cards/cardTypes.ts";
 
 beforeEach(() => {
   localStorage.clear();
@@ -48,5 +50,40 @@ describe("saveDeckSlotsState / loadDeckSlotsState round trip", () => {
     const reloaded = loadDeckSlotsState();
     expect(reloaded.selectedIndex).toBe(0);
     expect(reloaded.slots[0]!.entries).toEqual([{ cardId: ALL_CARDS[0]!.id, quantity: 1 }]);
+  });
+});
+
+describe("seedStarterDeckIfMissing (PT-4)", () => {
+  const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
+
+  it("seeds slot 1 with the starter composition, named and selected, when no slot is legal", () => {
+    const state = { slots: createEmptySlots(), selectedIndex: null };
+    const next = seedStarterDeckIfMissing(state, starterDeck, cardsById);
+
+    expect(next.selectedIndex).toBe(0);
+    expect(next.slots[0]!.name).toBe("The Village Constable");
+    expect(next.slots[0]!.entries).toEqual(starterDeck.map((e) => ({ cardId: e.card.id, quantity: e.quantity })));
+    // Every other slot is untouched.
+    for (let i = 1; i < next.slots.length; i++) {
+      expect(next.slots[i]).toEqual(state.slots[i]);
+    }
+  });
+
+  it("does nothing once any slot is already legal", () => {
+    const slots = createEmptySlots();
+    slots[3] = renameSlot(loadDeckInto(slots[3]!, starterDeck), "My Deck");
+    const state = { slots, selectedIndex: 3 };
+
+    const next = seedStarterDeckIfMissing(state, starterDeck, cardsById);
+    expect(next).toBe(state); // no-op, same reference
+  });
+
+  it("does nothing if slot 1 already has cards in it, even with no legal slot elsewhere", () => {
+    const slots = createEmptySlots();
+    slots[0] = addCopy(slots[0]!, ALL_CARDS[0]!); // one card, not a legal 20-card deck
+    const state = { slots, selectedIndex: null };
+
+    const next = seedStarterDeckIfMissing(state, starterDeck, cardsById);
+    expect(next).toBe(state); // refuses to clobber a slot the player's touched
   });
 });

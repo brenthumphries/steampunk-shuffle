@@ -11,8 +11,23 @@ import { DAILY_BONUS_CHECKS, LOSE_CHECKS, WIN_CHECKS } from "../pub/pubState.ts"
 import { TOURNAMENTS } from "../tournaments/tournaments.ts";
 
 export interface HouseRulesScreenOptions {
+  invitationalTriggered: boolean;
   onBack: () => void;
 }
+
+interface CardTypeEntry {
+  name: string;
+  reminder: string;
+}
+
+/** design.md §3's table, one line each (PT-29: card types were never defined anywhere a newcomer could read). */
+const CARD_TYPES: CardTypeEntry[] = [
+  { name: "Character", reminder: "People (and cats). The bulk of every deck." },
+  { name: "Gadget", reminder: "Contraptions, tools, documents. Small points, small effects, often Persist." },
+  { name: "Scheme", reminder: "One-shot: On Play, then it's spent. Flips, draws, un-flips." },
+  { name: "Location", reminder: "A place. One active at a time, shared, replaces the last." },
+  { name: "Headline", reminder: "A newspaper front page — a big, symmetrical, world-changing event." },
+];
 
 const HOUSE_RULES = [
   "No wagers above a sovereign.",
@@ -27,7 +42,7 @@ const ROUND_RULES = [
   "A coin toss decides who leads round 1.",
   "Best of three rounds, three turns each a round, leader first.",
   "On your turn you play exactly one card from your hand — no voluntary pass.",
-  "Higher score takes the round; a tie takes it for nobody.",
+  "Higher score takes the round and nobody takes a tie — either way, whoever didn't take it leads the next round.",
   "First to two rounds takes the table; after three rounds it's most rounds, then most total points, then a draw.",
 ];
 
@@ -85,6 +100,16 @@ export function mountHouseRulesScreen(root: HTMLElement, options: HouseRulesScre
     for (const line of ROUND_RULES) rounds.appendChild(el("li", undefined, line));
     screen.appendChild(rounds);
 
+    screen.appendChild(el("h2", "house-rules-section-title", "Card types"));
+    const typeList = el("div", "house-rules-keywords");
+    for (const t of CARD_TYPES) {
+      const row = el("div", "house-rules-keyword-row");
+      row.appendChild(el("span", "house-rules-keyword-name", t.name));
+      row.appendChild(el("span", "house-rules-keyword-reminder", t.reminder));
+      typeList.appendChild(row);
+    }
+    screen.appendChild(typeList);
+
     screen.appendChild(el("h2", "house-rules-section-title", "Keywords"));
     const keywordList = el("div", "house-rules-keywords");
     for (const kw of KEYWORDS) {
@@ -107,6 +132,9 @@ export function mountHouseRulesScreen(root: HTMLElement, options: HouseRulesScre
     screen.appendChild(el("h2", "house-rules-section-title", "The chalkboard (tournaments)"));
     const tTable = el("div", "house-rules-tournaments");
     for (const t of TOURNAMENTS) {
+      // PT-5: same reasoning as tournamentsScreen.ts — the Invitational stays
+      // off this page too until its date trigger actually fires.
+      if (t.id === "birthday-invitational" && !options.invitationalTriggered) continue;
       const row = el("div", "house-rules-tournament-row");
       row.appendChild(el("span", "house-rules-tournament-name", t.name));
       row.appendChild(el("span", "house-rules-tournament-meta", `${t.whenLabel} · ${t.fieldLabel} · ${t.entryRuleLabel}`));

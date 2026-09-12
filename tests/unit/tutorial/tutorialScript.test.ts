@@ -23,7 +23,9 @@ describe("Tutorial script (design.md §13.2)", () => {
     expect(state.status).toBe("complete");
     expect(state.result).toEqual({ winner: TUTORIAL_PLAYER, reason: "two-rounds" });
     expect(state.roundsWon).toEqual({ A: 2, B: 1 });
-    expect(state.roundHistory).toEqual([
+    // finalBoard (PT-9) isn't pinned here — its content is exercised by the
+    // engine's own keyword/round tests; this test's job is the score line.
+    expect(state.roundHistory.map(({ round, scores, winner }) => ({ round, scores, winner }))).toEqual([
       { round: 1, scores: { A: 9, B: 6 }, winner: "A" },
       { round: 2, scores: { A: 7, B: 15 }, winner: "B" },
       { round: 3, scores: { A: 7, B: 6 }, winner: "A" },

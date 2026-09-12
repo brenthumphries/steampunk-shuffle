@@ -7,7 +7,7 @@
 
 import type { Card, Rarity } from "../cards/cardTypes.ts";
 import { stepRandom } from "../engine/rng.ts";
-import { localDayIndex } from "./opponents.ts";
+import { localDayIndex, OPPONENTS } from "./opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID, NON_LEGENDARY_ACQUIRABLE_CARDS } from "./acquirableCards.ts";
 import { addCopyToCollection, localDateKey, removeOneFromPawnedCards, type PubState } from "./pubState.ts";
 
@@ -32,6 +32,23 @@ function boughtRotationToday(state: PubState, date: Date): ReadonlySet<string> {
   return state.pawnbrokerPurchaseDate === localDateKey(date) ? new Set(state.pawnbrokerPurchasedToday) : new Set();
 }
 
+/**
+ * PT-26: an opponent's not-yet-claimed first-win reward card shouldn't be
+ * buyable here — it duplicates (and undercuts) the "First win: X" promise
+ * on their patron row. A pawned copy of one (see below, this only filters
+ * the random rotation, not `pawnedCards`) is unaffected: if a reward card
+ * is already in `pawnedCards`, the player earned it once and then staked
+ * and lost it, so there's nothing left to spoil by reoffering it.
+ */
+function unclaimedRewardCardIds(state: PubState): ReadonlySet<string> {
+  const ids = new Set<string>();
+  for (const opponent of OPPONENTS) {
+    if (!opponent.rewardCardId) continue;
+    if (!(state.opponents[opponent.id]?.rewardClaimed ?? false)) ids.add(opponent.rewardCardId);
+  }
+  return ids;
+}
+
 /** Today's 3-card window: pawned cards first (oldest loss first), then the random daily rotation filling any remaining slots — minus whatever's already been bought today. */
 export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] {
   const slots: PawnbrokerSlot[] = [];
@@ -46,6 +63,7 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
     shown.add(cardId);
   }
 
+  const unclaimedRewards = unclaimedRewardCardIds(state);
   let seed = localDayIndex(date) ^ PAWNBROKER_SALT;
   let guard = 0;
   while (slots.length < PAWNBROKER_WINDOW_SIZE && guard < 200) {
@@ -53,7 +71,7 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
     seed = step.seed;
     guard++;
     const card = NON_LEGENDARY_ACQUIRABLE_CARDS[Math.floor(step.value * NON_LEGENDARY_ACQUIRABLE_CARDS.length)]!;
-    if (shown.has(card.id) || bought.has(card.id)) continue;
+    if (shown.has(card.id) || bought.has(card.id) || unclaimedRewards.has(card.id)) continue;
     slots.push({ card, price: PAWNBROKER_PRICES[card.rarity as PricedRarity], isPawned: false });
     shown.add(card.id);
   }

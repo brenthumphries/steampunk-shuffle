@@ -15,8 +15,9 @@ import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
-import { loadDeckSlotsState } from "./decks/deckStorage.ts";
+import { loadDeckSlotsState, saveDeckSlotsState, seedStarterDeckIfMissing } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
+import { ACQUIRABLE_CARDS_BY_ID } from "./pub/acquirableCards.ts";
 import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
 import { resolveBarBet } from "./pub/barBet.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type MatchContext } from "./save/activeMatch.ts";
@@ -136,10 +137,12 @@ function showSaveScreen(): void {
 }
 
 function showHouseRules(): void {
+  syncTournamentTrigger();
+  const invitationalTriggered = loadTournamentState().invitationalTriggered;
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
-  teardownScreen = mountHouseRulesScreen(app!, { onBack: () => showPubHub() });
+  teardownScreen = mountHouseRulesScreen(app!, { invitationalTriggered, onBack: () => showPubHub() });
 }
 
 /**
@@ -178,6 +181,8 @@ function mountMatch(params: {
   context: MatchContext;
   resume?: { state: MatchState; aiSeed: number };
   hints?: HintOptions;
+  /** PT-14: a read-only Checks/reward preview for the match-over overlay — see mountMatchScreen's own doc. */
+  previewResult?: (result: MatchResult) => string | null;
   onFinish: (result: MatchResult) => void;
 }): void {
   teardownScreen?.();
@@ -191,6 +196,7 @@ function mountMatch(params: {
     difficulty: params.difficulty,
     initialState: params.resume,
     hints: params.hints,
+    previewResult: params.previewResult,
     onStateChange: (state, aiSeed) => {
       saveActiveMatch({ matchState: state, aiSeed, humanDeck: params.humanDeck, humanDeckName: params.humanDeckName, context: params.context });
     },
@@ -199,6 +205,25 @@ function mountMatch(params: {
       params.onFinish(result);
     },
   });
+}
+
+/**
+ * PT-14: what leaving the table will pay out, read live off the current
+ * PubState each time it's asked — pure preview, `recordPickupResult`'s
+ * returned `next` state is simply discarded. A draw pays nothing (design.md
+ * §6.3), so there's nothing to preview.
+ */
+function formatPickupReward(opponent: Opponent, result: MatchResult): string | null {
+  if (result.winner === "draw") return null;
+  const outcome = result.winner === "A" ? "win" : "loss";
+  const pub = loadPubState();
+  const { checksEarned, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, new Date());
+  const parts = [`+${checksEarned} Checks`];
+  if (rewardCardId) {
+    const card = ACQUIRABLE_CARDS_BY_ID.get(rewardCardId);
+    parts.push(`+ ${card ? card.faces[0].name : "a reward card"} (first win!)`);
+  }
+  return parts.join(" · ");
 }
 
 function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, result: MatchResult): void {
@@ -232,6 +257,7 @@ function startMatch(opponent: Opponent, stakedCardId: string | null): void {
     difficulty: opponent.difficulty,
     context: { kind: "pickup", opponentId: opponent.id, stakedCardId },
     hints: buildHintOptions(),
+    previewResult: (result) => formatPickupReward(opponent, result),
     onFinish: (result) => finishPickupMatch(opponent, stakedCardId, result),
   });
 }
@@ -260,6 +286,10 @@ function startTutorial(): void {
 function finishTutorial(): void {
   savePubState(grantChecks(loadPubState(), TUTORIAL_REWARD_CHECKS));
   saveTutorialState(markTutorialCompleted(loadTutorialState()));
+  // PT-4: "Take the deck. It was always going to be yours" should mean the
+  // builder actually has it, not 13 empty illegal slots.
+  saveDeckSlotsState(seedStarterDeckIfMissing(loadDeckSlotsState(), starterDeck, cardsById));
+  refreshSelectedDeck();
 
   teardownScreen?.();
   teardownScreen = undefined;
@@ -405,6 +435,7 @@ function tryResumeActiveMatch(): boolean {
       context: saved.context,
       resume: { state: saved.matchState, aiSeed: saved.aiSeed },
       hints: buildHintOptions(),
+      previewResult: (result) => formatPickupReward(opponent, result),
       onFinish: (result) => finishPickupMatch(opponent, stakedCardId, result),
     });
     return true;
@@ -450,8 +481,12 @@ function bootAfterDedication(): void {
     // partway through, it just deals a fresh one, which is fine since it's
     // the same deterministic script either way.
     startTutorial();
-  } else if (!tryResumeActiveMatch()) {
-    showPubHub();
+  } else {
+    // PT-4's backfill half: a save that completed the tutorial before this
+    // fix existed could still have no legal slot — no-ops once one exists.
+    saveDeckSlotsState(seedStarterDeckIfMissing(loadDeckSlotsState(), starterDeck, cardsById));
+    refreshSelectedDeck();
+    if (!tryResumeActiveMatch()) showPubHub();
   }
 }
 

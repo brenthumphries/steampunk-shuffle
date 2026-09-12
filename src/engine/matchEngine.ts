@@ -18,6 +18,7 @@ import {
   type OwnedBoardCard,
   type PlayerId,
   type PlayOptions,
+  type RoundResult,
   type TargetChooser,
 } from "./matchTypes.ts";
 
@@ -256,10 +257,20 @@ function finishRound(state: MatchState): void {
   // the round it just applies to).
   const scores: Record<PlayerId, number> = { A: boardScore(state, "A"), B: boardScore(state, "B") };
   const winner: PlayerId | "tie" = scores.A === scores.B ? "tie" : scores.A > scores.B ? "A" : "B";
-  state.roundHistory.push({ round: state.round, scores, winner });
+  const roundResult: RoundResult = { round: state.round, scores, winner, finalBoard: { A: [], B: [] } };
+  state.roundHistory.push(roundResult);
   if (winner !== "tie") state.roundsWon[winner] += 1;
 
   resolveTriggeredAbilities(state, "endOfRound");
+
+  // PT-9: snapshot the board as it stands right here — after endOfRound
+  // abilities (e.g. Mr Hyde's own Flip) but before the cleanup sweep below
+  // — since that's "how the round actually ended," not the following
+  // round's already-cleared board.
+  roundResult.finalBoard = {
+    A: state.players.A.board.map((bc) => ({ ...bc })),
+    B: state.players.B.board.map((bc) => ({ ...bc })),
+  };
 
   // End-of-round cleanup (§6.2.3), using board state *after* endOfRound
   // abilities have run. Return beats Persist if a card somehow has

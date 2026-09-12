@@ -23,8 +23,19 @@ body {
   user-select: none;
 }
 
+/* PT-7: was `min-height: 100dvh` with no explicit `height` — a percentage
+   height on any child (.match-screen, .pub-hub, .deck-builder, ...) then
+   resolves against 'auto', i.e. not at all, so those screens sized
+   themselves to their own content instead of filling the phone screen (the
+   match screen used under half the viewport, hand cards were tiny). A
+   fixed height plus a column flex layout gives every screen a real,
+   definite box to fill — `height: 100%` on a screen root, or the
+   `overflow-y: auto` several of them already had waiting for exactly this,
+   now actually works instead of falling through to page-level scroll. */
 #app {
-  min-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
   /* Keep content clear of the iPhone notch/home-indicator in both
      orientations; env() resolves to 0 on devices without a safe area. */
   padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
@@ -93,7 +104,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  height: 100%;
+  /* PT-7: `flex: 1` (not `height: 100%`) plus `min-height: 0` — as a flex
+     item of #app, the default `min-height: auto` would otherwise refuse to
+     shrink below this screen's own content height, which is exactly what
+     defeats #app's fixed-height fix above for a screen with a lot on it
+     (a full hand, both boards). `min-height: 0` lets it actually respect
+     the container's height, so .hand-row/.board-row's own
+     overflow-x/y:auto can do their job instead of the whole screen
+     growing taller than the viewport. */
+  flex: 1;
+  min-height: 0;
   font-size: 0.85rem;
   /* "--table-bg" is set from JS (background-the-snug.webp) via
      import.meta.env.BASE_URL — never a bare CSS url(), since the site is
@@ -157,7 +177,7 @@ body {
 .board-row {
   display: flex;
   gap: 0.4rem;
-  min-height: 4.6rem;
+  min-height: 7.3rem; /* matches .card--mini's height post-PT-7 */
   align-items: center;
   overflow-x: auto;
 }
@@ -197,10 +217,19 @@ body {
   opacity: 0.75;
 }
 
+/* PT-8: a 6+-card hand (routine by round 3) used to clip off the right
+   edge with no scroll cue — iOS shows no scrollbar, so the cut-off card
+   was the only affordance a horizontal `overflow-x: auto` row gave. Wraps
+   to a second row instead, in the vertical room PT-7's layout fix frees
+   up; `overflow-y: auto` is a fallback for a hand too large even for two
+   rows (a 9+-card round-3 draw), not the primary affordance any more. */
 .hand-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(2 * 7.3rem + 0.4rem);
   padding-bottom: 0.15rem;
 }
 
@@ -218,6 +247,16 @@ body {
   margin: 0;
   font-size: 0.8rem;
   opacity: 0.85;
+}
+
+/* PT-12: names what an auto-resolved targeted effect will hit ("Flips
+   Charlotte."), or says it has nothing to hit — on the play-confirmation
+   bar, one line per targetable effect the card has. */
+.action-auto-target {
+  margin: 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  opacity: 0.75;
 }
 
 .action-buttons {
@@ -386,12 +425,16 @@ body {
   }
 }
 
+/* PT-7: was 3.6×4.9rem at 0.65rem (10.4px) text — names truncated
+   ("Consta… on the Beat"). ~1.5x, and font bumped to the fix note's
+   "≥12px" (0.75rem), now that PT-7's #app/.match-screen layout fix frees
+   the vertical room to actually show it at this size. */
 .card--mini {
-  width: 3.6rem;
-  height: 4.9rem;
-  padding: 0.2rem 0.25rem;
-  font-size: 0.65rem;
-  gap: 0.1rem;
+  width: 5.4rem;
+  height: 7.3rem;
+  padding: 0.3rem 0.35rem;
+  font-size: 0.75rem;
+  gap: 0.15rem;
 }
 
 .card--mini .card-name {
@@ -425,6 +468,18 @@ body {
   min-width: 1.3rem;
   text-align: center;
   padding: 0 0.15rem;
+}
+
+/* PT-27: a buffed/reduced card's shown points get a colour cue distinct
+   from its printed value — the MTG Arena/Gwent convention. Only ever
+   applied to a face-up board card whose effective points differ from
+   printed (buildCardEl); a hand/zoom card always shows printed, uncoloured. */
+.card-points--boosted {
+  color: #8fd18f;
+}
+
+.card-points--reduced {
+  color: rgba(242, 230, 208, 0.55);
 }
 
 .card-meta,
@@ -465,6 +520,38 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* PT-13: both players already saw this card face-up before it flipped, so
+   a dimmed name/points label over the back art tells them which card it
+   is without pretending it's worth anything right now (a flipped card is
+   worth 0 regardless of what's printed on it). */
+.card-facedown-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(242, 230, 208, 0.65);
+}
+
+.card-facedown-points {
+  font-weight: 700;
+}
+
+.card-facedown-name {
+  font-size: 0.9em;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .card--tappable {
@@ -588,6 +675,20 @@ body {
 
 .overlay-score {
   margin: 0;
+}
+
+/* PT-30: who leads next, on the round-reveal overlay. */
+.overlay-next-leader {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* PT-14: the Checks/reward preview on the match-over overlay. */
+.overlay-reward {
+  margin: 0;
+  color: var(--amber);
+  font-weight: 600;
 }
 
 .overlay--zoom {
@@ -768,7 +869,18 @@ body {
 
 .deck-filters {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+}
+
+/* PT-24: an "owned only" toggle — the closest thing to a collection view,
+   falling out of PT-1's owned counts for free. */
+.deck-filter-owned-only {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .deck-filter-select {
@@ -799,7 +911,31 @@ body {
   border-top: 0.25rem solid var(--family);
   border-radius: 0.35rem;
   padding: 0.4rem 0.5rem;
+  padding-right: 1.3rem; /* room for the zoom button */
   font-size: 0.75rem;
+}
+
+.deck-card-zoom-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 230, 208, 0.5);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  font-size: 0.6rem;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.deck-card-ability {
+  margin: 0;
+  opacity: 0.75;
+  font-size: 0.68rem;
 }
 
 .deck-card-tile[data-family="yard"] {
@@ -825,20 +961,25 @@ body {
   box-shadow: 0 0 0 1px var(--amber);
 }
 
-/* design.md §14.3: The Landlady, shown as a reserved silhouette until the
-   Birthday Invitational is won — dimmed and unclickable rather than the
-   normal +/- controls. */
-.deck-card-tile--reserved {
-  border-color: var(--gold-leaf-dark);
+/* PT-1: an unowned card — dimmed, no +/- controls, but still zoomable (a
+   wishlist). Folds in design.md §14.3's Landlady "Reserved" treatment
+   (plan step 3.5), which used to be its own separate tile/class. */
+.deck-card-tile--unowned {
   filter: grayscale(0.6);
   opacity: 0.55;
-  align-items: center;
-  text-align: center;
-  gap: 0.3rem;
 }
 
-.deck-card-tile--reserved .deck-card-meta {
+.deck-card-unowned-note {
+  margin-top: auto;
+  padding-top: 0.2rem;
   font-style: italic;
+  font-size: 0.68rem;
+  opacity: 0.85;
+}
+
+.deck-card-owned {
+  opacity: 0.7;
+  font-size: 0.68rem;
 }
 
 .deck-card-points {
@@ -991,10 +1132,53 @@ body {
   flex-wrap: wrap;
 }
 
-.pub-hub-deck-row-buttons {
+/* PT-15: two subtitled tiles instead of unlabeled pub-slang buttons. */
+.pub-hub-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+.hub-action-tile {
+  flex: 1 1 10rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: #241a10;
+  border: 1px solid rgba(242, 230, 208, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+}
+
+.hub-action-title {
+  font-weight: 600;
+}
+
+.hub-action-subtitle {
+  font-size: 0.7rem;
+  opacity: 0.65;
+}
+
+.pub-hub-secondary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.taproom-button--tertiary {
+  background: transparent;
+  color: var(--ink);
+  opacity: 0.6;
+  border: none;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.8rem;
+  text-decoration: underline;
 }
 
 .patron-section-title {
@@ -1096,6 +1280,20 @@ body {
   font-style: italic;
 }
 
+/* PT-21: an opt-in Bar Bet chip on the row, not an automatic prompt on every tap. */
+.patron-barbet-chip {
+  align-self: center;
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 0.65rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--amber);
+  background: transparent;
+  color: var(--amber);
+  cursor: pointer;
+}
+
 /* -- Reward reveal (design.md §11.2's "unwrap") -------------------------- */
 
 .reveal-box {
@@ -1104,6 +1302,11 @@ body {
 
 .reveal-card {
   align-self: center;
+  /* PT-19: ".card--zoom" sizes off content, so a reveal card with little
+     text (a fresh Lost & Found pull, say) rendered as a wide, short strip
+     with its art cropped down to almost nothing — same fix 3.2 already
+     gave .dedication-card. */
+  aspect-ratio: 3 / 4;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1124,6 +1327,49 @@ body {
   to {
     transform: scale(1) rotate(0deg);
     opacity: 1;
+  }
+}
+
+/* -- Tutorial reward screen (PT-20) --------------------------------------- */
+
+.reward-deck-card {
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+  width: min(60vw, 200px);
+  padding: 1rem;
+}
+
+.checks-disc {
+  align-self: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 30%, #f2e6c8, #a5813a 55%, #5c4620 100%);
+  border: 2px solid rgba(242, 230, 208, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  color: #241a10;
+}
+
+.checks-disc-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.checks-disc-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .checks-disc {
+    animation: unwrap 0.5s ease-out 0.15s both;
   }
 }
 
@@ -1156,6 +1402,23 @@ body {
 
 .dedication-greeting {
   font-style: italic;
+}
+
+/* PT-28: the taproom behind Sir Charles's greeting, same "--scene-bg" JS-set
+   convention as .pub-hub/.deck-builder/.backroom-screen. */
+.overlay--dedication-greeting {
+  background-image: linear-gradient(rgba(26, 18, 11, 0.55), rgba(26, 18, 11, 0.85)), var(--scene-bg, none);
+  background-size: cover;
+  background-position: center;
+}
+
+.dedication-portrait {
+  align-self: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--amber);
 }
 
 /* -- The toast (plan step 3.5, design.md §14.4) -------------------------- */
@@ -1404,6 +1667,7 @@ body {
 
 .backroom-tile {
   --family: var(--family-neutral);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -1412,6 +1676,24 @@ body {
   border-top: 0.25rem solid var(--family);
   border-radius: 0.35rem;
   padding: 0.5rem;
+  padding-right: 1.3rem; /* room for the zoom button */
+}
+
+.backroom-tile-zoom-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 230, 208, 0.5);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  font-size: 0.6rem;
+  font-style: italic;
+  cursor: pointer;
 }
 
 .backroom-tile[data-family="yard"] {
@@ -1433,14 +1715,32 @@ body {
   --family: var(--family-neutral);
 }
 
+.backroom-tile-points {
+  align-self: flex-start;
+  font-weight: 700;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 999px;
+  min-width: 1.3rem;
+  text-align: center;
+  padding: 0 0.15rem;
+}
+
 .backroom-tile-name {
   font-weight: 600;
   font-size: 0.85rem;
 }
 
-.backroom-tile-meta {
+.backroom-tile-meta,
+.backroom-tile-chips {
   font-size: 0.7rem;
   opacity: 0.7;
+}
+
+.backroom-tile-ability {
+  margin: 0;
+  font-size: 0.68rem;
+  opacity: 0.75;
 }
 
 .stake-card-list {

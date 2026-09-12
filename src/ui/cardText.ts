@@ -101,3 +101,33 @@ export function effectPromptLabel(effect: Effect): string {
       return "Choose a target";
   }
 }
+
+function joinNames(names: readonly string[]): string {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0]!;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * What a targeted onPlay effect the player doesn't get to choose (a single
+ * legal target, or a "highest/lowest points" filter the card text already
+ * names) will actually do — for the play-confirmation bar (PT-12), which
+ * otherwise commits a card like Inspector's Warrant with no indication of
+ * what it hits, or silently does nothing against an empty board.
+ */
+export function describeAutoTarget(effect: Effect, targetNames: readonly string[]): string {
+  if (targetNames.length === 0) return "No legal target — it does nothing.";
+  const names = joinNames(targetNames);
+  switch (effect.effect) {
+    case "flip":
+      return `Flips ${names}.`;
+    case "unflip":
+      return `Turns ${names} face-up.`;
+    case "return":
+      return `Returns ${names} to hand.`;
+    case "buff":
+      return `Gives ${names} +${effect.amount}.`;
+    default:
+      return `Targets ${names}.`;
+  }
+}

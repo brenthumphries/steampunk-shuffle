@@ -59,6 +59,21 @@ function artUrl(assetId: string): string {
   return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
 }
 
+function joinWithOr(names: readonly string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
+}
+
+/** PT-15: a hub-navigation button that names both what it's called at the bar and what it actually does. */
+function buildActionTile(title: string, subtitle: string, onClick: () => void): HTMLElement {
+  const btn = el("button", "hub-action-tile");
+  btn.type = "button";
+  btn.appendChild(el("span", "hub-action-title", title));
+  btn.appendChild(el("span", "hub-action-subtitle", subtitle));
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
 /** Mounts the pub hub into `root` and returns a teardown function. */
 export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): () => void {
   const pub = loadPubState();
@@ -79,14 +94,20 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     render();
   }
 
-  /** Bar Bet (design.md §11.5): offer a stake before starting the match, if this opponent takes bets and the player has something to stake. */
+  /**
+   * PT-21: tapping a patron always starts the match directly now — Bar Bet
+   * no longer interposes on every tap once the player owns anything
+   * stakeable. It's an opt-in "Bar bet" chip on the row instead (see
+   * `openBarBet` below).
+   */
   function handlePatronTap(opponent: Opponent): void {
-    if (canOfferBarBet(opponent, pub.totalWins) && stakeableCards(pub.collection).length > 0) {
-      stakePrompt = opponent;
-      render();
-      return;
-    }
     options.onStartMatch(opponent, null);
+  }
+
+  function openBarBet(opponent: Opponent, event: Event): void {
+    event.stopPropagation();
+    stakePrompt = opponent;
+    render();
   }
 
   function buildPatronRow(opponent: Opponent): HTMLElement {
@@ -127,6 +148,15 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     info.appendChild(meta);
     row.appendChild(info);
 
+    // PT-21: an opt-in chip, not an automatic prompt on every tap.
+    if (canOfferBarBet(opponent, pub.totalWins) && stakeableCards(pub.collection).length > 0) {
+      const barBetBtn = el("button", "patron-barbet-chip", "Bar bet");
+      barBetBtn.type = "button";
+      barBetBtn.setAttribute("aria-label", `Stake a card in a bar bet against ${opponent.name}`);
+      barBetBtn.addEventListener("click", (event) => openBarBet(opponent, event));
+      row.appendChild(barBetBtn);
+    }
+
     row.addEventListener("click", () => handlePatronTap(opponent));
     row.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -141,7 +171,9 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const overlay = el("div", "overlay overlay--reveal");
     const box = el("div", "overlay-box reveal-box");
     box.appendChild(el("h2", "overlay-title", `Stake a card against ${opponent.name}?`));
-    box.appendChild(el("p", "overlay-score", "Win it, and you'll take one of theirs too. Lose, and yours goes to the Pawnbroker's window."));
+    // PT-21: name what's actually on offer, instead of "one of theirs."
+    const betNames = opponent.betPool.map((id) => CARDS_BY_ID.get(id)?.faces[0].name ?? id);
+    box.appendChild(el("p", "overlay-score", `Win it, and you'll take one of theirs — ${joinWithOr(betNames)}. Lose, and yours goes to the Pawnbroker's window.`));
 
     const list = el("div", "stake-card-list");
     for (const cardId of stakeableCards(pub.collection)) {
@@ -241,38 +273,42 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     header.appendChild(headerActions);
     screen.appendChild(header);
 
-    const deckRow = el("div", "pub-hub-deck-row");
-    deckRow.appendChild(el("span", "taproom-deck", `Deck: ${options.deckName}`));
-    const deckRowButtons = el("div", "pub-hub-deck-row-buttons");
-    const deckBtn = el("button", "taproom-button taproom-button--secondary", "Build a deck");
-    deckBtn.type = "button";
-    deckBtn.addEventListener("click", options.onBuildDeck);
-    deckRowButtons.appendChild(deckBtn);
-    const tournamentsBtn = el("button", "taproom-button taproom-button--secondary", "The chalkboard");
-    tournamentsBtn.type = "button";
-    tournamentsBtn.addEventListener("click", options.onOpenTournaments);
-    deckRowButtons.appendChild(tournamentsBtn);
-    const backRoomBtn = el("button", "taproom-button taproom-button--secondary", "The back room");
-    backRoomBtn.type = "button";
-    backRoomBtn.addEventListener("click", options.onOpenBackRoom);
-    deckRowButtons.appendChild(backRoomBtn);
-    const saveDataBtn = el("button", "taproom-button taproom-button--secondary", "Save & data");
-    saveDataBtn.type = "button";
-    saveDataBtn.addEventListener("click", options.onOpenSaveData);
-    deckRowButtons.appendChild(saveDataBtn);
-    const houseRulesBtn = el("button", "taproom-button taproom-button--secondary", "House Rules");
-    houseRulesBtn.type = "button";
-    houseRulesBtn.addEventListener("click", options.onOpenHouseRules);
-    deckRowButtons.appendChild(houseRulesBtn);
-    deckRow.appendChild(deckRowButtons);
-    screen.appendChild(deckRow);
-
+    // PT-15: what to do next (play someone) comes before the pub-slang
+    // button row, not buried under five of them.
     screen.appendChild(el("h2", "patron-section-title", "Tonight's patrons"));
     const list = el("div", "patron-list");
     for (const opponent of tonightsPatrons(pub.totalWins, new Date())) {
       list.appendChild(buildPatronRow(opponent));
     }
     screen.appendChild(list);
+
+    const deckRow = el("div", "pub-hub-deck-row");
+    deckRow.appendChild(el("span", "taproom-deck", `Deck: ${options.deckName}`));
+    const deckBtn = el("button", "taproom-button taproom-button--secondary", "Build a deck");
+    deckBtn.type = "button";
+    deckBtn.addEventListener("click", options.onBuildDeck);
+    deckRow.appendChild(deckBtn);
+    screen.appendChild(deckRow);
+
+    // PT-15: each button now names what it actually does, since "the
+    // chalkboard" and "the back room" mean nothing to a newcomer yet.
+    const actionTiles = el("div", "pub-hub-actions");
+    actionTiles.appendChild(buildActionTile("The chalkboard", "Tournaments", options.onOpenTournaments));
+    actionTiles.appendChild(buildActionTile("The back room", "Lost & Found, Pawnbroker, Tinker's Bench", options.onOpenBackRoom));
+    screen.appendChild(actionTiles);
+
+    // PT-15: House Rules stays a real button; "Save & data" sinks to a
+    // smaller, lower-priority link beside it rather than its own row.
+    const secondaryRow = el("div", "pub-hub-secondary-row");
+    const houseRulesBtn = el("button", "taproom-button taproom-button--secondary", "House Rules");
+    houseRulesBtn.type = "button";
+    houseRulesBtn.addEventListener("click", options.onOpenHouseRules);
+    secondaryRow.appendChild(houseRulesBtn);
+    const saveDataBtn = el("button", "taproom-button taproom-button--tertiary", "Save & data");
+    saveDataBtn.type = "button";
+    saveDataBtn.addEventListener("click", options.onOpenSaveData);
+    secondaryRow.appendChild(saveDataBtn);
+    screen.appendChild(secondaryRow);
 
     root.appendChild(screen);
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));

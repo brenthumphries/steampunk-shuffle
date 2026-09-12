@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { buyFromPawnbroker, canAfford, PAWNBROKER_PRICES, PAWNBROKER_WINDOW_SIZE, pawnbrokerWindow } from "../../../src/pub/pawnbroker.ts";
 import { defaultPubState, type PubState } from "../../../src/pub/pubState.ts";
+import { OPPONENTS } from "../../../src/pub/opponents.ts";
 
 const DAY_1 = new Date(2026, 8, 11, 20, 0, 0);
 const DAY_1_LATER = new Date(2026, 8, 11, 23, 0, 0);
@@ -40,6 +41,25 @@ describe("pawnbrokerWindow", () => {
     const slots = pawnbrokerWindow(state, DAY_1);
     expect(slots).toHaveLength(PAWNBROKER_WINDOW_SIZE);
     expect(slots.every((s) => s.isPawned)).toBe(true);
+  });
+
+  it("PT-26: never offers an opponent's unclaimed first-win reward card in the random rotation", () => {
+    const rewardCardId = OPPONENTS.find((o) => o.id === "mudd")!.rewardCardId!;
+    for (let day = 0; day < 60; day++) {
+      const date = new Date(2026, 8, 1 + day);
+      expect(pawnbrokerWindow(defaultPubState(), date).map((s) => s.card.id)).not.toContain(rewardCardId);
+    }
+  });
+
+  it("PT-26: the reward card can appear again once its opponent's first win has been claimed", () => {
+    const rewardCardId = OPPONENTS.find((o) => o.id === "mudd")!.rewardCardId!;
+    const state: PubState = { ...defaultPubState(), opponents: { mudd: { wins: 1, losses: 0, rewardClaimed: true } } };
+    let appeared = false;
+    for (let day = 0; day < 300 && !appeared; day++) {
+      const date = new Date(2026, 8, 1 + day);
+      if (pawnbrokerWindow(state, date).some((s) => s.card.id === rewardCardId)) appeared = true;
+    }
+    expect(appeared).toBe(true);
   });
 });
 

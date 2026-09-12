@@ -99,5 +99,35 @@ describe("stagePlay / pendingStep / toggleTarget (design.md §6.4)", () => {
     const play = stagePlay(state, "A", instanceId("A", scholar), scholar);
     expect(play.steps[0]!.needsChoice).toBe(false);
     expect(isReadyToConfirm(play)).toBe(true);
+    // `high` was played *after* `low`, so it's second in board order — the
+    // auto-pick must still be the actual highest-point card (matching what
+    // the engine's own defaultSelect will pick at commit), not just the
+    // first candidate in board order. Regression test: an earlier version
+    // sliced raw (unsorted) candidates here and would have picked `low`.
+    expect(play.steps[0]!.selected).toEqual([instanceId("B", high)]);
+  });
+
+  it("a preview step with zero legal candidates is dropped from `steps` but kept in `allTargetableSteps` (PT-12)", () => {
+    const flipper = makeCard({
+      name: "Flipper",
+      points: 1,
+      abilities: [{ trigger: "onPlay", effects: [{ effect: "flip", target: { side: "opponent", filter: { maxPoints: 1 } } }] }],
+    });
+    const tooBig = makeCard({ name: "Too Big", points: 5 });
+    const filler = makeCard({ name: "A Filler", points: 1 });
+
+    let state: MatchState = createMatch(orderedDeck([filler, flipper]), orderedDeck([tooBig]), {
+      seed: 1,
+      shuffle: false,
+      leader: "B",
+    });
+    state = playTurn(state, "B", instanceId("B", tooBig));
+    state = playTurn(state, "A", instanceId("A", filler));
+
+    const play = stagePlay(state, "A", instanceId("A", flipper), flipper);
+    expect(play.steps).toEqual([]);
+    expect(isReadyToConfirm(play)).toBe(true);
+    expect(play.allTargetableSteps).toHaveLength(1);
+    expect(play.allTargetableSteps[0]!.candidates).toEqual([]);
   });
 });

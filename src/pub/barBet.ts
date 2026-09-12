@@ -6,14 +6,27 @@
 // Pawnbroker's window (src/pub/pawnbroker.ts) at its rarity price, where
 // it can be bought back — "nothing is ever lost permanently" (§11).
 //
+// `stakeableCards` only ever offers `collection` entries, never a base-60/
+// starter card — resolved as a deliberate decision, not the ownership gap
+// this comment used to flag: design.md's own wording is "stake one card
+// from your collection," and `PubState.collection` has always specifically
+// meant "owned beyond the base 60" (see its own doc comment). Now that
+// plan step 4.0d's ownership system exists (src/decks/ownership.ts), that
+// reading still holds — widening the stakeable pool to base-60/starter
+// cards was never what design.md asked for.
+//
 // design.md's "not one that would make any saved deck illegal — the
-// builder shows which" isn't implemented as a real check here: the deck
-// builder's grid is still every one of the printed 60, unrestricted by
-// ownership (the gap flagged repeatedly since 2.2/2.3/2.4), and it can't
-// even reference a collection-only card at all. So no saved deck can ever
-// depend on a `collection` card's presence — staking one is always safe
-// under the current model. Revisit this file once that ownership-gating
-// system exists; it's the one place this constraint would need real logic.
+// builder shows which" genuinely isn't implemented, though: nothing here
+// checks whether losing a staked card would drop the player below what a
+// saved deck's entries assume they own. Since a bet loss only ever removes
+// a `collection` extra (never a base-60 card), and the builder doesn't yet
+// re-validate a saved deck's entries against current ownership at all
+// (adding a copy is gated at add-time, but a deck already saved with more
+// copies than are currently owned — e.g. after fusing one away at the
+// Tinker's Bench — isn't flagged), this is a real but narrower gap than
+// the one this comment used to describe. Left open; design.md frames it as
+// a UI nicety ("the builder shows which"), not a hard rule the bet itself
+// must enforce.
 
 import { stepRandom } from "../engine/rng.ts";
 import type { Opponent } from "./opponents.ts";

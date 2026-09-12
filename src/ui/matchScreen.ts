@@ -11,6 +11,7 @@ import {
   currentPlayer,
   effectivePoints,
   playTurn,
+  type BoardCard,
   type MatchResult,
   type MatchState,
   type PlayerId,
@@ -18,7 +19,7 @@ import {
   type TargetChooser,
 } from "../engine/matchEngine.ts";
 import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
-import { abilityLines, effectPromptLabel, keywordChips } from "./cardText.ts";
+import { abilityLines, describeAutoTarget, effectPromptLabel, keywordChips } from "./cardText.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
 import { buildBeerMat } from "./beerMat.ts";
@@ -72,6 +73,15 @@ export interface MatchScreenOptions {
   onStateChange?: (state: MatchState, aiSeed: number) => void;
   /** Called once the player dismisses the match-over overlay, with the final result. */
   onExit: (result: MatchResult) => void;
+  /**
+   * PT-14: a read-only preview of what this result will pay out (Checks,
+   * reward card), shown on the match-over overlay before the player leaves
+   * the table. Pure and side-effect-free — matchScreen never touches
+   * PubState itself, so the caller computes this from its own state each
+   * time it's asked. Omitted (e.g. tournament matches, whose payout shows
+   * on the bracket screen instead) simply shows nothing extra.
+   */
+  previewResult?: (result: MatchResult) => string | null;
   /** Plays the tutorial's forced script (design.md §13.2) instead of a normal random-shuffled/AI-driven match. */
   tutorial?: TutorialMatchOptions;
   /** design.md §13.3's hint chips — ignored during a tutorial match (see `tutorial`). */
@@ -79,6 +89,7 @@ export interface MatchScreenOptions {
 }
 
 type Phase =
+  | { kind: "coin-toss" }
   | { kind: "idle" }
   | { kind: "staging"; play: StagedPlay }
   | { kind: "ai-turn" }
@@ -116,7 +127,12 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // A resumed match may have finished (killed while the match-over overlay
   // was up, before "Leave the table" was tapped) — scheduleNext() no-ops
   // once status isn't "in-progress", so idle would never show the overlay.
-  let phase: Phase = state.status === "complete" ? { kind: "match-over" } : { kind: "idle" };
+  // PT-11: a genuinely fresh (non-resumed, non-tutorial) match opens on a
+  // one-beat coin-toss overlay instead of going straight to idle — the
+  // tutorial already narrates "the house always leads" itself (design.md
+  // §13.1), and a resumed match's leader was already announced last session.
+  const isFreshMatch = !options.initialState && !options.tutorial;
+  let phase: Phase = state.status === "complete" ? { kind: "match-over" } : isFreshMatch ? { kind: "coin-toss" } : { kind: "idle" };
   let zoomed: { card: Card; faceIndex: 0 | 1 } | null = null;
   // Typed via the ambient (Node) `setTimeout` rather than `window.setTimeout`
   // — with both the "dom" lib and @types/node loaded (tsconfig.json), only
@@ -188,6 +204,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     render();
   }
 
+  /** The name of the board card (either side) with this instanceId — for PT-12's auto-target preview text. */
+  function boardCardName(instanceId: string): string {
+    for (const pid of [HUMAN, AI]) {
+      const bc = state.players[pid].board.find((b) => b.instanceId === instanceId);
+      if (bc) return activeFaceOf(bc.card, bc.faceIndex).name;
+    }
+    return "it";
+  }
+
   /** The card that left `playerId`'s hand between `before` and the current `state` — undefined for a pass. */
   function findPlayedCard(before: ReadonlySet<string>, playerId: PlayerId): Card | undefined {
     const afterIds = new Set(state.players[playerId].hand.map((c) => c.instanceId));
@@ -211,6 +236,17 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     }
     mat = null;
     render();
+    // PT-2: in tutorial mode, scheduleNext() itself waits while a mat is
+    // showing (see its own comment) so the house's reply can't overwrite
+    // the player's own mat mid-read — dismissing is what lets it proceed.
+    if (options.tutorial) scheduleNext();
+  }
+
+  function dismissCoinToss(): void {
+    if (phase.kind !== "coin-toss") return;
+    phase = { kind: "idle" };
+    render();
+    scheduleNext();
   }
 
   function clearTimer(): void {
@@ -254,6 +290,13 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       img.alt = "";
       img.className = "card-back-img";
       wrap.appendChild(img);
+      // PT-13: both players already saw this card face-up before it was
+      // flipped, so hiding its name/points hides nothing real — it just
+      // makes "which one was that again?" harder. Dimmed, over the back art.
+      const label = el("div", "card-facedown-label");
+      label.appendChild(el("span", "card-facedown-points", String(face.points)));
+      label.appendChild(el("span", "card-facedown-name", face.name));
+      wrap.appendChild(label);
       return wrap;
     }
 
@@ -262,7 +305,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     if (opts.disabled) wrap.classList.add("card--disabled");
     wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
 
-    wrap.appendChild(el("span", "card-points", String(opts.pointsOverride ?? face.points)));
+    const shownPoints = opts.pointsOverride ?? face.points;
+    const pointsEl = el("span", "card-points", String(shownPoints));
+    // PT-27: a card's shown points only ever differ from printed via a
+    // buff (bonusPoints, Friend, a continuous Location/card effect) —
+    // `pointsOverride` is only ever passed for face-up board cards, so a
+    // hand/zoom card (no override) never gets a colour class here.
+    if (shownPoints > face.points) pointsEl.classList.add("card-points--boosted");
+    else if (shownPoints < face.points) pointsEl.classList.add("card-points--reduced");
+    wrap.appendChild(pointsEl);
     wrap.appendChild(el("span", "card-name", face.name));
 
     const chips = keywordChips(face);
@@ -423,13 +474,20 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
     if (roundJustEnded) {
       playSound("brassHit");
-      phase = { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
-      render();
-      return;
-    }
-    if (state.status === "complete") {
-      playSound("brassHit");
-      phase = { kind: "match-over" };
+      // In tutorial mode, the round-ending turn's own mat is never
+      // explicitly dismissed once the round-reveal/match-over overlay
+      // takes over (its "Continue"/"Leave the table" isn't dismissMat()) —
+      // left set, PT-2's scheduleNext() mat gate would wait on it forever,
+      // stalling the next round. Non-tutorial hints aren't gated the same
+      // way, so a hint mat that happens to fire on the round-ending turn
+      // is left alone and stays visible alongside the overlay.
+      if (options.tutorial) mat = null;
+      // PT-22: a round that also ends the match used to show its own
+      // round-reveal overlay, then match-over right behind it on the next
+      // tap — checked first here instead, so a deciding round goes
+      // straight to the one overlay that actually matters (its own score
+      // line moves into buildMatchOverOverlay).
+      phase = state.status === "complete" ? { kind: "match-over" } : { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
       render();
       return;
     }
@@ -439,16 +497,10 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
 
   function continueAfterRoundReveal(): void {
-    // The round that just ended may also have completed the match (e.g. the
-    // second round win) — afterCommit() only checked for round-vs-match
-    // completion once, before this overlay appeared, so that has to be
-    // re-checked here rather than always falling through to scheduleNext().
-    if (state.status === "complete") {
-      playSound("brassHit");
-      phase = { kind: "match-over" };
-      render();
-      return;
-    }
+    // PT-22: afterCommit() now routes a match-ending round straight to
+    // match-over instead of round-reveal (see its own comment), so this
+    // overlay is only ever reached for a round that didn't also end the
+    // match — no need to re-check state.status here any more.
     phase = { kind: "idle" };
     render();
     scheduleNext();
@@ -457,6 +509,12 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   function scheduleNext(): void {
     if (torn || state.status !== "in-progress") return;
     if (options.tutorial && introQueue.length > 0) return; // wait for "before the deal" to be dismissed
+    // PT-2: in tutorial mode, wait for the player to read and dismiss the
+    // current beer mat before scheduling the house's reply — otherwise the
+    // house's own mat (set inside afterCommit, below) replaces it
+    // AI_DELAY_MS later, cutting off narration the player never finished
+    // reading. dismissMat() re-calls this once mat clears.
+    if (options.tutorial && mat !== null) return;
     const acting = currentPlayer(state);
     if (acting === AI) {
       phase = { kind: "ai-turn" };
@@ -501,7 +559,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // Render
   // -------------------------------------------------------------------
 
-  function buildSideLabel(playerId: PlayerId, name: string, portraitArtId: string | undefined): HTMLElement {
+  function buildSideLabel(playerId: PlayerId, name: string, portraitArtId: string | undefined, scoreOverride?: number): HTMLElement {
     const wrap = el("div", "side-label");
     if (portraitArtId) {
       const img = document.createElement("img");
@@ -512,7 +570,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     }
     const text = el("div", "side-label-text");
     text.appendChild(el("span", "side-name", name));
-    const scoreText = playerId === HUMAN ? `Your score: ${boardScore(state, playerId)}` : `Score: ${boardScore(state, playerId)}`;
+    // PT-9: during round-reveal, the score paired with the frozen backdrop
+    // board is that round's final score, not the next round's (already
+    // live in `state` by this point) — see render()'s revealBoards.
+    const score = scoreOverride ?? boardScore(state, playerId);
+    const scoreText = playerId === HUMAN ? `Your score: ${score}` : `Score: ${score}`;
     text.appendChild(el("span", "side-score", scoreText));
     if (playerId !== HUMAN) {
       text.appendChild(el("span", "side-hand-count", `Hand: ${state.players[playerId].hand.length}`));
@@ -521,11 +583,26 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     return wrap;
   }
 
-  function buildBoardRow(playerId: PlayerId): HTMLElement {
+  /**
+   * `frozen` (PT-9): render a past round's board exactly as it stood at
+   * round end — `RoundResult.finalBoard`, from before cleanup — instead of
+   * the live (already-swept) one, for the round-reveal overlay's backdrop.
+   * `pointsState` is a stand-in MatchState whose board is that same frozen
+   * snapshot, so `effectivePoints` still sees the right continuous buffs
+   * (the Location doesn't change at round end, so `state.location` itself
+   * is still correct to reuse here — see render()'s revealState).
+   */
+  function buildBoardRow(playerId: PlayerId, frozen?: { board: readonly BoardCard[]; pointsState: MatchState }): HTMLElement {
     const row = el("div", "board-row");
-    const step = phase.kind === "staging" ? currentStep(phase.play) : undefined;
+    const step = !frozen && phase.kind === "staging" ? currentStep(phase.play) : undefined;
     const candidateIds = new Set(step?.step.candidates.filter((oc) => oc.owner === playerId).map((oc) => oc.bc.instanceId) ?? []);
-    const board = state.players[playerId].board;
+    // PT-12: while a card is staged and every targeted effect auto-resolves
+    // (no `step` pending a choice), highlight the board card(s) it will
+    // actually hit — `humanTurn.ts`'s `selected` already names them.
+    const autoTargetIds =
+      !frozen && phase.kind === "staging" && !step ? new Set(phase.play.steps.flatMap((s) => (s.needsChoice ? [] : s.selected))) : new Set<string>();
+    const board = frozen ? frozen.board : state.players[playerId].board;
+    const pointsState = frozen ? frozen.pointsState : state;
     const prevBoard = boardAnimSnapshot[playerId];
     if (board.length === 0) {
       row.appendChild(el("p", "board-empty", "—"));
@@ -537,18 +614,18 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       // tried to target it — `excludeElusive` already keeps it out of
       // `candidateIds`, so without this it's simply untappable and silent.
       const isElusiveFlipAttempt = !isCandidate && bc.faceUp && step?.step.effect.effect === "flip" && (activeFaceOf(bc.card, bc.faceIndex).keywords?.elusive ?? false);
-      const prevFaceUp = prevBoard.get(bc.instanceId);
+      const prevFaceUp = frozen ? undefined : prevBoard.get(bc.instanceId);
       row.appendChild(
         buildCardEl(bc.card, bc.faceIndex, {
           size: "mini",
           faceUp: bc.faceUp,
-          pointsOverride: bc.faceUp ? effectivePoints(state, playerId, bc) : undefined,
-          highlight: isCandidate,
+          pointsOverride: bc.faceUp ? effectivePoints(pointsState, playerId, bc) : undefined,
+          highlight: isCandidate || autoTargetIds.has(bc.instanceId),
           selected: isCandidate && (step?.selected.includes(bc.instanceId) ?? false),
-          onPrimary: isCandidate ? () => handleTargetTap(bc.instanceId) : isElusiveFlipAttempt ? () => fireHint("elusive") : undefined,
+          onPrimary: frozen ? undefined : isCandidate ? () => handleTargetTap(bc.instanceId) : isElusiveFlipAttempt ? () => fireHint("elusive") : undefined,
           onZoom: bc.faceUp ? () => openZoom(bc.card, bc.faceIndex) : undefined,
-          enterAnimation: prevFaceUp === undefined,
-          flipAnimation: prevFaceUp !== undefined && prevFaceUp !== bc.faceUp,
+          enterAnimation: !frozen && prevFaceUp === undefined,
+          flipAnimation: !frozen && prevFaceUp !== undefined && prevFaceUp !== bc.faceUp,
         }),
       );
     }
@@ -588,6 +665,16 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
         );
       } else {
         bar.appendChild(el("p", "action-prompt", `Play ${activeFaceOf(phase.play.card, 0).name}?`));
+        // PT-12: every targetable effect this card has that the player
+        // doesn't get to choose a target for — either a single/deterministic
+        // auto-pick (named here, matching humanTurn.ts's own defaultSelect
+        // resolution) or, if the board has nothing legal, a plain "does
+        // nothing" instead of silently committing as a no-op.
+        for (const raw of phase.play.allTargetableSteps) {
+          const staged = phase.play.steps.find((s) => s.step === raw);
+          const names = staged ? staged.selected.map(boardCardName) : [];
+          bar.appendChild(el("p", "action-auto-target", describeAutoTarget(raw.effect, names)));
+        }
       }
       const buttons = el("div", "action-buttons");
       const cancelBtn = el("button", "action-button action-button--secondary", "Cancel");
@@ -617,12 +704,36 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     return bar;
   }
 
+  function buildCoinTossOverlay(): HTMLElement {
+    // PT-11: design.md §6.1's "Sir Charles's sovereign is tossed" has no
+    // canonical heads/tails mapping — this is flavor, not a real coin, so
+    // the human leading is arbitrarily "Heads."
+    const overlay = el("div", "overlay overlay--coin-toss");
+    const box = el("div", "overlay-box");
+    const humanLeads = state.leader === HUMAN;
+    box.appendChild(el("h2", "overlay-title", humanLeads ? "Heads." : "Tails."));
+    box.appendChild(el("p", "overlay-score", humanLeads ? "You lead." : `${options.aiName} leads.`));
+    box.appendChild(el("p", "overlay-tutorial-note", "Game on."));
+    const btn = el("button", "action-button", "Continue");
+    btn.type = "button";
+    btn.addEventListener("click", dismissCoinToss);
+    box.appendChild(btn);
+    overlay.appendChild(box);
+    return overlay;
+  }
+
   function buildRoundRevealOverlay(result: RoundResult): HTMLElement {
     const overlay = el("div", "overlay overlay--round-reveal");
     const box = el("div", "overlay-box");
     const title = result.winner === "tie" ? "Round tied" : result.winner === HUMAN ? "You took the round" : `${options.aiName} took the round`;
     box.appendChild(el("h2", "overlay-title", `Round ${result.round}: ${title}`));
     box.appendChild(el("p", "overlay-score", `You ${result.scores[HUMAN]} — ${result.scores[AI]} ${options.aiName}`));
+    // PT-22 means this overlay never shows for a match-ending round (see
+    // afterCommit) — the match always continues past here, so state.round/
+    // state.leader are already the *next* round's, safe to name (PT-30:
+    // design.md §6.2.4 — "whoever did not take the previous round leads").
+    const nextLeaderLabel = state.leader === HUMAN ? "You lead" : `${options.aiName} leads`;
+    box.appendChild(el("p", "overlay-next-leader", `${nextLeaderLabel} round ${state.round}.`));
     const tutorialNote = options.tutorial?.roundEndMats[result.round];
     if (tutorialNote) box.appendChild(el("p", "overlay-tutorial-note", tutorialNote));
     const btn = el("button", "action-button", "Continue");
@@ -639,7 +750,18 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const result = state.result!;
     const title = result.winner === "draw" ? "The match is a draw" : result.winner === HUMAN ? "You took the table" : `${options.aiName} took the table`;
     box.appendChild(el("h2", "overlay-title", title));
+    // PT-22: a round that both ends the round AND the match used to show
+    // this overlay right after its own round-reveal one — now it's the
+    // only overlay, so the deciding round's own score line moves here too.
+    const finalRound = state.roundHistory[state.roundHistory.length - 1];
+    if (finalRound) {
+      box.appendChild(el("p", "overlay-score", `Round ${finalRound.round}: You ${finalRound.scores[HUMAN]} — ${finalRound.scores[AI]} ${options.aiName}`));
+    }
     box.appendChild(el("p", "overlay-score", `Rounds: You ${state.roundsWon.A} — ${state.roundsWon.B} ${options.aiName}`));
+    // PT-14: a read-only preview of what leaving the table pays out — never
+    // mutates anything; matchScreen doesn't know what PubState even is.
+    const reward = options.previewResult?.(result);
+    if (reward) box.appendChild(el("p", "overlay-reward", reward));
     if (options.tutorial) box.appendChild(el("p", "overlay-tutorial-note", options.tutorial.matchEndMat));
     const btn = el("button", "action-button", "Leave the table");
     btn.type = "button";
@@ -675,12 +797,22 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     topbar.appendChild(buildMuteToggle());
     screen.appendChild(topbar);
 
+    // PT-9: while the round-reveal overlay is up, the board behind it shows
+    // that round's actual final state (RoundResult.finalBoard) rather than
+    // the live one, which by now already reflects next round's cleanup.
+    const revealResult = phase.kind === "round-reveal" ? phase.result : undefined;
+    const revealState: MatchState | undefined = revealResult && {
+      ...state,
+      players: { A: { ...state.players.A, board: revealResult.finalBoard.A }, B: { ...state.players.B, board: revealResult.finalBoard.B } },
+    };
+    const frozenFor = (playerId: PlayerId) => (revealResult && revealState ? { board: revealResult.finalBoard[playerId], pointsState: revealState } : undefined);
+
     const boardArea = el("div", "board-area");
-    boardArea.appendChild(buildSideLabel(AI, options.aiName, options.aiPortraitArtId));
-    boardArea.appendChild(buildBoardRow(AI));
+    boardArea.appendChild(buildSideLabel(AI, options.aiName, options.aiPortraitArtId, revealResult?.scores[AI]));
+    boardArea.appendChild(buildBoardRow(AI, frozenFor(AI)));
     boardArea.appendChild(buildLocationSlot());
-    boardArea.appendChild(buildBoardRow(HUMAN));
-    boardArea.appendChild(buildSideLabel(HUMAN, "You", undefined));
+    boardArea.appendChild(buildBoardRow(HUMAN, frozenFor(HUMAN)));
+    boardArea.appendChild(buildSideLabel(HUMAN, "You", undefined, revealResult?.scores[HUMAN]));
     screen.appendChild(boardArea);
 
     const handArea = el("div", "hand-area");
@@ -712,6 +844,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
     root.appendChild(screen);
 
+    if (phase.kind === "coin-toss") root.appendChild(buildCoinTossOverlay());
     if (phase.kind === "round-reveal") root.appendChild(buildRoundRevealOverlay(phase.result));
     if (phase.kind === "match-over") root.appendChild(buildMatchOverOverlay());
     if (zoomed) root.appendChild(buildZoomOverlay());
@@ -720,7 +853,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   options.onStateChange?.(state, aiSeed);
   render();
-  scheduleNext();
+  if (phase.kind !== "coin-toss") scheduleNext(); // PT-11: wait for the coin-toss overlay to be dismissed first
 
   return () => {
     torn = true;

@@ -39,6 +39,18 @@ test.describe("the back room (plan step 2.5)", () => {
     await expect(page.getByRole("button", { name: /Take my Checks/ })).toHaveCount(3);
   });
 
+  test("PT-17: a Pawnbroker tile shows points/type and can be zoomed for the full card", async ({ page }) => {
+    await page.getByRole("button", { name: "The back room" }).click();
+    const tile = page.locator(".backroom-tile").first();
+    await expect(tile.locator(".backroom-tile-points")).toBeVisible();
+    await expect(tile.locator(".backroom-tile-meta")).toContainText("·"); // "<Type> · <rarity>"
+
+    await tile.locator(".backroom-tile-zoom-btn").click();
+    await expect(page.locator(".overlay--zoom .card-meta")).toBeVisible();
+    await page.locator(".overlay--zoom").click({ position: { x: 5, y: 5 } });
+    await expect(page.locator(".overlay--zoom")).toHaveCount(0);
+  });
+
   test("Tinker's Bench is locked before 3 wins", async ({ page }) => {
     await page.getByRole("button", { name: "The back room" }).click();
     await expect(page.getByText("Unlocks at 3 wins.")).toBeVisible();

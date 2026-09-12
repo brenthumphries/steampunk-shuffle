@@ -27,10 +27,15 @@ test.describe("tournaments (plan step 2.4)", () => {
     const knockoutRow = page.locator(".tournament-row").filter({ hasText: "The Tuesday Knockout" });
     await expect(knockoutRow.getByRole("button", { name: /Enter/ })).toBeVisible();
 
-    for (const name of ["The Peelers' Cup", "The Reichenbach Open", "The Birthday Invitational"]) {
+    for (const name of ["The Peelers' Cup", "The Reichenbach Open"]) {
       const row = page.locator(".tournament-row").filter({ hasText: name });
       await expect(row.getByRole("button", { name: "Locked" })).toBeVisible();
     }
+
+    // PT-5: the Birthday Invitational is a surprise (design.md §14.6) —
+    // it doesn't appear on the chalkboard at all before its date trigger,
+    // not even as a locked, fully-labeled row.
+    await expect(page.locator(".tournament-row").filter({ hasText: "The Birthday Invitational" })).toHaveCount(0);
   });
 
   test("the chalkboard's own Back to the bar returns to the pub hub without crashing", async ({ page }) => {
@@ -90,9 +95,9 @@ test.describe("tournaments (plan step 2.4)", () => {
     await expect(page.locator(".side-name").first()).not.toHaveCount(0);
   });
 
-  test("the Birthday Invitational stays locked before October 30 and unlocks once the date trigger fires", async ({ page }) => {
+  test("the Birthday Invitational is invisible before October 30 and appears once the date trigger fires", async ({ page }) => {
     await page.getByRole("button", { name: "The chalkboard" }).click();
-    await expect(page.locator(".tournament-row").filter({ hasText: "The Birthday Invitational" }).getByRole("button", { name: "Locked" })).toBeVisible();
+    await expect(page.locator(".tournament-row").filter({ hasText: "The Birthday Invitational" })).toHaveCount(0);
 
     // Faking the clock (design.md's exit check) by writing the triggered flag directly, same as seeding pub-state above for Checks/wins.
     await page.evaluate(() => {

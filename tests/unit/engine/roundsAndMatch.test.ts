@@ -86,6 +86,31 @@ describe("Round scoring and leader alternation (design.md §6.2.3, §6.2.4)", ()
   });
 });
 
+describe("Round-end board snapshot (PT-9)", () => {
+  it("finalBoard captures the board as it stood before cleanup, including cards about to be discarded", () => {
+    const persistCard = makeCard({ name: "Persist Card", points: 2, keywords: { persist: true } });
+    const plainCard = makeCard({ name: "Plain Card", points: 3 });
+    const bFillers = [makeCard({ name: "bf1", points: 1 }), makeCard({ name: "bf2", points: 1 }), makeCard({ name: "bf3", points: 1 })];
+
+    const deckA = orderedDeck([persistCard, plainCard]);
+    const deckB = orderedDeck(bFillers);
+
+    let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
+    state = playTurn(state, "A", instanceId("A", persistCard));
+    state = playTurn(state, "B", instanceId("B", bFillers[0]!));
+    state = playTurn(state, "A", instanceId("A", plainCard));
+    state = playTurn(state, "B", instanceId("B", bFillers[1]!));
+    state = playTurn(state, "A"); // A's hand is empty — forced pass
+    state = playTurn(state, "B", instanceId("B", bFillers[2]!));
+
+    const finalBoard = state.roundHistory[0]!.finalBoard;
+    expect(finalBoard.A.map((bc) => bc.instanceId).sort()).toEqual([instanceId("A", persistCard), instanceId("A", plainCard)].sort());
+    // The snapshot still shows Plain Card even though real cleanup swept it to discard.
+    expect(state.players.A.board.some((b) => b.instanceId === instanceId("A", plainCard))).toBe(false);
+    expect(state.players.A.discard.some((c) => c.instanceId === instanceId("A", plainCard))).toBe(true);
+  });
+});
+
 describe("Match end (design.md §6.3)", () => {
   function scoredMatch(roundPointsA: number[], roundPointsB: number[]) {
     // Each side plays exactly 3 cards a round; distribute a round's total

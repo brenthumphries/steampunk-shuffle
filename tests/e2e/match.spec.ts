@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // Plan step 2.1's exit check: "full match playable on your phone" at the
 // 402×874 iPhone 17 viewport (playwright.config.ts's only project). These
@@ -6,6 +6,11 @@ import { expect, test } from "@playwright/test";
 // AI-paced) — they check the mechanics design.md §6.4 calls out: staging a
 // card before it commits, undoing it, committing it, and the card-zoom
 // overlay.
+
+/** A fresh (non-resumed) match opens on a one-beat coin-toss overlay (PT-11) that blocks the hand until dismissed. */
+async function dismissCoinToss(page: Page): Promise<void> {
+  await page.locator(".overlay--coin-toss button", { hasText: "Continue" }).click();
+}
 
 test.describe("match screen (plan step 2.1)", () => {
   test.beforeEach(async ({ page }) => {
@@ -23,6 +28,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("staging a card shows Play/Cancel before it commits, and Cancel takes it back (design.md §6.4)", async ({ page }) => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+    await dismissCoinToss(page);
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
 
     // Whoever leads is decided by a coin toss (design.md §6.1) — wait out
@@ -42,6 +48,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("playing a card commits it to the board and the match keeps moving", async ({ page }) => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+    await dismissCoinToss(page);
 
     const firstCard = page.locator(".hand-row .card--tappable").first();
     await expect(firstCard).toBeVisible({ timeout: 10_000 });
@@ -55,6 +62,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("card zoom opens a full-card detail overlay and closes on tap-away", async ({ page }) => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+    await dismissCoinToss(page);
 
     const zoomBtn = page.locator(".hand-row .card-zoom-btn").first();
     await expect(zoomBtn).toBeVisible({ timeout: 10_000 });
@@ -70,6 +78,7 @@ test.describe("match screen (plan step 2.1)", () => {
 
   test("reloading mid-match resumes it instead of restarting (plan step 2.6, design.md §12.4)", async ({ page }) => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+    await dismissCoinToss(page);
 
     const firstCard = page.locator(".hand-row .card--tappable").first();
     await expect(firstCard).toBeVisible({ timeout: 10_000 });

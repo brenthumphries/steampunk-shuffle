@@ -3,7 +3,7 @@
 // the DOM layer (src/ui/matchScreen.ts) so it's unit-testable without jsdom.
 
 import type { Card, Target } from "../cards/cardTypes.ts";
-import { previewOnPlayTargets, type MatchState, type PlayerId, type TargetPreviewStep } from "../engine/matchEngine.ts";
+import { defaultSelect, previewOnPlayTargets, type MatchState, type PlayerId, type TargetPreviewStep } from "../engine/matchEngine.ts";
 
 export interface StagedStep {
   step: TargetPreviewStep;
@@ -19,6 +19,14 @@ export interface StagedPlay {
   instanceId: string;
   card: Card;
   steps: StagedStep[];
+  /**
+   * Every targetable onPlay effect this card has, in resolution order,
+   * including ones `steps` drops for having zero legal candidates — kept
+   * here purely for the confirm-bar preview (PT-12: name the auto-chosen
+   * target, or say a targeted effect has nothing to hit). Never touched by
+   * targeting/confirm logic, which uses `steps` alone.
+   */
+  allTargetableSteps: TargetPreviewStep[];
 }
 
 /** "highest/lowest points" filters aren't a real choice — the card text already names the target (design.md §5.13's AI rule doubles as the human's here). */
@@ -27,7 +35,8 @@ function isDeterministic(target: Target): boolean {
 }
 
 export function stagePlay(state: MatchState, playerId: PlayerId, instanceId: string, card: Card): StagedPlay {
-  const rawSteps = previewOnPlayTargets(state, playerId, card).filter((s) => s.candidates.length > 0);
+  const allTargetableSteps = previewOnPlayTargets(state, playerId, card);
+  const rawSteps = allTargetableSteps.filter((s) => s.candidates.length > 0);
   const steps: StagedStep[] = rawSteps.map((step) => {
     const count = step.effect.target.count ?? 1;
     const need = Math.min(count, step.candidates.length);
@@ -36,10 +45,14 @@ export function stagePlay(state: MatchState, playerId: PlayerId, instanceId: str
       step,
       needsChoice,
       need,
-      selected: needsChoice ? [] : step.candidates.slice(0, need).map((c) => c.bc.instanceId),
+      // The engine's own resolution order (design.md §5.13: highest
+      // effective points, then leftmost/oldest — see matchEngine.ts's
+      // defaultSelect), not raw board order, so what's shown as
+      // auto-selected (PT-12) is what will actually resolve.
+      selected: needsChoice ? [] : defaultSelect(step.candidates, step.effect.target.filter, state).slice(0, need).map((c) => c.bc.instanceId),
     };
   });
-  return { instanceId, card, steps };
+  return { instanceId, card, steps, allTargetableSteps };
 }
 
 /** The first step still waiting on the player, or undefined once every step is resolved. */

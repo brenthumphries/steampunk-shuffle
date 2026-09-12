@@ -60,6 +60,18 @@ export function mountDedicationScreen(root: HTMLElement, options: DedicationScre
       });
       box.appendChild(btn);
     } else {
+      // PT-28: the second beat was a text box on black — the room and the
+      // person saying it are both already-ingested assets, just never used
+      // here.
+      overlay.classList.add("overlay--dedication-greeting");
+      overlay.style.setProperty("--scene-bg", `url(${artUrl("background-the-taproom")})`);
+
+      const portrait = document.createElement("img");
+      portrait.src = artUrl("portrait-sir-charles-wheatstone");
+      portrait.alt = "";
+      portrait.className = "dedication-portrait";
+      box.appendChild(portrait);
+
       box.appendChild(el("p", "overlay-score dedication-greeting", "“You're expected. Your chair's by the fire.”"));
       box.appendChild(el("p", "dedication-sign", "— Sir Charles"));
 
