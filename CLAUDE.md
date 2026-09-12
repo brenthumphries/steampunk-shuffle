@@ -540,8 +540,146 @@ to a deck before ever entering that tournament. Whoever builds the real
 ownership system (still flagged as 2.5's natural point of entry) should
 double check this card specifically.
 
-**Next task:** 2.5, other acquisition paths (Lost & Found, Pawnbroker,
-Tinker's Bench, Bar Bet — design.md §11.3-§11.6).
+2.5 done. The four other acquisition paths (design.md §11.3-§11.6) live in
+`src/pub/`: `acquirableCards.ts` (a new `ACQUIRABLE_CARDS` pool — `ALL_CARDS`
+plus the four Seasoned reward cards, which are real cards but live as
+deck-file extras outside the labeled 60 per `src/cards/data/README.md`, so
+Lost & Found/Pawnbroker can actually hand them out), `lostAndFound.ts` (one
+free card per real-world day, 70/25/5 common/uncommon/rare, weighted away
+from cards already at 2+ copies — seeded off `opponents.ts`'s
+`localDayIndex`, salted so it doesn't roll in lockstep with the Pawnbroker
+or "legends in town"), `pawnbroker.ts` (a 3-card daily-rotating window,
+common/uncommon/rare priced at 15/35/90, pawned Bar Bet losses shown first
+at their rarity price), `barBet.ts` (stake one card, win a card from the
+opponent's new `Opponent.betPool`, lose and it's pawned), and
+`tinkersBench.ts` (fuse two copies of a card plus 10 Checks into a foil —
+a `"foil:<cardId>"`-prefixed collection entry, since `collection` is a
+flat `string[]` — or a random card one rarity up; rares can only foil,
+legendaries can't fuse at all). `PubState` (`src/pub/pubState.ts`) grew
+`lastLostAndFoundDate`, `pawnedCards`, `pawnbrokerPurchasedToday`/
+`pawnbrokerPurchaseDate`, and a set of small collection/pawned-list
+helpers (`addCopyToCollection`, `removeOneFromCollection`,
+`countInCollection`, etc.) that the new modules share instead of each
+hand-rolling array splicing. Every real opponent (not Sir Charles) got a
+`betPool: readonly string[]` — 3-4 cards, mostly uncommon, one rare for
+Seasoned/Legends, authored from their own family/deck where one exists,
+falling back to a family-buffing neutral Location (`the-gasworks`,
+`the-bow-street-office`, etc.) where a family has no in-family rare in the
+labeled 60 (Foundry has none). UI: a new `src/ui/acquisitionScreen.ts`
+("The Back Room," reachable from a new pub-hub button) hosts Lost & Found,
+the Pawnbroker, and the Tinker's Bench — same self-contained
+read/write-PubState-directly pattern as `deckBuilderScreen.ts`. Bar Bet
+instead lives inside `src/ui/pubHubScreen.ts` itself, since it needs an
+opponent in play: tapping an eligible patron (unlocked, non-house, has a
+bet pool, player has something stakeable) now shows a "stake a card?"
+overlay before `onStartMatch` fires; `PendingReveal` was generalized from
+"the opponent's first-win reward" to `{ title, cardId }` so the same
+unwrap overlay can show a Bar Bet win too, and `main.ts`'s `startMatch`
+now threads a `stakedCardId` through to `resolveBarBet` in the match's
+`onExit`, queuing up to two reveals (a first win and a bet win can both
+land on the same match). Tests: `tests/unit/pub/{lostAndFound,pawnbroker,
+barBet,tinkersBench}.test.ts` (new) plus additions to `pubState.test.ts`
+and `opponents.test.ts` (the latter checks every bet pool references real
+non-legendary cards and that Seasoned/Legend pools carry exactly one
+rare) — 79 new unit tests, 313 total (project-wide), all passing;
+`tests/e2e/backRoom.spec.ts` (new, 4 Playwright smoke tests) plus a
+5th test added to `pubHub.spec.ts` for the Bar Bet stake prompt — 21 e2e
+tests total, all passing. `npm run typecheck` and `npm run build` both
+clean.
+
+**Manual playtest caught two real bugs, both fixed here, not scope
+creep — one directly broke the new "back room" button, the other was a
+Checks-economy hole in the new Pawnbroker.**
+- Adding a third button ("The back room") to the pub hub's deck-row
+  button group overflowed the row off the right edge of the 402px iPhone
+  viewport with no scroll affordance — the row and its button container
+  had no `flex-wrap`, so three buttons plus the deck-name label never fit.
+  Added `flex-wrap: wrap` to both `.pub-hub-deck-row` and
+  `.pub-hub-deck-row-buttons` in `src/style.css`; verified in the browser
+  at 402×874 that all three buttons now wrap onto their own line legibly.
+- The Pawnbroker's random daily-rotation slots had no purchase tracking:
+  buying a rotation card only deducted Checks and added it to the
+  collection, so the exact same 35-Check uncommon could be bought again
+  immediately, and again, for as many Checks as the player had — an
+  unlimited Checks-to-cards faucet. Caught by manually buying from the
+  window twice in a row in the browser. Fixed by adding
+  `pawnbrokerPurchasedToday`/`pawnbrokerPurchaseDate` to `PubState`:
+  `buyFromPawnbroker` now records the purchased id for today, and
+  `pawnbrokerWindow` skips already-bought ids when filling the random
+  rotation — the window still always shows 3 cards (a different one
+  backfills from further down the same day's PRNG stream), but that exact
+  card can't be bought twice until tomorrow. Pawned-card purchases were
+  never affected (buying one already removes it from `pawnedCards`, so it
+  was never repeatable). A unit test in `pawnbroker.test.ts` pins this.
+
+**Whether Bar Bet can stake a base-60 card, or only a `collection` extra,
+was a judgment call — flagged in-file (`src/pub/barBet.ts`'s header
+comment), not resolved.** Design.md §11.5 says "stake one card from your
+collection... not one that would make any saved deck illegal," which only
+makes sense if ownership is tracked per-card including the base 60 — but
+that ownership-gating system is the same one 2.2/2.3/2.4 have all flagged
+as still not built (the deck builder's grid is still every one of the 60
+v1 cards, unrestricted). Building that system was out of scope for a
+Haiku-tier "data + small UI" step, so `stakeableCards` only offers
+`collection` extras (reward cards, Lost & Found/Pawnbroker/Bar Bet wins,
+Tinker's Bench results) — cards the deck builder can't even reference yet
+— which makes the "would make a saved deck illegal" check trivially true
+today and a one-line no-op in `resolveBarBet`. Whoever eventually builds
+real ownership-gating (still flagged as 2.5/2.6's natural point of entry,
+now punted again) should decide whether base-60 cards become stakeable
+too at that point.
+
+**`ACQUIRABLE_CARDS`'s Seasoned-reward inclusion surfaced a pre-existing
+display bug, fixed in passing.** `pubHubScreen.ts`'s reward-name lookup
+(`First win: <name>`) was built from `ALL_CARDS` alone, which never
+included the four Seasoned reward cards (`bucketsForefinger`,
+`theAnalyticalEngine`, `thePhotograph`, `nextInstalment`) — so Bucket,
+Lovelace, Adler, and Dickens's patron rows would have shown the raw card
+id instead of its name. Not something 2.3 could have caught without this
+step's new `ACQUIRABLE_CARDS_BY_ID` pool existing; swapped
+`pubHubScreen.ts`'s lookup map to that pool instead, which fixes the
+display for those four opponents at zero extra cost since the pool
+already existed for Lost & Found/Pawnbroker.
+
+**Which cards are "acquirable" (eligible for Lost & Found/Pawnbroker) was
+a judgment call, in the same vein as 1.6's "which 10 portraits."**
+Design.md never lists the pool explicitly. Chose `ALL_CARDS` (the labeled
+60) plus the four Seasoned reward cards — real, named cards that would
+otherwise only ever be reachable by beating that one opponent — but left
+out Mary Shelley's two easter-egg extras (`abbyNormal`, `eyeGor`), since
+those are pure flavor filler rather than a named reward and design.md
+never calls them acquirable this way. Revisit if that split feels wrong
+once real playtesting starts.
+
+**Bet-pool authoring reuses the same rare card across more than one
+opponent's pool** (e.g. `the-gasworks` for both Lovelace and Shelley,
+`detective-sergeant-vale` for both Holmes and Poirot) — deliberate, not
+an oversight. Some families (Foundry) have zero in-family rares among the
+labeled 60, so the "one rare for Seasoned/Legends" slot borrows a
+family-buffing neutral Location instead; there simply isn't enough rare
+variety per family to give every opponent a unique one without reaching
+outside their own family/theme, which felt like a worse trade for a
+first pass. Flavor authoring, not a promise that no two opponents' bet
+pools ever overlap.
+
+**This step ran on Sonnet, not the Haiku the plan assigns to 2.5** — same
+situation as 1.6's flagged gotcha: the session was already running on
+Sonnet when asked to start 2.5 rather than being opened fresh on Haiku,
+and a running session can't downgrade its own model mid-conversation.
+Flagged, not corrected; doesn't compound since this is one-off acquisition
+logic, not a skill meant to run repeatedly. If a future session opens
+specifically to build a plan step, open it on the model the plan lists
+first, per this file's model-discipline rule.
+
+**Next task:** 2.6, progression + save (design.md §12, plan step 2.6):
+opponent-tier unlocks by wins (already substantially implemented via
+`totalWins`/`isOpponentInTown`), a real autosave/export-import system that
+folds together the currently-separate `steampunk-shuffle:pub-state`,
+`steampunk-shuffle:deck-slots`, and tournament-state localStorage keys
+(flagged as its job since 2.2), and finally deciding whether the deck
+builder's card grid gets restricted to owned copies now that a real
+collection with real acquisition paths exists (flagged repeatedly since
+2.2/2.3/2.4/2.5).
 
 **Gotchas:**
 - **Sir Charles ("house" tier) pays no win/loss Checks and has no reward

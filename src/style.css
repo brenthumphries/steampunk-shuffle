@@ -696,11 +696,13 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .pub-hub-deck-row-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .patron-section-title {
@@ -969,4 +971,94 @@ body {
 .bracket-stage-badge--lost {
   opacity: 0.5;
   font-style: italic;
+}
+
+/* ---------------------------------------------------------------------
+   The back room (plan step 2.5, design.md §11.3/§11.4/§11.6). Same flat-
+   color, no-frame convention as everything else — 3.1's card frame hasn't
+   landed yet. */
+
+.backroom-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.backroom-title {
+  margin: 0;
+  color: var(--amber);
+  font-size: 1.4rem;
+}
+
+.backroom-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.backroom-section-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--amber);
+}
+
+.backroom-section-note,
+.backroom-locked {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.backroom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.backroom-tile {
+  --family: var(--family-neutral);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #241a10;
+  border: 1px solid var(--family);
+  border-top: 0.25rem solid var(--family);
+  border-radius: 0.35rem;
+  padding: 0.5rem;
+}
+
+.backroom-tile[data-family="yard"] {
+  --family: var(--family-yard);
+}
+.backroom-tile[data-family="irregulars"] {
+  --family: var(--family-irregulars);
+}
+.backroom-tile[data-family="rookery"] {
+  --family: var(--family-rookery);
+}
+.backroom-tile[data-family="foundry"] {
+  --family: var(--family-foundry);
+}
+.backroom-tile[data-family="salon"] {
+  --family: var(--family-salon);
+}
+.backroom-tile[data-family="neutral"] {
+  --family: var(--family-neutral);
+}
+
+.backroom-tile-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.backroom-tile-meta {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.stake-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
 }

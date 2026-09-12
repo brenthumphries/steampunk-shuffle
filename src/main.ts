@@ -7,10 +7,12 @@ import { mountDeckBuilderScreen } from "./ui/deckBuilderScreen.ts";
 import { mountPubHubScreen, type PendingReveal } from "./ui/pubHubScreen.ts";
 import { mountTournamentsScreen } from "./ui/tournamentsScreen.ts";
 import { mountBracketScreen, type BracketOutcome } from "./ui/bracketScreen.ts";
+import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { loadDeckSlotsState } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
 import { applyTournamentPayout, deductChecks, loadPubState, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
+import { resolveBarBet } from "./pub/barBet.ts";
 import type { Tournament } from "./tournaments/tournaments.ts";
 import { advanceBracket, breakTournamentDraw, createBracket, type BracketRoundIndex, type TournamentBracket } from "./tournaments/bracket.ts";
 import { resolvePrize } from "./tournaments/prizes.ts";
@@ -55,7 +57,7 @@ function syncTournamentTrigger(): void {
   if (next !== state) saveTournamentState(next);
 }
 
-function showPubHub(pendingReveal?: PendingReveal): void {
+function showPubHub(pendingReveals?: PendingReveal[]): void {
   syncTournamentTrigger();
   teardownScreen?.();
   teardownScreen = undefined;
@@ -65,11 +67,19 @@ function showPubHub(pendingReveal?: PendingReveal): void {
     onBuildDeck: startDeckBuilder,
     onStartMatch: startMatch,
     onOpenTournaments: showTournaments,
-    pendingReveal,
+    onOpenBackRoom: showBackRoom,
+    pendingReveals,
   });
 }
 
-function startMatch(opponent: Opponent): void {
+function showBackRoom(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountAcquisitionScreen(app!, { onBack: () => showPubHub() });
+}
+
+function startMatch(opponent: Opponent, stakedCardId: string | null): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
@@ -81,10 +91,21 @@ function startMatch(opponent: Opponent): void {
     difficulty: opponent.difficulty,
     onExit: (result) => {
       const outcome = result.winner === "draw" ? "draw" : result.winner === "A" ? "win" : "loss";
-      const pub = loadPubState();
+      let pub = loadPubState();
       const { next, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, new Date());
-      savePubState(next);
-      showPubHub(rewardCardId ? { opponent, cardId: rewardCardId } : undefined);
+      pub = next;
+
+      const reveals: PendingReveal[] = [];
+      if (rewardCardId) reveals.push({ title: `First win against ${opponent.name}!`, cardId: rewardCardId });
+
+      if (stakedCardId) {
+        const { next: afterBet, wonCardId } = resolveBarBet(pub, stakedCardId, opponent, outcome, Date.now());
+        pub = afterBet;
+        if (wonCardId) reveals.push({ title: `Won the bet against ${opponent.name}!`, cardId: wonCardId });
+      }
+
+      savePubState(pub);
+      showPubHub(reveals.length > 0 ? reveals : undefined);
     },
   });
 }

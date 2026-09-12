@@ -11,6 +11,7 @@ import {
   OPPONENTS_BY_ID,
   tonightsPatrons,
 } from "../../../src/pub/opponents.ts";
+import { ACQUIRABLE_CARDS_BY_ID } from "../../../src/pub/acquirableCards.ts";
 
 const A_DAY = new Date(2026, 8, 11);
 
@@ -90,6 +91,33 @@ describe("OPPONENTS registry", () => {
       } else {
         expect(opponent.rewardCardId).not.toBeNull();
       }
+    }
+  });
+});
+
+describe("Opponent.betPool (plan step 2.5, design.md §11.5)", () => {
+  it("gives Sir Charles no bet pool", () => {
+    expect(OPPONENTS_BY_ID.get("sir-charles")!.betPool).toEqual([]);
+  });
+
+  it("gives every real opponent 3-4 real, non-legendary bet-pool cards", () => {
+    for (const opponent of OPPONENTS) {
+      if (opponent.tier === "house") continue;
+      expect(opponent.betPool.length).toBeGreaterThanOrEqual(3);
+      expect(opponent.betPool.length).toBeLessThanOrEqual(4);
+      for (const cardId of opponent.betPool) {
+        const card = ACQUIRABLE_CARDS_BY_ID.get(cardId);
+        expect(card, `${opponent.id}'s bet pool references unknown card "${cardId}"`).toBeDefined();
+        expect(card!.rarity).not.toBe("legendary");
+      }
+    }
+  });
+
+  it("gives every Seasoned/Legend opponent exactly one rare in their bet pool", () => {
+    for (const opponent of OPPONENTS) {
+      if (opponent.tier !== "seasoned" && opponent.tier !== "legend") continue;
+      const rares = opponent.betPool.filter((id) => ACQUIRABLE_CARDS_BY_ID.get(id)!.rarity === "rare");
+      expect(rares, `${opponent.id}`).toHaveLength(1);
     }
   });
 });

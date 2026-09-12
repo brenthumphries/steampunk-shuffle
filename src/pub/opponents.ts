@@ -54,6 +54,19 @@ export interface Opponent {
   unlockWins: number;
   portraitArtId?: string;
   line: string;
+  /**
+   * Bar Bet's stakes (design.md §11.5): "3-4 cards, mostly uncommons, one
+   * rare for Seasoned/Legends." Authored per opponent from their own
+   * family's/deck's card pool where one exists; a couple of families have
+   * no in-family rare in the labeled 60 (Foundry), so the "one rare" slot
+   * borrows a thematically-buffing neutral Location instead
+   * (src/cards/data/locations.ts). Reuse of the same rare across more
+   * than one opponent's pool is deliberate, not an oversight — flavor
+   * authoring, not a uniqueness guarantee. Empty for Sir Charles, who
+   * doesn't participate in Bar Bet (see `canOfferBarBet`,
+   * src/pub/barBet.ts).
+   */
+  betPool: readonly string[];
 }
 
 export const SIR_CHARLES: Opponent = {
@@ -65,6 +78,7 @@ export const SIR_CHARLES: Opponent = {
   rewardCardId: null,
   unlockWins: 0,
   line: "Evening. Table's yours whenever you fancy it.",
+  betPool: [],
 };
 
 export const OPPONENTS: Opponent[] = [
@@ -79,6 +93,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 0,
     portraitArtId: "portrait-constable-tobias-mudd",
     line: "I'm not on duty. Well. I'm a bit on duty.",
+    betPool: ["charlotte", "telegraph-boy", "anonymous-tip"],
   },
   {
     id: "nell-ashby",
@@ -90,6 +105,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 0,
     portraitArtId: "portrait-old-nell-ashby",
     line: "Violets, guv? Or the other thing?",
+    betPool: ["baker-street-irregular", "telegraph-boy", "anonymous-tip"],
   },
   {
     id: "reg-farrow",
@@ -101,6 +117,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 0,
     portraitArtId: "portrait-dodgy-reg-farrow",
     line: "Everything on this table's legitimate. Mostly.",
+    betPool: ["cracksman", "fences-runner", "skeleton-key"],
   },
   {
     id: "prudence-hollis",
@@ -112,6 +129,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 0,
     portraitArtId: "portrait-miss-prudence-hollis",
     line: "I've already worked out how you did it. Sit down.",
+    betPool: ["amateur-sleuth", "seance", "banshee"],
   },
   {
     id: "bucket",
@@ -123,6 +141,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 3,
     portraitArtId: "portrait-inspector-bucket",
     line: "I'll just sit here, if I may, and think about you.",
+    betPool: ["charlotte", "baker-street-irregular", "anonymous-tip", "hiawatha"],
   },
   {
     id: "lovelace",
@@ -134,6 +153,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 5,
     portraitArtId: "portrait-ada-lovelace",
     line: "Your deck has a loop in it. I can see it from here.",
+    betPool: ["foreman-gudgeon", "difference-engine", "sabotage", "the-gasworks"],
   },
   {
     id: "adler",
@@ -145,6 +165,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 5,
     portraitArtId: "portrait-irene-adler",
     line: "Good night, Mr Sherlock Holmes.",
+    betPool: ["cracksman", "fences-runner", "telegraph-boy", "emily"],
   },
   {
     id: "dickens",
@@ -156,6 +177,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 5,
     portraitArtId: "portrait-charles-dickens",
     line: "You'll have to wait for the ending. Everyone does.",
+    betPool: ["amateur-sleuth", "seance", "banshee", "the-hypnofrog"],
   },
   {
     id: "holmes",
@@ -167,6 +189,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 10,
     portraitArtId: "portrait-sherlock-holmes",
     line: "You've been to the Foundry. It's on your cuff.",
+    betPool: ["charlotte", "telegraph-boy", "anonymous-tip", "detective-sergeant-vale"],
   },
   {
     id: "moriarty",
@@ -178,6 +201,7 @@ export const OPPONENTS: Opponent[] = [
     unlockWins: 10,
     portraitArtId: "portrait-professor-moriarty",
     line: "You stand fire admirably.",
+    betPool: ["cracksman", "fences-runner", "foreman-gudgeon", "cat-burglar-strikes-again"],
   },
   {
     id: "christie",
@@ -188,6 +212,7 @@ export const OPPONENTS: Opponent[] = [
     rewardCardId: "dame-agatha",
     unlockWins: 10,
     line: "The obvious suspect is the deck you built.",
+    betPool: ["amateur-sleuth", "seance", "banshee", "the-hypnofrog"],
   },
   {
     id: "poirot",
@@ -198,6 +223,7 @@ export const OPPONENTS: Opponent[] = [
     rewardCardId: "hercule-poirot",
     unlockWins: 10,
     line: "The little grey cells, mon ami, have already finished.",
+    betPool: ["charlotte", "amateur-sleuth", "seance", "detective-sergeant-vale"],
   },
   {
     id: "jekyll-hyde",
@@ -208,6 +234,7 @@ export const OPPONENTS: Opponent[] = [
     rewardCardId: "dr-jekyll-mr-hyde",
     unlockWins: 10,
     line: "I'm quite well. Round two, ask again.",
+    betPool: ["banshee", "cracksman", "fences-runner", "emily"],
   },
   {
     id: "shelley",
@@ -218,6 +245,7 @@ export const OPPONENTS: Opponent[] = [
     rewardCardId: "mary-shelley",
     unlockWins: 10,
     line: "I wrote him at nineteen. What have you made?",
+    betPool: ["foreman-gudgeon", "difference-engine", "sabotage", "the-gasworks"],
   },
 ];
 

@@ -4,15 +4,22 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  addCopyToCollection,
+  addToPawnedCards,
   applyTournamentPayout,
+  claimLostAndFound,
+  countInCollection,
   DAILY_BONUS_CHECKS,
   deductChecks,
   defaultPubState,
+  hasClaimedLostAndFoundToday,
   loadPubState,
   localDateKey,
   LOSE_CHECKS,
   recordPickupResult,
   recordTournamentMatchResult,
+  removeOneFromCollection,
+  removeOneFromPawnedCards,
   savePubState,
   WIN_CHECKS,
   type PubState,
@@ -166,5 +173,49 @@ describe("loadPubState / savePubState", () => {
     savePubState(outcome.next);
     const reloaded: PubState = loadPubState();
     expect(reloaded).toEqual(outcome.next);
+  });
+
+  it("soft-defaults pawnedCards/lastLostAndFoundDate on a state saved before plan step 2.5", () => {
+    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 5, totalWins: 1, opponents: {}, collection: [], lastDailyBonusDate: null }));
+    const reloaded = loadPubState();
+    expect(reloaded.pawnedCards).toEqual([]);
+    expect(reloaded.lastLostAndFoundDate).toBeNull();
+    expect(reloaded.checks).toBe(5);
+  });
+});
+
+describe("collection helpers (plan step 2.5)", () => {
+  it("adds and removes one occurrence at a time", () => {
+    let state = defaultPubState();
+    state = addCopyToCollection(state, "charlotte");
+    state = addCopyToCollection(state, "charlotte");
+    expect(countInCollection(state.collection, "charlotte")).toBe(2);
+    state = removeOneFromCollection(state, "charlotte");
+    expect(countInCollection(state.collection, "charlotte")).toBe(1);
+  });
+
+  it("is a no-op removing a card the collection doesn't have", () => {
+    const state = defaultPubState();
+    expect(removeOneFromCollection(state, "charlotte")).toBe(state);
+  });
+});
+
+describe("pawnedCards helpers (plan step 2.5)", () => {
+  it("adds and removes one occurrence at a time", () => {
+    let state = defaultPubState();
+    state = addToPawnedCards(state, "charlotte");
+    expect(state.pawnedCards).toEqual(["charlotte"]);
+    state = removeOneFromPawnedCards(state, "charlotte");
+    expect(state.pawnedCards).toEqual([]);
+  });
+});
+
+describe("Lost & Found daily gate (plan step 2.5, design.md §11.3)", () => {
+  it("claims a card, adds it to the collection, and marks today claimed", () => {
+    const next = claimLostAndFound(defaultPubState(), "charlotte", DAY_1);
+    expect(next.collection).toEqual(["charlotte"]);
+    expect(hasClaimedLostAndFoundToday(next, DAY_1)).toBe(true);
+    expect(hasClaimedLostAndFoundToday(next, DAY_1_LATER)).toBe(true);
+    expect(hasClaimedLostAndFoundToday(next, DAY_2)).toBe(false);
   });
 });

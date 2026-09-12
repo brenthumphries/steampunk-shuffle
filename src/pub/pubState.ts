@@ -32,14 +32,86 @@ export interface PubState {
    */
   totalWins: number;
   opponents: Record<string, OpponentRecord>;
-  /** Reward-card ids earned beyond the base 60 (design.md §11.2's "goes to your collection"). */
+  /**
+   * Card ids the player owns beyond the base 60's unrestricted access —
+   * reward cards (§11.2), Lost & Found/Pawnbroker/Bar Bet wins (§11.3-
+   * §11.5), and Tinker's Bench fuse results (§11.6). A flat array, not a
+   * count map: duplicate entries are extra copies of the same id, which is
+   * what Tinker's Bench and Bar Bet staking need to check for. A foil
+   * (§11.6) is a distinct entry using a `"foil:<cardId>"` id — see
+   * src/pub/tinkersBench.ts's `foilId`.
+   */
   collection: string[];
   /** Local-date key ("YYYY-MM-DD") of the last pickup game that paid the daily bonus (§11.1). */
   lastDailyBonusDate: string | null;
+  /** Local-date key of the last Lost & Found claim (§11.3) — once per real-world day, same pattern as the daily bonus above. */
+  lastLostAndFoundDate: string | null;
+  /** Cards lost in a Bar Bet (§11.5), oldest first — queued for the Pawnbroker's window (src/pub/pawnbroker.ts) ahead of its random rotation. */
+  pawnedCards: string[];
+  /**
+   * Card ids already bought from today's Pawnbroker window
+   * (src/pub/pawnbroker.ts) — the window is "three cards," a finite
+   * stock, not a faucet the player can buy the same rotation slot from
+   * over and over; a purchase removes that id from the window until
+   * tomorrow's rotation. Paired with `pawnbrokerPurchaseDate` so it resets
+   * on the next real-world day, same pattern as `lastDailyBonusDate`.
+   */
+  pawnbrokerPurchasedToday: string[];
+  pawnbrokerPurchaseDate: string | null;
 }
 
 export function defaultPubState(): PubState {
-  return { checks: 0, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null };
+  return {
+    checks: 0,
+    totalWins: 0,
+    opponents: {},
+    collection: [],
+    lastDailyBonusDate: null,
+    lastLostAndFoundDate: null,
+    pawnedCards: [],
+    pawnbrokerPurchasedToday: [],
+    pawnbrokerPurchaseDate: null,
+  };
+}
+
+/** How many copies of `cardId` are in `collection` right now. */
+export function countInCollection(collection: readonly string[], cardId: string): number {
+  return collection.filter((id) => id === cardId).length;
+}
+
+export function addCopyToCollection(state: PubState, cardId: string): PubState {
+  return { ...state, collection: [...state.collection, cardId] };
+}
+
+/** Removes one occurrence of `cardId` from the collection, if present. A no-op if the player doesn't have it. */
+export function removeOneFromCollection(state: PubState, cardId: string): PubState {
+  const idx = state.collection.indexOf(cardId);
+  if (idx === -1) return state;
+  const next = state.collection.slice();
+  next.splice(idx, 1);
+  return { ...state, collection: next };
+}
+
+export function addToPawnedCards(state: PubState, cardId: string): PubState {
+  return { ...state, pawnedCards: [...state.pawnedCards, cardId] };
+}
+
+/** Removes one occurrence of `cardId` from `pawnedCards`, if present. A no-op if it isn't there. */
+export function removeOneFromPawnedCards(state: PubState, cardId: string): PubState {
+  const idx = state.pawnedCards.indexOf(cardId);
+  if (idx === -1) return state;
+  const next = state.pawnedCards.slice();
+  next.splice(idx, 1);
+  return { ...state, pawnedCards: next };
+}
+
+/** Claims today's Lost & Found card (design.md §11.3): adds it to the collection and marks today as claimed. Callers must check `hasClaimedLostAndFoundToday` first. */
+export function claimLostAndFound(state: PubState, cardId: string, now: Date): PubState {
+  return { ...addCopyToCollection(state, cardId), lastLostAndFoundDate: localDateKey(now) };
+}
+
+export function hasClaimedLostAndFoundToday(state: PubState, now: Date): boolean {
+  return state.lastLostAndFoundDate === localDateKey(now);
 }
 
 function recordFor(state: PubState, opponentId: string): OpponentRecord {
@@ -95,6 +167,7 @@ export function recordPickupResult(
   const earnedReward = isFirstWin ? rewardCardId : null;
 
   const next: PubState = {
+    ...state,
     checks: state.checks + checksEarned,
     totalWins: state.totalWins + (tier !== "house" && won ? 1 : 0),
     opponents: { ...state.opponents, [opponentId]: nextRecord },
@@ -179,6 +252,11 @@ export function loadPubState(): PubState {
       opponents: parsed.opponents as Record<string, OpponentRecord>,
       collection: parsed.collection,
       lastDailyBonusDate: typeof parsed.lastDailyBonusDate === "string" ? parsed.lastDailyBonusDate : null,
+      lastLostAndFoundDate: typeof parsed.lastLostAndFoundDate === "string" ? parsed.lastLostAndFoundDate : null,
+      pawnedCards: Array.isArray(parsed.pawnedCards) && parsed.pawnedCards.every((c) => typeof c === "string") ? parsed.pawnedCards : [],
+      pawnbrokerPurchasedToday:
+        Array.isArray(parsed.pawnbrokerPurchasedToday) && parsed.pawnbrokerPurchasedToday.every((c) => typeof c === "string") ? parsed.pawnbrokerPurchasedToday : [],
+      pawnbrokerPurchaseDate: typeof parsed.pawnbrokerPurchaseDate === "string" ? parsed.pawnbrokerPurchaseDate : null,
     };
   } catch {
     return defaultPubState();

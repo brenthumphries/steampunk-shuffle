@@ -6,27 +6,29 @@
 // the caller (src/main.ts) is the one that applies a match result via
 // src/pub/pubState.ts before remounting this screen.
 
-import type { Card } from "../cards/cardTypes.ts";
-import { ALL_CARDS } from "../cards/data/index.ts";
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { tonightsPatrons, type Opponent, type OpponentTier } from "../pub/opponents.ts";
 import { loadPubState } from "../pub/pubState.ts";
+import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
+import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
 
+/** A card to show the "unwrap" overlay for — a first-win reward (§11.2) or a Bar Bet win (§11.5). Several can queue up from the same match. */
 export interface PendingReveal {
-  opponent: Opponent;
+  title: string;
   cardId: string;
 }
 
 export interface PubHubOptions {
   deckName: string;
   onBuildDeck: () => void;
-  onStartMatch: (opponent: Opponent) => void;
+  /** `stakedCardId` is non-null when the player chose to stake it in a Bar Bet (design.md §11.5) before this match. */
+  onStartMatch: (opponent: Opponent, stakedCardId: string | null) => void;
   onOpenTournaments: () => void;
-  /** A reward card to show the "unwrap" overlay for, right when the hub opens (e.g. just won a first match). */
-  pendingReveal?: PendingReveal;
+  onOpenBackRoom: () => void;
+  pendingReveals?: PendingReveal[];
 }
 
-const CARDS_BY_ID = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
+const CARDS_BY_ID = ACQUIRABLE_CARDS_BY_ID;
 
 const TIER_LABEL: Record<OpponentTier, string> = {
   house: "The house",
@@ -49,12 +51,23 @@ function artUrl(assetId: string): string {
 /** Mounts the pub hub into `root` and returns a teardown function. */
 export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): () => void {
   const pub = loadPubState();
-  let reveal: PendingReveal | undefined = options.pendingReveal;
+  let revealQueue: PendingReveal[] = [...(options.pendingReveals ?? [])];
+  let stakePrompt: Opponent | undefined;
   let torn = false;
 
   function dismissReveal(): void {
-    reveal = undefined;
+    revealQueue = revealQueue.slice(1);
     render();
+  }
+
+  /** Bar Bet (design.md §11.5): offer a stake before starting the match, if this opponent takes bets and the player has something to stake. */
+  function handlePatronTap(opponent: Opponent): void {
+    if (canOfferBarBet(opponent, pub.totalWins) && stakeableCards(pub.collection).length > 0) {
+      stakePrompt = opponent;
+      render();
+      return;
+    }
+    options.onStartMatch(opponent, null);
   }
 
   function buildPatronRow(opponent: Opponent): HTMLElement {
@@ -95,14 +108,47 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     info.appendChild(meta);
     row.appendChild(info);
 
-    row.addEventListener("click", () => options.onStartMatch(opponent));
+    row.addEventListener("click", () => handlePatronTap(opponent));
     row.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        options.onStartMatch(opponent);
+        handlePatronTap(opponent);
       }
     });
     return row;
+  }
+
+  function buildStakeOverlay(opponent: Opponent): HTMLElement {
+    const overlay = el("div", "overlay overlay--reveal");
+    const box = el("div", "overlay-box reveal-box");
+    box.appendChild(el("h2", "overlay-title", `Stake a card against ${opponent.name}?`));
+    box.appendChild(el("p", "overlay-score", "Win it, and you'll take one of theirs too. Lose, and yours goes to the Pawnbroker's window."));
+
+    const list = el("div", "stake-card-list");
+    for (const cardId of stakeableCards(pub.collection)) {
+      const name = CARDS_BY_ID.get(cardId)?.faces[0].name ?? cardId;
+      const btn = el("button", "action-button action-button--secondary", `Stake ${name}`);
+      btn.type = "button";
+      btn.addEventListener("click", () => options.onStartMatch(opponent, cardId));
+      list.appendChild(btn);
+    }
+    box.appendChild(list);
+
+    const skipBtn = el("button", "action-button", "Play without staking");
+    skipBtn.type = "button";
+    skipBtn.addEventListener("click", () => options.onStartMatch(opponent, null));
+    box.appendChild(skipBtn);
+
+    const cancelBtn = el("button", "action-button action-button--secondary", "Never mind");
+    cancelBtn.type = "button";
+    cancelBtn.addEventListener("click", () => {
+      stakePrompt = undefined;
+      render();
+    });
+    box.appendChild(cancelBtn);
+
+    overlay.appendChild(box);
+    return overlay;
   }
 
   function buildRevealOverlay(pending: PendingReveal): HTMLElement {
@@ -110,7 +156,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const face = card?.faces[0];
     const overlay = el("div", "overlay overlay--reveal");
     const box = el("div", "overlay-box reveal-box");
-    box.appendChild(el("h2", "overlay-title", `First win against ${pending.opponent.name}!`));
+    box.appendChild(el("h2", "overlay-title", pending.title));
 
     const cardEl = el("div", "card card--zoom reveal-card");
     if (face) {
@@ -165,6 +211,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     tournamentsBtn.type = "button";
     tournamentsBtn.addEventListener("click", options.onOpenTournaments);
     deckRowButtons.appendChild(tournamentsBtn);
+    const backRoomBtn = el("button", "taproom-button taproom-button--secondary", "The back room");
+    backRoomBtn.type = "button";
+    backRoomBtn.addEventListener("click", options.onOpenBackRoom);
+    deckRowButtons.appendChild(backRoomBtn);
     deckRow.appendChild(deckRowButtons);
     screen.appendChild(deckRow);
 
@@ -176,7 +226,8 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     screen.appendChild(list);
 
     root.appendChild(screen);
-    if (reveal) root.appendChild(buildRevealOverlay(reveal));
+    if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
+    else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
   }
 
   render();

@@ -47,4 +47,22 @@ test.describe("pub hub (plan step 2.3)", () => {
     }
     expect(shownCount).toBe(2);
   });
+
+  // Bar Bet (plan step 2.5, design.md §11.5): unlocked at 3 wins, and only
+  // offered once there's something in the collection to stake.
+  test("tapping an eligible patron offers a Bar Bet stake before the match starts", async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "steampunk-shuffle:pub-state",
+        JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
+      );
+    });
+    await page.reload();
+
+    await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+    await expect(page.getByText("Stake a card against Constable Tobias Mudd?")).toBeVisible();
+
+    await page.getByRole("button", { name: "Play without staking" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  });
 });
