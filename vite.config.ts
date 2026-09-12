@@ -30,7 +30,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"],
+        // webp: the 93 card-art assets in public/art/, required for offline
+        // play (AUDIT-3.6.md P1). json: public/art/manifest.json, the only
+        // JSON file under public/ — fetched at runtime to resolve artId ->
+        // asset metadata (AUDIT-3.6.md P2).
+        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,webp,json}"],
       },
       devOptions: {
         enabled: true,

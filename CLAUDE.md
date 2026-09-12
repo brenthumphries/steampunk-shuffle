@@ -1713,6 +1713,60 @@ on Haiku. Flagged, not corrected.
 3.6 (asset budget, service-worker precache, performance pass) and 3.7
 (a ★ newcomer-eyes review session).
 
+3.6 done. Ran per the plan's own split: a Haiku audit pass (`AUDIT-3.6.md`,
+not committed — folded into this entry and removed once its findings were
+acted on, same as 2.8's synthetic-playtest-file precedent) found asset
+budget was already fine (10.3 MB total, under the 15 MB cap) and
+installability already passed, but caught a real P1: `vite.config.ts`'s
+Workbox `globPatterns` (`**/*.{js,css,html,png,svg,webmanifest}`) never
+included `.webp` — so all 93 art assets (9.7 MB) sat outside the
+precache, meaning the "offline works cold" exit check was actually
+failing (the shell loaded offline, but every card was a blank
+illustration window). A P2 alongside it: `public/art/manifest.json` (the
+artId → asset-metadata lookup fetched at runtime) wasn't precached
+either. **The fix is one line**: added `webp,json` to `globPatterns`
+(`public/` has exactly one JSON file — `art/manifest.json` — so this
+doesn't risk pulling in anything unintended). Rebuilding jumped the
+precache from 12 entries/614 KiB to 106 entries/10.3 MB, matching the
+audit's own projection exactly; `grep`ing `dist/sw.js`'s precache array
+confirmed all 93 `.webp` URLs and `art/manifest.json` are actually listed
+in it, not just that the build didn't error.
+
+**Verified "airplane-mode full session" for real, not just by grepping
+the precache manifest** — added a second `.claude/launch.json` config
+(`steampunk-shuffle-preview`, `npm run preview -- --port 4173`) since dev
+mode's service worker doesn't reflect the real production
+`globPatterns`/precache; `preview_start`ing it, loading the app once (to
+let the SW install and precache everything), then **killing the preview
+server outright** and reloading is a truer test than DevTools' offline
+checkbox for this app specifically, since there's no backend beyond the
+static file server itself — if the SW cache is actually serving
+everything, the app can't tell the difference between "offline" and
+"server process is dead." Confirmed: a fresh install's dedication screen
+rendered The Landlady's art, tapping through into the tutorial rendered
+the taproom/snug background and Sir Charles's portrait, and every art
+`GET` in `read_network_requests` came back `200 OK` with the server
+process not running. The only failed request was
+`audio/ambience.mp3` (`net::ERR_CONNECTION_REFUSED`) — 3.4's
+already-flagged not-yet-sourced ambience track, correctly absent from
+the precache because the file doesn't exist yet, and already caught by
+its own `.catch()` with no visible error in the app. `npm run typecheck`,
+`npm test` (358 unit tests, unchanged — this step touched build config,
+not app code), and `npm run build` all clean.
+
+**P3/P4 from the audit deliberately left open, same "not this step's
+job" reasoning the audit itself gave them**: precaching
+`audio/ambience.mp3` has nothing to precache until Brent sources and
+drops in the file (at which point `webp,json` → `webp,json,mp3`, or an
+explicit `includeAssets` entry, is the whole fix); a slow-3G DevTools
+throttling pass is flagged as `[P4, POLISH]` in the audit and wasn't run
+here. Also didn't re-run a formal Lighthouse PWA-category audit — per
+this file's own already-recorded gotcha, Lighthouse 13 dropped the
+standalone `pwa` category entirely, so `ss-ship`'s Lighthouse step has
+only ever been an informational, non-gating read; the real "offline
+works cold" exit check is the killed-server session above, not a
+Lighthouse score.
+
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
   on GitHub's shared CI runner during the 2.5 ship despite already having
