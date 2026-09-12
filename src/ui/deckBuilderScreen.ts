@@ -8,7 +8,9 @@
 //
 // There's no card-ownership/collection system yet (that's plan steps 2.3's
 // reward flow and 2.5's acquisition paths) — every one of the 60 v1 cards
-// is available to every deck here. Restricting the grid to "owned" cards
+// is available to every deck here, with one named exception: The Landlady
+// (design.md §14.3, plan step 3.5), reserved until the Birthday
+// Invitational is won. Restricting the rest of the grid to "owned" cards
 // is a later step's job, not this one's.
 
 import { CARD_TYPES, FAMILIES, type Card, type CardType, type Deck, type Family } from "../cards/cardTypes.ts";
@@ -214,12 +216,29 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     filters.appendChild(typeSelect);
     screen.appendChild(filters);
 
+    const pub = loadPubState();
     const grid = el("div", "deck-grid");
     const deckFull = legality.totalCards >= 20;
     for (const card of ALL_CARDS) {
       const face = card.faces[0];
       if (family !== "all" && face.family !== family) continue;
       if (type !== "all" && face.type !== type) continue;
+
+      // design.md §14.3: The Landlady is "the last card in the collection...
+      // earned by winning the Birthday Invitational. Until then it shows in
+      // the collection as a silhouette with 'reserved'." There's still no
+      // general ownership system gating this grid (see this file's own
+      // header comment) — this is a narrow, card-specific exception for the
+      // one card design.md calls out by name, not a first cut at that
+      // system.
+      if (card.id === "the-landlady" && !pub.collection.includes("the-landlady")) {
+        const reserved = el("div", "deck-card-tile deck-card-tile--reserved");
+        reserved.appendChild(el("span", "deck-card-points", "?"));
+        reserved.appendChild(el("span", "deck-card-name", "The Landlady"));
+        reserved.appendChild(el("span", "deck-card-meta", "Reserved — earned by winning the Birthday Invitational"));
+        grid.appendChild(reserved);
+        continue;
+      }
 
       const qty = quantityInSlot(slot, card.id);
       const maxCopies = card.rarity === "legendary" ? 1 : 2;

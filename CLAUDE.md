@@ -33,7 +33,7 @@ step whenever the task can be scripted.
 
 ---
 
-## Current state (updated after finishing Step 3.4, Sept 12, 2026)
+## Current state (updated after finishing Step 3.5, Sept 12, 2026)
 
 - Phase 0 (Foundations): 0.1–0.5 all done.
 - Repo is public, Pages enabled (`build_type: workflow`, deploys from `main`).
@@ -1181,6 +1181,135 @@ structure changed), and `npm run build` all clean.
 situation as 1.6/2.5's flagged gotchas: the session was already running on
 Sonnet when asked to start 3.4 rather than being opened fresh on Haiku.
 Flagged, not corrected.
+
+3.5 done. The four gift touches (design.md §14) live across a new store,
+a new screen, and small additions to two existing ones:
+
+- **§14.1, dedication screen**: `src/ui/dedicationScreen.ts`
+  (`mountDedicationScreen`) — two tap-through beats (the oversized card
+  face, then Sir Charles's "You're expected. Your chair's by the fire.")
+  shown once, before the tutorial even starts on a truly fresh install.
+  The card reuses 3.1/3.3's existing legendary-frame and `.reveal-card`
+  unwrap CSS (`data-rarity="legendary"`) rather than inventing new chrome
+  for a screen shown exactly once per install. The wording is quoted
+  verbatim from design.md §14.1 ("resolved with Brent... is final") and is
+  hardcoded — it does not read from the new editable player name below,
+  keeping the fixed gift message stable regardless of what she later
+  renames herself to.
+- **§14.2, default player name**: `src/player/playerState.ts` — a small
+  store (`{ name, dedicationSeen }`, default `{ "Sara", false }`), same
+  defensive load/save pattern as `src/audio/audioState.ts`, folded into
+  `SaveFile` (`src/save/saveFile.ts`) as this closes 2.6's flagged
+  "first-launch flag" gap (`dedicationSeen` *is* that flag) alongside the
+  name. Surfaced as an editable `<input>` right under the pub's own name
+  on the pub hub header (`src/ui/pubHubScreen.ts`), mutated in place on
+  keystroke same as `deckBuilderScreen.ts`'s deck-name field. **Judgment
+  call, not extended further**: the name isn't threaded into
+  `matchScreen.ts`'s existing "You"/"Your" labels (side label, score,
+  round/match-over text) — doing so would touch a lot of hardcoded UI
+  strings and several e2e assertions for a cosmetic win design.md §14.2
+  doesn't actually ask for ("pre-filled and editable" is the whole spec);
+  worth reconsidering if Brent wants his own name to show up more
+  pervasively during play.
+- **§14.3, The Landlady as a reserved silhouette**: the card itself was
+  already fully authored (`src/cards/data/landlady.ts`, 1.5) and the
+  Birthday Invitational already pays her out as its fixed prize (2.4's
+  `resolvePrize`) — the actual gap 2.4 flagged ("nothing stops a player
+  from adding her to a deck before ever entering that tournament") is
+  fixed narrowly in `deckBuilderScreen.ts`'s grid: a card-id-specific
+  check (`card.id === "the-landlady" && !pub.collection.includes(...)`)
+  swaps her tile for a dimmed, control-less "Reserved — earned by winning
+  the Birthday Invitational" placeholder instead of extending copies of
+  her. This is a one-card exception, not a first cut at the general
+  ownership-gating system 2.2/2.3/2.4/2.5 have all flagged and left
+  open — that system, whenever built, should fold this special case in
+  rather than leaving two separate mechanisms.
+- **§14.4, the toast**: `src/tournaments/toast.ts`
+  (`INVITATIONAL_TOAST_SEQUENCE`) — an opening scene-setting line ("Sir
+  Charles sets down the tray...the pub goes quiet"), one toast line each
+  from all six legends (order matches design.md §9.3's table, same as
+  `src/pub/opponents.ts`), then Sir Charles's closing line, quoted
+  verbatim from §14.4 ("To the Landlady. Who was always going to be.").
+  Wired into `src/ui/bracketScreen.ts`: when `tournament.id ===
+  "birthday-invitational"` and the bracket just produced a payout (win or
+  lose), a tap-through toast overlay plays before the existing
+  champion/eliminated payout overlay, which already handles the
+  win/lose Checks and the Landlady's own unwrap correctly and needed no
+  changes. **Content-authoring judgment call, flagged like 1.6/2.4's
+  similar ones**: design.md names the beat and Sir Charles's own line
+  exactly but leaves every legend's toast unwritten — the six lines here
+  are original, written in each legend's established voice from their
+  §9.3 flavour quotes, not a locked script. Deliberately keyed to "the
+  Landlady"/"Sara" as fixed in-fiction names, not the new editable player
+  name from §14.2, for the same reason the dedication screen doesn't read
+  it either.
+- **§14.6, the fixed point**: unchanged — 2.4 already built
+  `checkInvitationalTrigger`'s Oct-30 date check and `main.ts`'s
+  `syncTournamentTrigger`, re-verified still correct here, not touched.
+
+**Found and fixed a real pre-existing bug during this step's manual
+verification, not scope creep — it crashed the app the first time anyone
+actually clicked it, and blocked verifying the toast above.**
+`src/main.ts`'s `showTournaments()` wired the chalkboard's "Back to the
+bar" button as `onBack: showPubHub` — a bare function reference, unlike
+every other `onBack` in this file (`() => showPubHub()`).
+`tournamentsScreen.ts` attaches it directly via
+`backBtn.addEventListener("click", options.onBack)`, so the click's
+`PointerEvent` itself was passed as `showPubHub`'s optional
+`pendingReveals` parameter; `pubHubScreen.ts` then tried to spread it
+(`[...(options.pendingReveals ?? [])]`) and threw `TypeError: ... is not
+iterable`, blanking the whole app. Caught by manually clicking through to
+verify the Birthday Invitational end-to-end (seeded a bracket one match
+from completion, played and won the final for real, confirmed the toast
+and Landlady unwrap render correctly) and then trying to leave the
+chalkboard the normal way. Fixed by wrapping it
+(`onBack: () => showPubHub()`), same as the other three call sites; a new
+Playwright regression test pins it
+(`tests/e2e/tournaments.spec.ts`: "the chalkboard's own Back to the bar
+returns to the pub hub without crashing"). Worth a moment's caution for
+future `onBack`/`onExit`-style props in this codebase: passing a function
+with an optional first parameter straight to `addEventListener` is
+exactly this bug waiting to happen again.
+
+Tests: `tests/unit/player/playerState.test.ts` (new, 6 tests),
+`tests/unit/tournaments/toast.test.ts` (new, 3 tests), plus additions to
+`tests/unit/save/saveFile.test.ts` for the new `player` field — 356 unit
+tests total (project-wide, up from 345), all passing.
+`tests/e2e/tutorial.spec.ts` gained its own "dedication screen" describe
+block (2 new tests: a truly fresh install sees it before the tutorial and
+tapping through reaches the tutorial; a returning player skips it) and
+every other e2e spec's `localStorage.clear()` fixture needed a
+`steampunk-shuffle:player` seed (`dedicationSeen: true`) added alongside
+its existing `tutorial-state` seed — same "every prior step's clean-slate
+fixture has to grow one more key" pattern 2.7 hit when the tutorial itself
+went in front of the pub hub. 28 e2e tests total (up from 25, including
+the regression test above), all passing. `npm run typecheck`, `npm run
+build` both clean.
+
+Manually verified end-to-end in the browser at the iPhone 17 viewport:
+cleared storage and confirmed the dedication card (gold-leaf frame,
+exact §14.1 wording) and Sir Charles's greeting both render and tap
+through into the tutorial; confirmed a returning player's save skips
+straight past it; edited the player name on the pub hub header and
+confirmed it persists across a reload; opened the deck builder and
+confirmed The Landlady renders as a dimmed, uncontrolled "Reserved" tile
+among the other five legendaries; seeded a Birthday Invitational bracket
+one match from its final (won each of the first two AI-vs-AI-resolved
+seats moot — QF/SF pre-marked won, final vs Sir Charles), played and won
+that final match for real, and watched the full toast sequence (all seven
+lines, in order, tap-to-continue) followed by "Champion: The Birthday
+Invitational!", 500 Checks, and The Landlady's own gold-leaf unwrap —
+then confirmed she immediately became a normal, addable legendary in the
+deck builder.
+
+**This step ran on Sonnet, not the Haiku the plan assigns to 3.5** — same
+situation as 1.6/2.5/3.4's flagged gotchas: the session was already
+running on Sonnet when asked to start 3.5 rather than being opened fresh
+on Haiku. Flagged, not corrected.
+
+**This closes out design.md §14's gift touches.** Phase 3 continues at
+3.6 (asset budget, service-worker precache, performance pass) and 3.7
+(a ★ newcomer-eyes review session).
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed

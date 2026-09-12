@@ -19,6 +19,7 @@ import { defaultTournamentState, loadTournamentState, saveTournamentState, type 
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type ActiveMatchSave } from "./activeMatch.ts";
 import { defaultTutorialState, loadTutorialState, saveTutorialState, type TutorialState } from "../tutorial/tutorialState.ts";
 import { defaultAudioState, loadAudioState, saveAudioState, type AudioState } from "../audio/audioState.ts";
+import { defaultPlayerState, loadPlayerState, savePlayerState, type PlayerState } from "../player/playerState.ts";
 
 export const SAVE_FILE_VERSION = 1;
 
@@ -33,6 +34,8 @@ export interface SaveFile {
   tutorial: TutorialState;
   /** design.md §12.4 also lists "settings" — the mute toggle is the first real one (plan step 3.4). */
   audio: AudioState;
+  /** design.md §12.4's "first-launch flag", plus the editable player name (§14.2) it lives alongside (plan step 3.5). */
+  player: PlayerState;
 }
 
 /** Gathers the current state of every store into one exportable object. */
@@ -46,6 +49,7 @@ export function buildSaveFile(now: Date = new Date()): SaveFile {
     activeMatch: loadActiveMatch(),
     tutorial: loadTutorialState(),
     audio: loadAudioState(),
+    player: loadPlayerState(),
   };
 }
 
@@ -77,6 +81,7 @@ export function applySaveFile(data: unknown): ApplySaveFileResult {
   saveTournamentState((file.tournament as TournamentState | undefined) ?? defaultTournamentState());
   saveTutorialState((file.tutorial as TutorialState | undefined) ?? defaultTutorialState());
   saveAudioState((file.audio as AudioState | undefined) ?? defaultAudioState());
+  savePlayerState((file.player as PlayerState | undefined) ?? defaultPlayerState());
   if (file.activeMatch) {
     saveActiveMatch(file.activeMatch as ActiveMatchSave);
   } else {

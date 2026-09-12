@@ -15,6 +15,7 @@ test.describe("tournaments (plan step 2.4)", () => {
     await page.evaluate(() => {
       localStorage.clear();
       localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
   });
@@ -30,6 +31,17 @@ test.describe("tournaments (plan step 2.4)", () => {
       const row = page.locator(".tournament-row").filter({ hasText: name });
       await expect(row.getByRole("button", { name: "Locked" })).toBeVisible();
     }
+  });
+
+  test("the chalkboard's own Back to the bar returns to the pub hub without crashing", async ({ page }) => {
+    // Regression: this button used to pass showPubHub straight to
+    // addEventListener as the click handler, so the click Event itself
+    // landed in showPubHub's optional pendingReveals param — pubHubScreen.ts
+    // then tried to spread it as an array and threw. Caught during plan
+    // step 3.5's manual verification, unrelated to that step's own changes.
+    await page.getByRole("button", { name: "The chalkboard" }).click();
+    await page.getByRole("button", { name: "Back to the bar" }).click();
+    await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
   });
 
   test("entering the Tuesday Knockout is blocked without enough Checks, and unblocked once earned", async ({ page }) => {

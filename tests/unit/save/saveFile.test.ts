@@ -10,6 +10,7 @@ import { applySaveFile, buildSaveFile } from "../../../src/save/saveFile.ts";
 import { defaultTournamentState, loadTournamentState } from "../../../src/tournaments/tournamentState.ts";
 import { defaultTutorialState, loadTutorialState, markTutorialCompleted, saveTutorialState } from "../../../src/tutorial/tutorialState.ts";
 import { defaultAudioState, loadAudioState, saveAudioState } from "../../../src/audio/audioState.ts";
+import { defaultPlayerState, loadPlayerState, savePlayerState } from "../../../src/player/playerState.ts";
 
 beforeEach(() => {
   localStorage.clear();
@@ -24,6 +25,7 @@ describe("buildSaveFile", () => {
     expect(file.activeMatch).toBeNull();
     expect(file.tutorial).toEqual(defaultTutorialState());
     expect(file.audio).toEqual(defaultAudioState());
+    expect(file.player).toEqual(defaultPlayerState());
   });
 
   it("reflects real edits made through each store", () => {
@@ -48,6 +50,7 @@ describe("applySaveFile / buildSaveFile round trip", () => {
     saveDeckSlotsState({ slots, selectedIndex: 0 });
     saveTutorialState(markTutorialCompleted(defaultTutorialState()));
     saveAudioState({ muted: true });
+    savePlayerState({ name: "Constance", dedicationSeen: true });
 
     const exported = buildSaveFile();
 
@@ -62,6 +65,7 @@ describe("applySaveFile / buildSaveFile round trip", () => {
     expect(loadTutorialState()).toEqual(exported.tutorial);
     expect(loadTutorialState().completed).toBe(true);
     expect(loadAudioState()).toEqual({ muted: true });
+    expect(loadPlayerState()).toEqual({ name: "Constance", dedicationSeen: true });
   });
 
   it("rejects a file that isn't a save at all", () => {

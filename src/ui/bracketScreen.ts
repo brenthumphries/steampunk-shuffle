@@ -10,6 +10,7 @@ import { currentMatchIndex, ROUND_NAMES, type BracketRoundIndex, type Tournament
 import type { Tournament } from "../tournaments/tournaments.ts";
 import type { Opponent } from "../pub/opponents.ts";
 import { playSound } from "../audio/soundEngine.ts";
+import { INVITATIONAL_TOAST_SEQUENCE } from "../tournaments/toast.ts";
 
 export interface BracketOutcome {
   bracket: TournamentBracket;
@@ -48,6 +49,12 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
   const { tournament, outcome, opponentsById } = options;
   const bracket = outcome.bracket;
   const activeIndex = currentMatchIndex(bracket);
+  // design.md §14.4's toast, shown once the Birthday Invitational ends
+  // (win or lose) and before its normal champion/eliminated payout overlay.
+  let toastStep = 0;
+  function showingToast(): boolean {
+    return tournament.id === "birthday-invitational" && !!outcome.payout && toastStep < INVITATIONAL_TOAST_SEQUENCE.length;
+  }
 
   function buildStageRow(index: BracketRoundIndex): HTMLElement {
     const slot = bracket.playerMatches[index];
@@ -89,6 +96,26 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
     }
 
     return row;
+  }
+
+  function buildToastOverlay(): HTMLElement {
+    const { speaker, line } = INVITATIONAL_TOAST_SEQUENCE[toastStep]!;
+    const overlay = el("div", "overlay overlay--reveal");
+    const box = el("div", "overlay-box toast-box");
+    box.appendChild(el("p", "toast-line", speaker ? `"${line}"` : line));
+    if (speaker) box.appendChild(el("p", "dedication-sign", `— ${speaker}`));
+
+    const isLast = toastStep === INVITATIONAL_TOAST_SEQUENCE.length - 1;
+    const btn = el("button", "action-button", isLast ? "Continue" : "Raise a glass");
+    btn.type = "button";
+    btn.addEventListener("click", () => {
+      toastStep++;
+      render();
+    });
+    box.appendChild(btn);
+
+    overlay.appendChild(box);
+    return overlay;
   }
 
   function buildPayoutOverlay(): HTMLElement {
@@ -146,7 +173,11 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
     screen.appendChild(ladder);
 
     root.appendChild(screen);
-    if (outcome.payout) root.appendChild(buildPayoutOverlay());
+    if (showingToast()) {
+      root.appendChild(buildToastOverlay());
+    } else if (outcome.payout) {
+      root.appendChild(buildPayoutOverlay());
+    }
   }
 
   render();

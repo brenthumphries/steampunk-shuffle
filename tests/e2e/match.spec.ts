@@ -10,10 +10,14 @@ import { expect, test } from "@playwright/test";
 test.describe("match screen (plan step 2.1)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
-    // A brand-new player lands in the tutorial (design.md §13) instead of
-    // the pub hub — these tests exercise the generic match screen, not the
-    // tutorial's forced script, so seed it already done.
-    await page.evaluate(() => localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] })));
+    // A brand-new player sees the dedication screen (design.md §14.1) then
+    // lands in the tutorial (§13) instead of the pub hub — these tests
+    // exercise the generic match screen, not either of those, so seed both
+    // already done.
+    await page.evaluate(() => {
+      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+    });
     await page.reload();
   });
 

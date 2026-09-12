@@ -24,6 +24,9 @@ export interface PendingReveal {
 
 export interface PubHubOptions {
   deckName: string;
+  /** design.md §14.2: "Sara", pre-filled and editable. */
+  playerName: string;
+  onRenamePlayer: (name: string) => void;
   onBuildDeck: () => void;
   /** `stakedCardId` is non-null when the player chose to stake it in a Bar Bet (design.md §11.5) before this match. */
   onStartMatch: (opponent: Opponent, stakedCardId: string | null) => void;
@@ -212,6 +215,19 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const header = el("div", "pub-hub-header");
     const titleWrap = el("div", "pub-hub-title-wrap");
     titleWrap.appendChild(el("h1", "pub-hub-title", "The Wheatstone Bridge"));
+
+    const nameInput = el("input", "player-name-input") as HTMLInputElement;
+    nameInput.type = "text";
+    nameInput.value = options.playerName;
+    nameInput.maxLength = 24;
+    nameInput.setAttribute("aria-label", "Your name");
+    nameInput.addEventListener("input", () => {
+      // Mutate in place rather than calling render(), same reasoning as
+      // deckBuilderScreen.ts's deck-name input — don't lose focus/cursor
+      // position mid-edit.
+      options.onRenamePlayer(nameInput.value);
+    });
+    titleWrap.appendChild(nameInput);
     titleWrap.appendChild(el("span", "pub-hub-subtitle", titleForWins(pub.totalWins)));
     header.appendChild(titleWrap);
     const headerActions = el("div", "pub-hub-header-actions");

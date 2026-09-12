@@ -14,6 +14,7 @@ test.describe("pub hub (plan step 2.3)", () => {
     await page.evaluate(() => {
       localStorage.clear();
       localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
   });

@@ -13,6 +13,7 @@ import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { mountSaveScreen } from "./ui/saveScreen.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
+import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { loadDeckSlotsState } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
@@ -27,6 +28,7 @@ import { checkInvitationalTrigger, clearActiveBracket, loadTournamentState, save
 import { TUTORIAL_BEFORE_DEAL, TUTORIAL_HOUSE_DECK, TUTORIAL_MATCH_END_MAT, TUTORIAL_PLAYER_DECK, TUTORIAL_REWARD_CHECKS, TUTORIAL_ROUND_END_MATS, TUTORIAL_TURNS } from "./tutorial/tutorialScript.ts";
 import { HINT_IDS, HINT_TEXT, hasShownHint, isWithinHintWindow, loadTutorialState, markHintShown, markTutorialCompleted, recordMatchPlayed, saveTutorialState, type HintId } from "./tutorial/tutorialState.ts";
 import { playSound, unlockAudio } from "./audio/soundEngine.ts";
+import { loadPlayerState, markDedicationSeen, savePlayerState, setPlayerName } from "./player/playerState.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -106,6 +108,8 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
 
   teardownScreen = mountPubHubScreen(app!, {
     deckName: selectedDeckName,
+    playerName: loadPlayerState().name,
+    onRenamePlayer: (name) => savePlayerState(setPlayerName(loadPlayerState(), name)),
     onBuildDeck: startDeckBuilder,
     onStartMatch: startMatch,
     onOpenTournaments: showTournaments,
@@ -298,7 +302,7 @@ function showTournaments(): void {
     activeBracketTournamentId: tournamentState.active?.tournamentId ?? null,
     onEnter: (tournament) => enterTournament(tournament),
     onResume: (tournament) => showBracket(tournament, tournamentState.active!),
-    onBack: showPubHub,
+    onBack: () => showPubHub(),
   });
 }
 
@@ -433,13 +437,35 @@ function tryResumeActiveMatch(): boolean {
   return true;
 }
 
+/**
+ * Everything that happens after the dedication screen (design.md §14.1) is
+ * out of the way — a truly fresh install sees it once, first; a returning
+ * player skips straight past it. design.md §13's tutorial-first ordering
+ * is otherwise unchanged.
+ */
+function bootAfterDedication(): void {
+  if (!loadTutorialState().completed) {
+    // A newcomer's very first launch (design.md §13): the tutorial itself
+    // isn't resumable mid-match (see startTutorial) — if the app was killed
+    // partway through, it just deals a fresh one, which is fine since it's
+    // the same deterministic script either way.
+    startTutorial();
+  } else if (!tryResumeActiveMatch()) {
+    showPubHub();
+  }
+}
+
 refreshSelectedDeck();
-if (!loadTutorialState().completed) {
-  // A newcomer's very first launch (design.md §13): the tutorial itself
-  // isn't resumable mid-match (see startTutorial) — if the app was killed
-  // partway through, it just deals a fresh one, which is fine since it's
-  // the same deterministic script either way.
-  startTutorial();
-} else if (!tryResumeActiveMatch()) {
-  showPubHub();
+if (!loadPlayerState().dedicationSeen) {
+  teardownScreen = mountDedicationScreen(app!, {
+    onContinue: () => {
+      savePlayerState(markDedicationSeen(loadPlayerState()));
+      teardownScreen?.();
+      teardownScreen = undefined;
+      app!.replaceChildren();
+      bootAfterDedication();
+    },
+  });
+} else {
+  bootAfterDedication();
 }
