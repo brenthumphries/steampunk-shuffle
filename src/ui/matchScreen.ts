@@ -38,6 +38,10 @@ export interface MatchScreenOptions {
    * §9.3 — see src/pub/opponents.ts).
    */
   difficulty: Difficulty | ((state: MatchState) => Difficulty);
+  /** Resume a previously-saved mid-match state (design.md §12.4: "kill the app mid-match → resume") instead of dealing a fresh one. */
+  initialState?: { state: MatchState; aiSeed: number };
+  /** Called on mount and after every committed turn (human play, AI turn, forced pass) so the caller can autosave the match (design.md §12.4). */
+  onStateChange?: (state: MatchState, aiSeed: number) => void;
   /** Called once the player dismisses the match-over overlay, with the final result. */
   onExit: (result: MatchResult) => void;
 }
@@ -71,9 +75,12 @@ function activeFaceOf(card: Card, faceIndex: 0 | 1): CardFace {
 
 /** Mounts the match screen into `root` and returns a teardown function. */
 export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions): () => void {
-  let state: MatchState = createMatch(options.humanDeck, options.aiDeck, { seed: Date.now() });
-  let aiSeed = Date.now() ^ 0x9e3779b9;
-  let phase: Phase = { kind: "idle" };
+  let state: MatchState = options.initialState?.state ?? createMatch(options.humanDeck, options.aiDeck, { seed: Date.now() });
+  let aiSeed = options.initialState?.aiSeed ?? (Date.now() ^ 0x9e3779b9);
+  // A resumed match may have finished (killed while the match-over overlay
+  // was up, before "Leave the table" was tapped) — scheduleNext() no-ops
+  // once status isn't "in-progress", so idle would never show the overlay.
+  let phase: Phase = state.status === "complete" ? { kind: "match-over" } : { kind: "idle" };
   let zoomed: { card: Card; faceIndex: 0 | 1 } | null = null;
   // Typed via the ambient (Node) `setTimeout` rather than `window.setTimeout`
   // — with both the "dom" lib and @types/node loaded (tsconfig.json), only
@@ -202,6 +209,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
 
   function afterCommit(prevRoundCount: number): void {
+    options.onStateChange?.(state, aiSeed);
     if (state.roundHistory.length > prevRoundCount) {
       phase = { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
       render();
@@ -448,6 +456,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     if (zoomed) root.appendChild(buildZoomOverlay());
   }
 
+  options.onStateChange?.(state, aiSeed);
   render();
   scheduleNext();
 

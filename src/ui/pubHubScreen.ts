@@ -9,6 +9,7 @@
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { tonightsPatrons, type Opponent, type OpponentTier } from "../pub/opponents.ts";
 import { loadPubState } from "../pub/pubState.ts";
+import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
 
@@ -25,6 +26,7 @@ export interface PubHubOptions {
   onStartMatch: (opponent: Opponent, stakedCardId: string | null) => void;
   onOpenTournaments: () => void;
   onOpenBackRoom: () => void;
+  onOpenSaveData: () => void;
   pendingReveals?: PendingReveal[];
 }
 
@@ -193,7 +195,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const screen = el("div", "pub-hub");
 
     const header = el("div", "pub-hub-header");
-    header.appendChild(el("h1", "pub-hub-title", "The Wheatstone Bridge"));
+    const titleWrap = el("div", "pub-hub-title-wrap");
+    titleWrap.appendChild(el("h1", "pub-hub-title", "The Wheatstone Bridge"));
+    titleWrap.appendChild(el("span", "pub-hub-subtitle", titleForWins(pub.totalWins)));
+    header.appendChild(titleWrap);
     const checksBadge = el("div", "checks-badge");
     checksBadge.appendChild(el("span", "checks-badge-value", String(pub.checks)));
     checksBadge.appendChild(el("span", "checks-badge-label", "Checks"));
@@ -215,6 +220,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     backRoomBtn.type = "button";
     backRoomBtn.addEventListener("click", options.onOpenBackRoom);
     deckRowButtons.appendChild(backRoomBtn);
+    const saveDataBtn = el("button", "taproom-button taproom-button--secondary", "Save & data");
+    saveDataBtn.type = "button";
+    saveDataBtn.addEventListener("click", options.onOpenSaveData);
+    deckRowButtons.appendChild(saveDataBtn);
     deckRow.appendChild(deckRowButtons);
     screen.appendChild(deckRow);
 

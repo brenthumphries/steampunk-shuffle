@@ -665,10 +665,21 @@ body {
   gap: 0.6rem;
 }
 
+.pub-hub-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .pub-hub-title {
   margin: 0;
   color: var(--amber);
   font-size: 1.4rem;
+}
+
+.pub-hub-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .checks-badge {
@@ -1061,4 +1072,41 @@ body {
   flex-direction: column;
   gap: 0.4rem;
   width: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   Save & data screen (plan step 2.6, design.md §12.4).
+--------------------------------------------------------------------- */
+
+.deck-builder-subtitle {
+  margin-left: auto;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.save-screen-copy {
+  opacity: 0.85;
+}
+
+.save-screen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.save-screen-actions label.action-button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.save-screen-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.save-screen-status {
+  color: var(--amber);
 }

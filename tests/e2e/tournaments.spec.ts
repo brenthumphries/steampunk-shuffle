@@ -64,13 +64,15 @@ test.describe("tournaments (plan step 2.4)", () => {
     await playButton.click();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
 
-    // Reloading mid-tournament (design.md §10: "the bracket persists in the
-    // save, so a tournament can be left mid-way and resumed") drops the
-    // live match but keeps the bracket — the chalkboard should offer
-    // Resume, not a fresh Enter, for this tournament.
+    // Reloading mid-match now resumes straight back into it (plan step 2.6,
+    // design.md §12.4: "kill the app mid-match → resume") instead of
+    // dropping to the pub hub. The bracket itself still persists
+    // independently (design.md §10) for the case where there's no live
+    // match to resume (e.g. between two bracket matches) — that path is
+    // unchanged by this step and isn't re-tested here.
     await page.reload();
-    await page.getByRole("button", { name: "The chalkboard" }).click();
-    await expect(page.locator(".tournament-row").filter({ hasText: "The Tuesday Knockout" }).getByRole("button", { name: "Resume" })).toBeVisible();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await expect(page.locator(".side-name").first()).not.toHaveCount(0);
   });
 
   test("the Birthday Invitational stays locked before October 30 and unlocks once the date trigger fires", async ({ page }) => {

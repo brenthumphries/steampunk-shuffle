@@ -57,4 +57,20 @@ test.describe("match screen (plan step 2.1)", () => {
     await overlay.click({ position: { x: 5, y: 5 } });
     await expect(overlay).toHaveCount(0);
   });
+
+  test("reloading mid-match resumes it instead of restarting (plan step 2.6, design.md §12.4)", async ({ page }) => {
+    await page.goto("/steampunk-shuffle/");
+    await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
+
+    const firstCard = page.locator(".hand-row .card--tappable").first();
+    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    await firstCard.click();
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+    await expect(page.locator(".board-row .card").first()).toBeVisible();
+
+    await page.reload();
+
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await expect(page.locator(".board-row .card").first()).toBeVisible();
+  });
 });

@@ -27,6 +27,8 @@ import {
   type DeckSlot,
 } from "../decks/deckSlots.ts";
 import { loadDeckSlotsState, saveDeckSlotsState, type DeckSlotsState } from "../decks/deckStorage.ts";
+import { loadPubState } from "../pub/pubState.ts";
+import { titleForWins } from "../pub/progression.ts";
 
 export interface DeckBuilderOptions {
   onExit: () => void;
@@ -88,6 +90,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     backBtn.addEventListener("click", () => options.onExit());
     header.appendChild(backBtn);
     header.appendChild(el("h1", "deck-builder-title", "Your decks"));
+    header.appendChild(el("span", "deck-builder-subtitle", titleForWins(loadPubState().totalWins)));
     screen.appendChild(header);
 
     const list = el("div", "deck-slot-list");

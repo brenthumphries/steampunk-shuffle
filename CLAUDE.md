@@ -671,15 +671,103 @@ logic, not a skill meant to run repeatedly. If a future session opens
 specifically to build a plan step, open it on the model the plan lists
 first, per this file's model-discipline rule.
 
-**Next task:** 2.6, progression + save (design.md §12, plan step 2.6):
-opponent-tier unlocks by wins (already substantially implemented via
-`totalWins`/`isOpponentInTown`), a real autosave/export-import system that
-folds together the currently-separate `steampunk-shuffle:pub-state`,
-`steampunk-shuffle:deck-slots`, and tournament-state localStorage keys
-(flagged as its job since 2.2), and finally deciding whether the deck
-builder's card grid gets restricted to owned copies now that a real
-collection with real acquisition paths exists (flagged repeatedly since
-2.2/2.3/2.4/2.5).
+2.6 done. Opponent-tier unlocks by wins were already substantially in
+place (`totalWins`/`isOpponentInTown`, `Tournament.isUnlocked`, Bar Bet/
+Tinker's Bench win gates) — this step's actual new work was the titles
+half of design.md §12.1 (`src/pub/progression.ts`'s `titleForWins`, a pure
+lookup over the six-row table, shown on the deck-slot screen per the
+design doc's own wording via `deckBuilderScreen.ts`'s header, and also on
+the pub hub's header for visibility) and the save system (design.md §12.4).
+
+**Mid-match resume is the real substance of this step** —
+`src/save/activeMatch.ts` (its own localStorage key,
+`steampunk-shuffle:active-match`, same defensive load/save pattern as the
+other three stores) persists the engine's `MatchState` plus the AI RNG
+seed, the human deck actually being played, and a `MatchContext`
+(`{kind:"pickup", opponentId, stakedCardId}` or
+`{kind:"tournament", tournamentId}`). `matchScreen.ts` grew two options:
+`initialState` (resume into a saved `MatchState`/seed instead of dealing a
+fresh one — `phase` is initialized to `match-over` rather than `idle` if
+the resumed match had already finished) and `onStateChange`, fired once on
+mount and again inside `afterCommit` after every committed turn (human
+play, AI turn, or a forced pass) — the single point every state mutation
+already funneled through. `src/main.ts`'s `mountMatch` wraps
+`mountMatchScreen` to call `saveActiveMatch` on every `onStateChange` and
+`clearActiveMatch` right before `onExit`'s result-handling runs; `startMatch`/
+`startBracketMatch` were refactored to go through it, and their `onExit`
+bodies pulled out into standalone `finishPickupMatch`/`finishTournamentMatch`
+functions so `tryResumeActiveMatch` (called at boot, before `showPubHub()`)
+can reuse the exact same result-handling for a resumed match. A resumed
+tournament match re-derives its opponent and match index fresh from the
+tournament's own persisted bracket (`currentMatchIndex`, already existing
+from 2.4) rather than trusting a second stored copy, so the two can never
+drift apart — if the bracket and the saved match ever disagree (e.g. a
+bracket that's since finished by some other path), it just discards the
+stale match save and falls through to the pub hub instead of resuming into
+something wrong. **Two small, deliberate simplifications**: a staged-but-
+unconfirmed card pick (the Play/Cancel bar showing) isn't itself persisted
+— only a *committed* turn triggers `onStateChange` — so killing the app
+mid-stage loses just that uncommitted pick, not the match; and killing the
+app while the round-reveal overlay is up resumes straight into the next
+turn rather than replaying that overlay, since the engine state itself has
+no notion of "paused for a reveal," only the transient UI `phase` does.
+
+**Export/import (`src/save/saveFile.ts`, `src/ui/saveScreen.ts`,
+design.md's "single JSON blob") deliberately did not merge the game's
+four localStorage keys into one.** `pubState.ts`/`deckStorage.ts`/
+`tournamentState.ts` each already have their own defensive load/save and
+their own passing tests, and — found while checking this — several e2e
+smoke tests seed state by writing `steampunk-shuffle:pub-state` or
+`steampunk-shuffle:tournament-state` directly
+(`tests/e2e/pubHub.spec.ts`, `tests/e2e/tournaments.spec.ts`), so an actual
+key merge would have broken working, deliberately-chosen test seams for a
+mostly-cosmetic win. Instead `buildSaveFile()` gathers all four stores
+(the fourth being the new active-match one) into one versioned object for
+export, and `applySaveFile()` validates the top-level shape and writes all
+four back on import — satisfying "single JSON blob" without touching the
+stores' internal storage. `saveScreen.ts` (reachable via a new "Save &
+data" button on the pub hub) tries `navigator.share` with a `File` first
+and falls through to a plain `<a download>` blob when the Share API (or
+file-sharing support in it) isn't there — manually verified in-browser:
+this dev environment doesn't support share-with-files, so Export
+correctly fell through to a download, named
+`steampunk-shuffle-save-<date>.json`.
+
+Manually verified end-to-end in the browser at the iPhone 17 viewport: played
+a real turn against Mudd, reloaded mid-match, and it resumed into the exact
+same board state — including the AI's reply, which the resume flow correctly
+re-scheduled and played out after reload rather than replaying or losing.
+Also confirmed the deck-builder header now reads a real title ("Known at the
+Bar" at 6 seeded wins) and the pub hub shows "Newcomer" for a fresh player.
+Playwright's own mid-tournament-reload smoke test
+(`tests/e2e/tournaments.spec.ts`) previously asserted that reloading
+mid-match *dropped* the live match back to the pub hub (the pre-2.6 gap this
+step exists to close) — updated to assert the opposite (reload resumes
+straight into the match) now that it's real, and a new smoke test in
+`tests/e2e/match.spec.ts` covers the same resume behavior for a plain pickup
+game. 22 e2e tests total (up from 21), all passing. 327 unit tests total
+(project-wide, up from 313 — 14 new: `progression.test.ts`,
+`save/activeMatch.test.ts`, `save/saveFile.test.ts`), all passing; `npm run
+typecheck` and `npm run build` both clean.
+
+**Still open, carried forward — not this step's job:** whether the deck
+builder's card grid should be restricted to owned copies now that a real
+collection exists (flagged repeatedly since 2.2/2.3/2.4/2.5, not resolved
+here — this step touched save/progression, not ownership gating). Design.md
+§12.4 also lists "tutorial/hint progress," "settings," and "first-launch
+flag" as save contents — none of those are real systems yet (2.7, 3.4, and
+3.5 respectively), so they're deliberately not in `SaveFile`'s shape; whichever
+of those steps builds the underlying feature should add its own field to
+`SaveFile`/`buildSaveFile`/`applySaveFile` rather than this step guessing at
+a shape nothing consumes yet.
+
+**Next task:** 2.7, tutorial (design.md §13, plan step 2.7): the
+barkeep-narrated first match against Sir Charles with forced draws on both
+sides (design.md §13.1 — the engine already supports a deck-order override
+via `createMatch`'s `{shuffle: false}`, flagged as exactly this mechanism
+back in 1.2's gotchas), beer-mat narration that slides in and dismisses
+without blocking a legal move, hint chips for the next 3 matches, and a
+"House Rules" reference page.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
