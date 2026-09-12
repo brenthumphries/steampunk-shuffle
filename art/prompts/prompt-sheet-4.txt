@@ -1,0 +1,262 @@
+================================================================================
+[1/16] the-parsonage-snug  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a small, cosy snug room: low beams, a worn armchair by a modest fire, a scatter of cat-shaped indents in the cushions though no cat is in frame, faded wallpaper. Full-bleed environment, enough depth to read as a place at a glance, no figures. Warm gaslight-amber key light from the fire, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people or animals in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.3, starter deck's Location. "Where the cats sleep. Named for a house in Haworth none of them have visited."
+
+================================================================================
+[2/16] the-concertina-works  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a Foundry workshop corner turned makeshift music room: a concertina resting on a brass-fitted workbench beside coils of tubing, a small hand-lettered sign nailed to the wall, gear-work overhead. Full-bleed, no figures. Warm brass-and-copper key light, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame, no legible text on the sign
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §15 (Wayne's World easter egg): the sign on the wall reads NO STAIRWAY, but the base negative-prompt forbids all legible lettering — keep the sign as an unreadable printed scrawl, per the card's flavour rather than literal legible text.
+
+================================================================================
+[3/16] the-reading-room  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a quiet reading room: shelves of leather-bound books, a single book left open face-down on a side table, a green-shaded reading lamp casting a warm pool of light, verdigris accents on old brass fittings. Full-bleed, no figures. Warm gaslight key light, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Nobody has finished the book on the side table. Everyone's read the inscription."
+
+================================================================================
+[4/16] baker-street  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a foggy Victorian street of townhouses, a row of gaslamps disappearing one by one into thickening fog, a single lit window overhead. Full-bleed environment, enough depth to read as a place at a glance, no figures. Warm gaslight-amber key light from the lamps, cool blue-grey fog dominant. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "A fog so reliable you could set a watch by which lamp it swallowed first." No relation to the 'portrait-sherlock-holmes'/'sherlock-holmes' assets — a place card, not a character one.
+
+================================================================================
+[5/16] the-bow-street-office  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of an old, well-worn police office: a high wooden counter, a wall of pigeonholed case files, a gunmetal-blue lamp over the duty desk, everything slightly too orderly. Full-bleed, no figures. Warm gaslight-amber key light, cool gunmetal-blue ambient dominant. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "The oldest office of them all, and still the one everyone else measures against."
+
+================================================================================
+[6/16] the-gasworks  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a towering brass-and-iron gasworks structure against a smog-hazed sky, retorts and pipework catching the last warm light, a single caged lamp near ground level. Full-bleed environment, no figures. Warm brass key light, cool ambient haze. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "You can hear it three streets off and smell it from five."
+
+================================================================================
+[7/16] the-reichenbach-falls  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of a dramatic waterfall gorge, mist rising off dark rock, a narrow cliffside path vanishing round the bend, cold and vast. Full-bleed environment, enough depth to read as a place at a glance, no figures. Cool gunmetal-blue-grey key light through the mist, a thin warm rim of distant amber sky. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Professor Moriarty's own Location (design.md §9.3). "You stand fire admirably. Most people don't stand at all."
+
+================================================================================
+[8/16] the-overnight-express  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view down the interior corridor of a Victorian night train, sleeper compartment doors closed along one side, a single swaying oil lamp, condensation on a dark window showing only fog and telegraph poles rushing past. Full-bleed, no figures. Warm gaslight-amber key light from the lamp, cool blue-grey ambient fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Agatha Christie's own Location (design.md §9.3). "Everybody had a compartment. Somebody's still explaining theirs."
+
+================================================================================
+[9/16] sherlock-holmes  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a tall, sharp-featured detective mid-deduction, eyes fixed on a small detail just off-frame (a cuff, a stray thread), faint satisfaction at having already solved it. No deerstalker or cape — accurate to period, not caricature. Warm gaslight-amber key light, cool ambient fill, a thin sovereign-gold rim light marking this as a legendary card. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of Baker Street clutter — papers, a chemistry rack.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no deerstalker cap, no Inverness cape, no calabash pipe
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: His signature legendary card (design.md §9.3) — distinct from 'portrait-sherlock-holmes' (sheet 1, already ingested), the tonight's-patrons roster asset. "You've been to the Foundry. It's on your cuff." Legendary cards get a sovereign-gold accent per style-bible.md §2.
+
+================================================================================
+[10/16] professor-moriarty  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a gaunt, high-domed academic, hands loosely clasped, unnervingly still, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight-amber accent light, oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a study with a chalkboard of faint, barely-legible equations.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no legible mathematics or writing on the chalkboard
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: His signature legendary card (design.md §9.3) — distinct from 'portrait-professor-moriarty' (sheet 1, already ingested). "You stand fire admirably."
+
+================================================================================
+[11/16] dame-agatha  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a composed Victorian woman writer mid-thought, pen resting against her chin, a faint knowing smile, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight key light, cool verdigris-green ambient fill from drawing-room brocade. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a study desk.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Agatha Christie's signature legendary card (design.md §9.3) — distinct from 'portrait-agatha-christie' (sheet 2). "The obvious suspect is the deck you built."
+
+================================================================================
+[12/16] hercule-poirot  (character · yard)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-constable-tobias-mudd.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a small, immaculately dressed Belgian gentleman, one finger raised beside his temple, satisfied and precise expression, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight-amber accent light, cool gunmetal-blue dominant in a sharply tailored coat. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a perfectly tidy parlour.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: His signature legendary card (design.md §9.3) — distinct from 'portrait-hercule-poirot' (sheet 2). "The little grey cells, mon ami, have already finished."
+
+================================================================================
+[13/16] dr-henry-jekyll  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a mild, well-dressed Victorian gentleman doctor, calm and pleasant, verdigris-green waistcoat, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a study desk with a small chemistry apparatus.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Front face of the Transform card (design.md §5.10, §9.3) — distinct from 'portrait-dr-jekyll-mr-hyde' (sheet 2). Pairs with 'mr-edward-hyde' below; same study desk in both so the two faces read as the same room before/after. "I'm quite well. Round two, ask again."
+
+================================================================================
+[14/16] mr-edward-hyde  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a larger, unsettling figure with a stooped, coiled posture, dark oxblood-leather clothing straining at the shoulders, a cold and unreadable expression, a thin sovereign-gold rim light marking the card as legendary. Warm gaslight-amber accent light, oxblood-leather tones dominant, deep cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of the same study desk, now overturned.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised, no gore, no monstrous or inhuman features — unsettling through posture and shadow, not disfigurement
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Back face of the same Transform card as 'dr-henry-jekyll' above (design.md §5.10) — same desk, now disturbed, so the two faces read as one room before/after. "He's a liability."
+
+================================================================================
+[15/16] mary-shelley  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a thoughtful young Victorian woman writer among Foundry workshop brass fittings rather than a writing desk, one hand resting on a half-assembled brass-and-copper framework, a private, slightly mischievous smile, a thin sovereign-gold rim light marking the card as legendary. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop machinery.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Her signature legendary card (design.md §9.3) — distinct from 'portrait-mary-shelley' (sheet 2). "I wrote him at nineteen. What have you made?"
+
+================================================================================
+[16/16] the-landlady  (character · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Three-quarter-from-behind view of a woman seated in a high-backed wing chair by the fire, face turned toward the flames and away from the viewer, indistinct and unlit except for a single sovereign-gold accent catching the edge of her sleeve or hair. The rest of the room falls to parchment-cream and ink-black shadow. Confident inked contours softened under paint, faint paper-grain texture, a single warm firelight source.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no visible face, no portrait framing — a presence seen from behind, not a character study, no other figures in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §14.3 / style-bible.md §6: "The Landlady is never a portrait... seen from the bar, face turned toward the fire... in silhouette or three-quarter-from-behind... she is a presence, not a character design." This is the one Character-type card in the set that deliberately does NOT use the standard bust-to-waist framing — a documented exception, not an oversight. "Her name is on the licence. Everyone else just drinks here."

@@ -1,0 +1,214 @@
+{
+  "_readme": "Input to `npm run art-prompts -- art/prompts/sheet-3-manifest.json 3`. Plan step 1.6, prompt sheet 3: the full Rookery, Foundry, and Salon family card sets (9 cards each, src/cards/data/families/). Same seed as sheet 2 — byFamily points at the real ingested portrait webps from sheet 1's batch, so every character-type card in these three families auto-attaches its approved opponent portrait for consistency.",
+  "seed": {
+    "alwaysAttach": ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"],
+    "byFamily": {
+      "yard": "public/art/portrait-constable-tobias-mudd.webp",
+      "irregulars": "public/art/portrait-old-nell-ashby.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp",
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "pickpocket",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist, three-quarter portrait of a nimble young pickpocket in worn oxblood-leather-trimmed clothes, already half-turned to leave, a pocket watch just visible pinched between two fingers behind her back. Faint, satisfied smile. Warm gaslight-amber key light, oxblood-leather tones dominant in wardrobe, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a crowded market street.",
+      "notes": "\"You'll notice the watch is gone about the time she's gone too.\""
+    },
+    {
+      "assetId": "forger",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist portrait of a precise, ink-stained forger at a lamplit desk, pen poised mid-stroke over a document, faintly offended expression as if the comparison to the original signature is beneath him. Warm gaslight-amber key light, oxblood-leather desk tones, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of stacked ledgers.",
+      "notes": "\"His signatures are better than the originals. He finds that insulting.\""
+    },
+    {
+      "assetId": "cracksman",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist, three-quarter portrait of a broad, deliberate safe-cracker kneeling beside a heavy iron safe, ear near the dial, one hand resting still on the handle, an expression of total unhurried patience. Warm gaslight-amber key light, oxblood-leather tones in his coat, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cellar strongroom.",
+      "notes": "\"Every safe has a weak hinge. He's very patient about finding it.\""
+    },
+    {
+      "assetId": "fences-runner",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist portrait of a quick, unremarkable-looking young runner clutching a plain wrapped parcel to his chest, already mid-stride, eyes forward and unbothered. Warm gaslight-amber key light, oxblood-leather accents, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a narrow backstreet.",
+      "notes": "\"Carries the parcel three streets before anyone thinks to ask what's in it.\""
+    },
+    {
+      "assetId": "the-lookout",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Bust-to-waist, three-quarter portrait of a sharp-eyed lookout pressed into a doorway shadow, two fingers at her lips mid-whistle, eyes fixed on something down the street. Warm gaslight-amber key light catching one side of her face, oxblood-leather tones, cool ambient shadow dominant. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a foggy corner.",
+      "notes": "\"Whistles once for the beat copper, twice for the more interesting kind of trouble.\""
+    },
+    {
+      "assetId": "emily",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "Close bust portrait of a tiny long-haired brown tabby cat, alert and mid-theft, one paw already lifted off a saucer, ears pricked toward an unseen sound, caught candid rather than posed. Warm gaslight-amber rim light, oxblood-leather-toned shadow behind her. Confident inked contours softened under paint, faint paper-grain texture.",
+      "extraNegatives": ["no cute/cartoon cat style"],
+      "notes": "design.md §8.2, the Rookery's pub cat. Style-bible.md §6: 'tiny long-haired brown tabby, alert, caught mid-theft.' \"Small, brown, and gone before the treat tin closes.\""
+    },
+    {
+      "assetId": "skeleton-key",
+      "category": "gadget",
+      "family": "rookery",
+      "prompt": "Object study of a worn brass skeleton key resting on a scarred wooden windowsill beside a half-open shutter, shallow depth of field, no hands in frame. Fine file-marks and old brass patina visible on the bit. Warm gaslight-amber key light, oxblood-leather-toned shadow, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Fits every lock in Whitechapel and no lock it was cut for.\""
+    },
+    {
+      "assetId": "regs-ledger",
+      "category": "scheme",
+      "family": "rookery",
+      "prompt": "A small vignette: an open pawnshop ledger on a counter, one entry crossed out and rewritten in a different hand, a loupe resting on the open page. Symbolic rather than literal. Warm gaslight-amber key light, oxblood-leather counter tones, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Dodgy\" Reg Farrow's reward card (design.md §9.1). \"Everything on this page is legitimate. Mostly.\""
+    },
+    {
+      "assetId": "cat-burglar-strikes-again",
+      "category": "headline",
+      "family": "rookery",
+      "prompt": "Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a cat's paw print over a broken window latch, engraved-linework aesthetic as if printed rather than painted, oxblood-leather accents in the border rule lines. Faint paper-grain and foxing texture.",
+      "extraNegatives": ["no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene"],
+      "notes": "\"Nothing taken but a sardine. Constabulary baffled.\""
+    },
+    {
+      "assetId": "apprentice-fitter",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a young Foundry apprentice, sleeves rolled, a spanner held slightly the wrong way round, soot-smudged cheek, earnest concentrating expression. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop machinery.",
+      "notes": "design.md §8.3, Sir Charles's house deck. \"Still learning which end of the spanner is which.\""
+    },
+    {
+      "assetId": "boiler-hand",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a weathered boiler-room worker, eyes fixed on a brass pressure gauge just out of frame, steam curling past one shoulder, calm and practised expression. Warm brass-and-copper key light with a hot amber glow, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of pipework and rivets.",
+      "notes": "\"Reads the pressure gauge the way other men read the weather.\""
+    },
+    {
+      "assetId": "riveter",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist, three-quarter portrait of a stocky riveter mid-swing, rivet gun braced against a brass hull plate, ear turned slightly away from the impact out of old habit, proud half-grin. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a workshop floor.",
+      "notes": "\"Deafened in one ear, twenty years back, and proud of it.\""
+    },
+    {
+      "assetId": "brass-cog",
+      "category": "gadget",
+      "family": "foundry",
+      "prompt": "Object study of a single well-worn brass cog resting on an oily workbench cloth beside a scatter of small tools, shallow depth of field, no hands in frame. Fine engineering detail on the teeth. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Small enough to lose, important enough that you don't.\""
+    },
+    {
+      "assetId": "steam-hammer",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist portrait of a massive, calm steam-hammer operator standing beside the machine's raised head, one hand on the lever, utterly unhurried confidence. Warm brass-and-copper key light with a bright flash of live steam behind him, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of the hammer's brass housing.",
+      "notes": "\"One stroke. That's all it ever needs.\""
+    },
+    {
+      "assetId": "foreman-gudgeon",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist, three-quarter portrait of a heavyset Foundry foreman signing a clipboard without looking at it, pen already moving to the next line, thoroughly bored expression. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a workshop floor and hanging tools.",
+      "notes": "\"Signs off on everything. Reads none of it.\""
+    },
+    {
+      "assetId": "difference-engine",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "Bust-to-waist framing of a difference-engine apparatus itself in place of a human sitter — ranked brass number-wheels and cranks catching the light, rendered with real engineering logic, as if it were the room's most important guest. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop shelving.",
+      "notes": "A Foundry Character card with no human figure — the machine itself is the subject, per style-bible.md §3's 'render mechanical detail with real engineering logic.' \"Computes the tables so nobody has to trust a clerk's arithmetic.\""
+    },
+    {
+      "assetId": "sabotage",
+      "category": "scheme",
+      "family": "foundry",
+      "prompt": "A small vignette: a spanner mid-flight over a gear train, one cog already knocked loose and spinning off, the instant of the sabotage rather than its aftermath. Symbolic rather than literal. Warm brass-and-copper key light, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "design.md §15 (Dodgeball easter egg). \"If you can dodge a spanner, you can dodge a constable.\""
+    },
+    {
+      "assetId": "party-time-excellent",
+      "category": "headline",
+      "family": "foundry",
+      "prompt": "Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a factory whistle mid-blast with radiating steam lines, engraved-linework aesthetic as if printed rather than painted, brass-and-copper accents in the border rule lines. Faint paper-grain and foxing texture.",
+      "extraNegatives": ["no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene"],
+      "notes": "design.md §15 (Wayne's World easter egg). \"The Foundry's whistle blew an hour early. Nobody's arguing.\""
+    },
+    {
+      "assetId": "parlour-guest",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Bust-to-waist portrait of an unremarkable, perfectly pleasant Victorian parlour guest mid-conversation, teacup in hand, comfortable and settled-in expression. Warm gaslight key light, cool verdigris-green ambient fill from drawing-room brocade. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a parlour armchair.",
+      "notes": "design.md §8.3, starter deck. \"Arrived with the second post, will leave with the last train.\""
+    },
+    {
+      "assetId": "amateur-sleuth",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Bust-to-waist, three-quarter portrait of an eager amateur sleuth leaning slightly forward, one finger raised mid-theory, magnifying glass held loosely in the other hand, bright and slightly overexcited expression. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cluttered study.",
+      "notes": "\"Has a theory. Has several theories. Would like to share them.\""
+    },
+    {
+      "assetId": "bramwell",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Close bust portrait of a tuxedo cat, chest out, mouth open mid-announcement as if mid-yowl of greeting, candid framing rather than posed. Warm gaslight key light, cool verdigris-green ambient fill behind him. Confident inked contours softened under paint, faint paper-grain texture.",
+      "extraNegatives": ["no cute/cartoon cat style"],
+      "notes": "design.md §8.2, one of the Salon's two pub cats. Style-bible.md §6: 'tuxedo cat, chest out, mouth open mid-announcement.' \"Announces himself in the doorway, then in your lap, then again in case you missed it.\""
+    },
+    {
+      "assetId": "seance",
+      "category": "scheme",
+      "family": "salon",
+      "prompt": "A small vignette: a small round table set for a séance, candle guttering sideways as if from an unseen draft, one chair pushed slightly back on its own. Symbolic rather than literal. Warm gaslight key light, cool verdigris-green ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Not sure if the spirits, or the drains.\""
+    },
+    {
+      "assetId": "afternoon-tea",
+      "category": "gadget",
+      "family": "salon",
+      "prompt": "Object study of a full tea service on a lace-cloth side table, steam rising from the pot, a single unclaimed cup already poured, shallow depth of field, no hands in frame. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Served whether or not anyone asked for it.\""
+    },
+    {
+      "assetId": "banshee",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Close bust portrait of a long-haired tortoiseshell cat mid-yowl, in motion, ears back and mouth wide, candid framing as if caught mid-protest rather than posed. Warm gaslight key light, cool verdigris-green ambient fill behind her. Confident inked contours softened under paint, faint paper-grain texture.",
+      "extraNegatives": ["no cute/cartoon cat style"],
+      "notes": "design.md §8.2, the Salon's other pub cat. Style-bible.md §6: 'long-haired tortoiseshell, mid-yowl, in motion.' \"Nobody is going anywhere in the carriage. Nobody. Ask her.\""
+    },
+    {
+      "assetId": "miss-hollis-authoress",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Bust-to-waist, three-quarter portrait of Miss Prudence Hollis at a writing desk rather than a parlour chair, pen paused mid-sentence, the same knowing half-smile as if she's already worked out the ending, a stack of manuscript pages beside her under a man's pen-name. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a writing desk and bookshelf.",
+      "notes": "Miss Prudence Hollis's reward card (design.md §9.1) — same character as portrait-miss-prudence-hollis, shown here at her writing desk (the 'authoress' identity) rather than the parlour setting of her roster portrait. Attach public/art/portrait-miss-prudence-hollis.webp by hand alongside the auto-attached salon reference for likeness continuity. \"I've already worked out how you did it. Sit down.\""
+    },
+    {
+      "assetId": "the-hypnofrog",
+      "category": "character",
+      "family": "salon",
+      "prompt": "Bust-to-waist, symmetrical portrait of an oddly dignified frog perched on a velvet drawing-room cushion as if it were a place of honour, the room's Victorian guests implied only as a soft blur of admiring shapes around it. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture.",
+      "extraNegatives": ["no cartoon or cute frog style", "no visible people's faces"],
+      "notes": "design.md §15 (Futurama easter egg). Played straight-faced within the house style rather than as a joke illustration — the humour is in the composition (a frog given a formal portrait), not a cartoon treatment. \"All glory to it, the drawing room agreed, somewhat suddenly.\""
+    },
+    {
+      "assetId": "the-seasons-most-talked-about-engagement",
+      "category": "headline",
+      "family": "salon",
+      "prompt": "Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of two entwined wedding rings over a fan of gossiping speech-scroll shapes, engraved-linework aesthetic as if printed rather than painted, verdigris-green accents in the border rule lines. Faint paper-grain and foxing texture.",
+      "extraNegatives": [
+        "no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene",
+        "no legible text on the scroll shapes"
+      ],
+      "notes": "\"Nobody at the Bridge has met either party, which has not slowed the speculation.\""
+    }
+  ]
+}

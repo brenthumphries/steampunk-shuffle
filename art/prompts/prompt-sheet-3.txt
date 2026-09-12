@@ -1,0 +1,449 @@
+================================================================================
+[1/27] pickpocket  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a nimble young pickpocket in worn oxblood-leather-trimmed clothes, already half-turned to leave, a pocket watch just visible pinched between two fingers behind her back. Faint, satisfied smile. Warm gaslight-amber key light, oxblood-leather tones dominant in wardrobe, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a crowded market street.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "You'll notice the watch is gone about the time she's gone too."
+
+================================================================================
+[2/27] forger  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a precise, ink-stained forger at a lamplit desk, pen poised mid-stroke over a document, faintly offended expression as if the comparison to the original signature is beneath him. Warm gaslight-amber key light, oxblood-leather desk tones, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of stacked ledgers.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "His signatures are better than the originals. He finds that insulting."
+
+================================================================================
+[3/27] cracksman  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a broad, deliberate safe-cracker kneeling beside a heavy iron safe, ear near the dial, one hand resting still on the handle, an expression of total unhurried patience. Warm gaslight-amber key light, oxblood-leather tones in his coat, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cellar strongroom.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Every safe has a weak hinge. He's very patient about finding it."
+
+================================================================================
+[4/27] fences-runner  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a quick, unremarkable-looking young runner clutching a plain wrapped parcel to his chest, already mid-stride, eyes forward and unbothered. Warm gaslight-amber key light, oxblood-leather accents, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a narrow backstreet.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Carries the parcel three streets before anyone thinks to ask what's in it."
+
+================================================================================
+[5/27] the-lookout  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a sharp-eyed lookout pressed into a doorway shadow, two fingers at her lips mid-whistle, eyes fixed on something down the street. Warm gaslight-amber key light catching one side of her face, oxblood-leather tones, cool ambient shadow dominant. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a foggy corner.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Whistles once for the beat copper, twice for the more interesting kind of trouble."
+
+================================================================================
+[6/27] emily  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Close bust portrait of a tiny long-haired brown tabby cat, alert and mid-theft, one paw already lifted off a saucer, ears pricked toward an unseen sound, caught candid rather than posed. Warm gaslight-amber rim light, oxblood-leather-toned shadow behind her. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no cute/cartoon cat style
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.2, the Rookery's pub cat. Style-bible.md §6: 'tiny long-haired brown tabby, alert, caught mid-theft.' "Small, brown, and gone before the treat tin closes."
+
+================================================================================
+[7/27] skeleton-key  (gadget · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Object study of a worn brass skeleton key resting on a scarred wooden windowsill beside a half-open shutter, shallow depth of field, no hands in frame. Fine file-marks and old brass patina visible on the bit. Warm gaslight-amber key light, oxblood-leather-toned shadow, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Fits every lock in Whitechapel and no lock it was cut for."
+
+================================================================================
+[8/27] regs-ledger  (scheme · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: an open pawnshop ledger on a counter, one entry crossed out and rewritten in a different hand, a loupe resting on the open page. Symbolic rather than literal. Warm gaslight-amber key light, oxblood-leather counter tones, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Dodgy" Reg Farrow's reward card (design.md §9.1). "Everything on this page is legitimate. Mostly."
+
+================================================================================
+[9/27] cat-burglar-strikes-again  (headline · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a cat's paw print over a broken window latch, engraved-linework aesthetic as if printed rather than painted, oxblood-leather accents in the border rule lines. Faint paper-grain and foxing texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Nothing taken but a sardine. Constabulary baffled."
+
+================================================================================
+[10/27] apprentice-fitter  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a young Foundry apprentice, sleeves rolled, a spanner held slightly the wrong way round, soot-smudged cheek, earnest concentrating expression. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop machinery.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.3, Sir Charles's house deck. "Still learning which end of the spanner is which."
+
+================================================================================
+[11/27] boiler-hand  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a weathered boiler-room worker, eyes fixed on a brass pressure gauge just out of frame, steam curling past one shoulder, calm and practised expression. Warm brass-and-copper key light with a hot amber glow, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of pipework and rivets.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Reads the pressure gauge the way other men read the weather."
+
+================================================================================
+[12/27] riveter  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a stocky riveter mid-swing, rivet gun braced against a brass hull plate, ear turned slightly away from the impact out of old habit, proud half-grin. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a workshop floor.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Deafened in one ear, twenty years back, and proud of it."
+
+================================================================================
+[13/27] brass-cog  (gadget · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Object study of a single well-worn brass cog resting on an oily workbench cloth beside a scatter of small tools, shallow depth of field, no hands in frame. Fine engineering detail on the teeth. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Small enough to lose, important enough that you don't."
+
+================================================================================
+[14/27] steam-hammer  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a massive, calm steam-hammer operator standing beside the machine's raised head, one hand on the lever, utterly unhurried confidence. Warm brass-and-copper key light with a bright flash of live steam behind him, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of the hammer's brass housing.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "One stroke. That's all it ever needs."
+
+================================================================================
+[15/27] foreman-gudgeon  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of a heavyset Foundry foreman signing a clipboard without looking at it, pen already moving to the next line, thoroughly bored expression. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a workshop floor and hanging tools.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Signs off on everything. Reads none of it."
+
+================================================================================
+[16/27] difference-engine  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist framing of a difference-engine apparatus itself in place of a human sitter — ranked brass number-wheels and cranks catching the light, rendered with real engineering logic, as if it were the room's most important guest. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of workshop shelving.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: A Foundry Character card with no human figure — the machine itself is the subject, per style-bible.md §3's 'render mechanical detail with real engineering logic.' "Computes the tables so nobody has to trust a clerk's arithmetic."
+
+================================================================================
+[17/27] sabotage  (scheme · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: a spanner mid-flight over a gear train, one cog already knocked loose and spinning off, the instant of the sabotage rather than its aftermath. Symbolic rather than literal. Warm brass-and-copper key light, cool ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §15 (Dodgeball easter egg). "If you can dodge a spanner, you can dodge a constable."
+
+================================================================================
+[18/27] party-time-excellent  (headline · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a factory whistle mid-blast with radiating steam lines, engraved-linework aesthetic as if printed rather than painted, brass-and-copper accents in the border rule lines. Faint paper-grain and foxing texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §15 (Wayne's World easter egg). "The Foundry's whistle blew an hour early. Nobody's arguing."
+
+================================================================================
+[19/27] parlour-guest  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of an unremarkable, perfectly pleasant Victorian parlour guest mid-conversation, teacup in hand, comfortable and settled-in expression. Warm gaslight key light, cool verdigris-green ambient fill from drawing-room brocade. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a parlour armchair.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.3, starter deck. "Arrived with the second post, will leave with the last train."
+
+================================================================================
+[20/27] amateur-sleuth  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of an eager amateur sleuth leaning slightly forward, one finger raised mid-theory, magnifying glass held loosely in the other hand, bright and slightly overexcited expression. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cluttered study.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Has a theory. Has several theories. Would like to share them."
+
+================================================================================
+[21/27] bramwell  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Close bust portrait of a tuxedo cat, chest out, mouth open mid-announcement as if mid-yowl of greeting, candid framing rather than posed. Warm gaslight key light, cool verdigris-green ambient fill behind him. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no cute/cartoon cat style
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.2, one of the Salon's two pub cats. Style-bible.md §6: 'tuxedo cat, chest out, mouth open mid-announcement.' "Announces himself in the doorway, then in your lap, then again in case you missed it."
+
+================================================================================
+[22/27] seance  (scheme · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: a small round table set for a séance, candle guttering sideways as if from an unseen draft, one chair pushed slightly back on its own. Symbolic rather than literal. Warm gaslight key light, cool verdigris-green ambient shadow. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Not sure if the spirits, or the drains."
+
+================================================================================
+[23/27] afternoon-tea  (gadget · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Object study of a full tea service on a lace-cloth side table, steam rising from the pot, a single unclaimed cup already poured, shallow depth of field, no hands in frame. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Served whether or not anyone asked for it."
+
+================================================================================
+[24/27] banshee  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Close bust portrait of a long-haired tortoiseshell cat mid-yowl, in motion, ears back and mouth wide, candid framing as if caught mid-protest rather than posed. Warm gaslight key light, cool verdigris-green ambient fill behind her. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no cute/cartoon cat style
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §8.2, the Salon's other pub cat. Style-bible.md §6: 'long-haired tortoiseshell, mid-yowl, in motion.' "Nobody is going anywhere in the carriage. Nobody. Ask her."
+
+================================================================================
+[25/27] miss-hollis-authoress  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, three-quarter portrait of Miss Prudence Hollis at a writing desk rather than a parlour chair, pen paused mid-sentence, the same knowing half-smile as if she's already worked out the ending, a stack of manuscript pages beside her under a man's pen-name. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a writing desk and bookshelf.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Miss Prudence Hollis's reward card (design.md §9.1) — same character as portrait-miss-prudence-hollis, shown here at her writing desk (the 'authoress' identity) rather than the parlour setting of her roster portrait. Attach public/art/portrait-miss-prudence-hollis.webp by hand alongside the auto-attached salon reference for likeness continuity. "I've already worked out how you did it. Sit down."
+
+================================================================================
+[26/27] the-hypnofrog  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist, symmetrical portrait of an oddly dignified frog perched on a velvet drawing-room cushion as if it were a place of honour, the room's Victorian guests implied only as a soft blur of admiring shapes around it. Warm gaslight key light, cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no cartoon or cute frog style, no visible people's faces
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: design.md §15 (Futurama easter egg). Played straight-faced within the house style rather than as a joke illustration — the humour is in the composition (a frog given a formal portrait), not a cartoon treatment. "All glory to it, the drawing room agreed, somewhat suddenly."
+
+================================================================================
+[27/27] the-seasons-most-talked-about-engagement  (headline · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of two entwined wedding rings over a fan of gossiping speech-scroll shapes, engraved-linework aesthetic as if printed rather than painted, verdigris-green accents in the border rule lines. Faint paper-grain and foxing texture.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene, no legible text on the scroll shapes
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: "Nobody at the Bridge has met either party, which has not slowed the speculation."

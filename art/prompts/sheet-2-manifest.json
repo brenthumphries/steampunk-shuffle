@@ -1,0 +1,187 @@
+{
+  "_readme": "Input to `npm run art-prompts -- art/prompts/sheet-2-manifest.json 2`. Plan step 1.6, prompt sheet 2: the 5 opponent roster portraits still missing after sheet 1 (Sir Charles, Christie, Poirot, Dr Jekyll/Mr Hyde, Mary Shelley — CLAUDE.md's 2.3 gotcha), plus the full Yard and Irregulars family card sets (9 cards each, src/cards/data/families/). seed.byFamily now points at the real ingested portrait webps from sheet 1's batch (not the batch-0 reference files sheet 1 seeded from) since those are the approved family looks going forward. Ordered: the 5 portraits first, then Yard, then Irregulars.",
+  "seed": {
+    "alwaysAttach": ["art/reference/The_Wheatstone_Bridge_taproom.jpeg"],
+    "byFamily": {
+      "yard": "public/art/portrait-constable-tobias-mudd.webp",
+      "irregulars": "public/art/portrait-old-nell-ashby.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp",
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "portrait-sir-charles-wheatstone",
+      "category": "portrait",
+      "family": "foundry",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Sir Charles's own established reference portrait. Tighter roster-style crop of the same slender, slightly stooped man in his late sixties: wire-rimmed spectacles, modest side-whiskers, shirtsleeves and a leather bar apron over a waistcoat, a small private almost-smile rather than his usual reserved look, one hand still resting on a glass out of habit. Warm gaslight-amber key light with brass highlights, cool blue-grey ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional Victorian book-plate lighting. Bust-to-shoulders portrait, background a soft blur of the bar's brass fittings.",
+      "notes": "For the pub hub roster (design.md §11.2) — Sir Charles has no roster portraitArtId yet (CLAUDE.md's 2.3 gotcha), only the wider behind-the-bar batch-0 reference. Attach art/reference/Sir_Charles_Wheatstone-behind-the-bar.jpeg by hand as the PRIMARY reference for his likeness — this is the same character, not a new Foundry cast member, so his own reference should lead over the auto-attached Ada Lovelace portrait below."
+    },
+    {
+      "assetId": "portrait-agatha-christie",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Miss Hollis's and Mr Dickens's portraits. Portrait of a composed Victorian woman writer, hair pinned neatly back, a small private smile that gives nothing away, one hand resting on a closed notebook. Warm gaslight key light, cool verdigris-green ambient fill from drawing-room brocade behind her. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study desk and bookshelf.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.3, \"The obvious suspect is the deck you built.\" Distinct from the 'dame-agatha' card-art id used for her signature legendary card (sheet 4)."
+    },
+    {
+      "assetId": "portrait-hercule-poirot",
+      "category": "portrait",
+      "family": "yard",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and the Yard constables' portraits. Portrait of a small, fastidiously dressed Belgian gentleman with an immaculately groomed moustache, chin lifted slightly, hands folded with precise satisfaction as if everything in frame has already been arranged to his standard. Warm gaslight-amber accent light, cool gunmetal-blue dominant in a sharply tailored coat and ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a perfectly tidy parlour.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.3, \"The little grey cells, mon ami, have already finished.\" \"Fussy about the arrangement of his cards\" reflected here in the tidiness of the background. Distinct from the 'hercule-poirot' card-art id (sheet 4)."
+    },
+    {
+      "assetId": "portrait-dr-jekyll-mr-hyde",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Miss Hollis's portrait. Portrait of a mild, well-dressed Victorian gentleman doctor, calm and pleasant expression, verdigris-green waistcoat — but his cast shadow on the wall behind him falls oxblood-dark and broader than his own frame, hinting at a second shape. Warm gaslight key light on the doctor, the shadow lit only by cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of a study.",
+      "extraNegatives": [
+        "no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised",
+        "no visible second face or body — the shadow implies him only"
+      ],
+      "notes": "design.md §9.3, \"I'm quite well. Round two, ask again.\" One roster portrait covering both faces of the Transform opponent — Jekyll's calm foreground plus Hyde's implied shadow — rather than two separate roster assets, since Opponent.portraitArtId (src/pub/opponents.ts) is a single field. Distinct from the 'dr-henry-jekyll'/'mr-edward-hyde' card-art ids (sheet 4)."
+    },
+    {
+      "assetId": "portrait-mary-shelley",
+      "category": "portrait",
+      "family": "foundry",
+      "prompt": "Painterly digital illustration in a Victorian-engineering steampunk style, matching the palette and lighting of the Wheatstone Bridge taproom and Ada Lovelace's portrait. Portrait of a thoughtful young Victorian woman writer, dark hair loosely pinned, a faint, private, slightly mischievous smile, seated near workshop brass fittings and a coil of copper wire rather than a writing desk. Warm brass-and-copper key light, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Bust-to-shoulders portrait, background a soft blur of workshop brass fittings.",
+      "extraNegatives": ["no exact photographic likeness, no caricature exaggeration — recognisable but lightly stylised"],
+      "notes": "design.md §9.3, \"I wrote him at nineteen. What have you made?\" Distinct from the 'mary-shelley' card-art id (sheet 4)."
+    },
+    {
+      "assetId": "constable-on-the-beat",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist, three-quarter portrait of a young Metropolitan Police constable walking his beat: tall custodian helmet worn square, gunmetal-blue wool uniform buttoned to the collar, a whistle chain catching the light, one hand resting on his belt. Steady, unhurried expression — he has all night. Warm gaslight-amber street-lamp key light, cool gunmetal-blue ambient fill favouring the uniform, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a quiet fog-lit street corner.",
+      "notes": "design.md §8.3 starter deck. \"Whistle, helmet, boots. In that order of importance, he'd tell you.\""
+    },
+    {
+      "assetId": "night-watchman",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist portrait of an older night watchman doing his rounds: heavy greatcoat over a gunmetal-blue uniform, a lantern raised at shoulder height, weathered, watchful face lit from below by the lantern's glow. Warm gaslight-amber key light from the lantern, cool blue-grey ambient fill from the fog beyond, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a row of gaslamps receding into fog.",
+      "notes": "\"Every lamp on the street knows his round by heart.\""
+    },
+    {
+      "assetId": "sergeant-pike",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist, three-quarter portrait of a broad, immovable police sergeant, stripes on his sleeve, standing exactly where he always stands, arms loosely folded, an expression of settled patience that has outlasted several buildings behind him. Warm gaslight-amber accent light, cool gunmetal-blue dominant in the uniform and ambient fill, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of the same street corner, worn smooth by his own boots.",
+      "notes": "Constable Tobias Mudd's reward card (design.md §9.1). \"He's been on this corner longer than the corner has.\""
+    },
+    {
+      "assetId": "inspectors-warrant",
+      "category": "scheme",
+      "family": "yard",
+      "prompt": "A small vignette: a folded, wax-sealed warrant document resting on a brass-cornered desk beside an ink pot and a half-lifted quill, the seal's ribbon catching a single shaft of gaslight. Symbolic rather than literal — the paper is the whole scene. Warm gaslight-amber key light, cool gunmetal-blue ambient shadow, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Signed, sealed, and extremely inconvenient.\""
+    },
+    {
+      "assetId": "police-whistle",
+      "category": "gadget",
+      "family": "yard",
+      "prompt": "Object study of a brass police whistle on its chain, coiled on a dark wooden bar top, a thin curl of steam or breath just visible beside it, shallow depth of field, no hands in frame. Brushed-brass highlights, fine engraved maker's scrollwork on the barrel. Warm gaslight-amber key light, cool gunmetal-blue ambient fill, real cast shadow. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"One blast for trouble. Two for tea.\""
+    },
+    {
+      "assetId": "charlotte",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Close bust portrait of a grey-on-grey American shorthair cat, deeply asleep, heavy and settled on a folded police greatcoat, one ear twitching, candid framing as if caught mid-nap rather than posed. Warm gaslight-amber rim light, cool gunmetal-blue ambient shadow across the coat. Confident inked contours softened under paint, faint paper-grain texture.",
+      "extraNegatives": ["no cute/cartoon cat style"],
+      "notes": "design.md §8.2, the Yard's pub cat. Style-bible.md §6: 'grey-on-grey American shorthair, asleep, heavy and settled.' \"Once settled she is not moving, and neither, constable, are you.\""
+    },
+    {
+      "assetId": "constable-reeve",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist portrait of a very young constable, uniform slightly too big at the collar, mid-salute with an earnest, over-eager expression, helmet strap done up a touch too tight. Warm gaslight-amber key light, cool gunmetal-blue ambient fill from the uniform, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a station-house doorway.",
+      "notes": "\"Newest badge on the beat. Salutes everyone, including cats.\""
+    },
+    {
+      "assetId": "detective-sergeant-vale",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist, three-quarter portrait of a sharp-eyed woman plainclothes detective sergeant in a dark gunmetal-blue coat, a notebook held closed in one hand, watching something just off-frame with quiet, patient attention. Warm gaslight-amber accent light, cool gunmetal-blue dominant ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a market-street crowd.",
+      "notes": "\"Small fish, but she'll take the small fish. Habit of the trade.\""
+    },
+    {
+      "assetId": "scotland-yard-announces-arrests",
+      "category": "headline",
+      "family": "yard",
+      "prompt": "Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of crossed constable's truncheons over a pair of manacles, engraved-linework aesthetic as if printed rather than painted, gunmetal-blue accents in the border rule lines. Faint paper-grain and foxing texture, as if aged.",
+      "extraNegatives": ["no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene"],
+      "notes": "\"Several men helping with enquiries. All of them helping a great deal.\""
+    },
+    {
+      "assetId": "flower-seller",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a sharp-eyed young flower seller, a basket of violets at her hip, mouth turned in a knowing half-smile as she talks out the side of it to someone unseen, worn shawl over a patched dress. Warm gaslight-amber key light, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a busy fog-lit corner.",
+      "notes": "\"Sells violets on the corner and everything else out the side of her mouth.\" A younger counterpart to Old Nell Ashby, not the same character."
+    },
+    {
+      "assetId": "cab-driver",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a hansom-cab driver up on his box, muffled in a heavy coat and scarf against the fog, reins loose in one hand, eyes forward with the unbothered look of a man who has seen everything and will mention none of it. Warm gaslight-amber key light from a passing streetlamp, cool ambient fog fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a cab rank at night.",
+      "notes": "\"Knows every address in London and repeats none of them.\""
+    },
+    {
+      "assetId": "the-mudlark",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a barefoot mudlark child at the tideline, trousers rolled, sleeves soaked, one hand closed around something small and unseen, sly and unbothered expression. Warm gaslight-amber key light from the embankment lamps above, cool river-fog ambient fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of mudflats and a lit bridge in the distance.",
+      "notes": "\"Waist-deep in the Thames at low tide, and never once caught at anything.\""
+    },
+    {
+      "assetId": "baker-street-irregular",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a street child in patched clothes, cap pulled low, an alert, quick-eyed expression of someone already three streets ahead of you in their head, one hand out for the coin they've clearly already earned. Warm gaslight-amber key light, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a narrow lamplit alley.",
+      "notes": "\"Paid a shilling a day and worth considerably more.\""
+    },
+    {
+      "assetId": "telegraph-boy",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Bust-to-waist portrait of a telegraph messenger boy in a small pillbox cap and buttoned uniform, an envelope held just out of view against his chest, a carefully blank expression that doesn't quite hide what he's read. Warm gaslight-amber key light, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture. Background a soft blur of a telegraph office counter.",
+      "notes": "\"Whatever's in the envelope, he already knows. He just doesn't say.\""
+    },
+    {
+      "assetId": "hiawatha",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "Close bust portrait of a black American shorthair cat with yellow eyes, half in shadow, only the eyes and a rim of gaslight amber catching the light, caught mid-glance as if he's just called you somewhere you shouldn't go. Warm amber key light with a cool ambient fill, real cast shadow.",
+      "extraNegatives": ["no cute/cartoon cat style", "no colors outside brass/amber/ink-black"],
+      "notes": "design.md §8.2, the Irregulars' pub cat — same character as the approved batch-0 reference, not a new cat. Attach art/reference/Hiawatha.jpeg by hand as the PRIMARY reference alongside the auto-attached Nell Ashby portrait. \"He called from down the hall and round the corner. You went. That was the mistake.\""
+    },
+    {
+      "assetId": "nells-basket",
+      "category": "gadget",
+      "family": "irregulars",
+      "prompt": "Object study of a wicker flower basket on a cobblestone step, violets arranged on top and the edge of a folded, hand-passed note just visible tucked beneath them, shallow depth of field, no hands in frame. Warm gaslight-amber key light, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "Old Nell Ashby's reward card (design.md §9.1). \"Violets on top. Everything worth knowing underneath.\""
+    },
+    {
+      "assetId": "anonymous-tip",
+      "category": "scheme",
+      "family": "irregulars",
+      "prompt": "A small vignette: an unsigned note slipped half under a door in a shaft of gaslight, the door left just ajar, one shadow retreating out of frame. Symbolic rather than literal. Warm gaslight-amber key light, cool ambient shadow, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture.",
+      "notes": "\"Unsigned, but the handwriting's familiar.\""
+    },
+    {
+      "assetId": "good-news-everybody",
+      "category": "headline",
+      "family": "irregulars",
+      "prompt": "Printed Victorian newspaper front page styled as a symmetrical masthead composition: a bold central woodcut-style motif of a town crier's bell and an open envelope, engraved-linework aesthetic as if printed rather than painted, gaslight-amber accents in the border rule lines. Faint paper-grain and foxing texture.",
+      "extraNegatives": ["no realistic photographic scene, no painted figures — a printed graphic object, not an illustrated scene"],
+      "notes": "design.md §15 (Futurama easter egg). \"Wernstrom! No — sorry. Wrong headline. Still good news, though.\""
+    }
+  ]
+}
