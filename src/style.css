@@ -56,8 +56,10 @@ body {
 
 /* ---------------------------------------------------------------------
    Match screen (plan step 2.1). Family frame colours from
-   docs/style-bible.md §2 / design.md §4 — the SVG card frame itself is
-   step 3.1, so this is a flat CSS placeholder, not the final look.
+   docs/style-bible.md §2 / design.md §4. The card frame itself (border
+   gradient + rarity ornament, step 3.1) is built from these in the
+   ".card" rules below; the illustration window is still blank until
+   3.2 wires real art.
 --------------------------------------------------------------------- */
 
 :root {
@@ -67,6 +69,8 @@ body {
   --family-foundry: #a8712f;
   --family-salon: #3e6b5a;
   --family-neutral: #7c6a4d;
+  --gold-leaf: #f6dfa0;
+  --gold-leaf-dark: #a97a1e;
 }
 
 .match-screen {
@@ -216,15 +220,31 @@ body {
 
 /* -- Cards ------------------------------------------------------------ */
 
+/* Card frame (plan step 3.1, design.md §4/§7.3): a metallic gradient
+   border in the card's family colour, plus a rarity ornament layered on
+   top (plain / rivets / engraved groove / gold-leaf + foil shimmer).
+   Everything here is a CSS gradient/shadow, never a raster image, so the
+   frame stays crisp at the mini hand size and the enlarged zoom modal
+   alike. Two background layers (padding-box fill + border-box gradient)
+   are used instead of `border-image` because `border-image` ignores
+   `border-radius` and would draw square corners. */
 .card {
   --family: var(--family-neutral);
+  --frame-light: color-mix(in srgb, var(--family) 65%, white 35%);
+  --frame-dark: color-mix(in srgb, var(--family) 70%, black 45%);
+  --frame-shadow: 0 0 #0000;
+  --state-shadow: 0 0 #0000;
   position: relative;
   display: flex;
   flex-direction: column;
-  background: #241a10;
-  border: 1px solid var(--family);
-  border-top: 0.3rem solid var(--family);
+  border-style: solid;
+  border-width: 0.32rem 0.14rem 0.14rem 0.14rem;
+  border-color: transparent;
   border-radius: 0.35rem;
+  background:
+    linear-gradient(#241a10, #241a10) padding-box,
+    linear-gradient(135deg, var(--frame-light), var(--frame-dark) 55%, var(--frame-light) 100%) border-box;
+  box-shadow: var(--frame-shadow), var(--state-shadow);
   color: var(--ink);
   flex-shrink: 0;
   overflow: hidden;
@@ -247,6 +267,78 @@ body {
 }
 .card[data-family="neutral"] {
   --family: var(--family-neutral);
+}
+
+/* Common: no ornament beyond the plain family-coloured frame above. */
+
+/* Uncommon: rivets at the four corners of the frame. */
+.card[data-rarity="uncommon"]::before {
+  content: "";
+  position: absolute;
+  inset: 0.05rem;
+  background-image:
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--frame-dark) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--frame-dark) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--frame-dark) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--frame-dark) 70%);
+  background-repeat: no-repeat;
+  background-size: 0.4em 0.4em;
+  background-position:
+    2% 3%,
+    calc(98% - 0.4em) 3%,
+    2% calc(97% - 0.4em),
+    calc(98% - 0.4em) calc(97% - 0.4em);
+  pointer-events: none;
+}
+
+/* Rare: an engraved double groove just inside the frame edge. */
+.card[data-rarity="rare"] {
+  --frame-shadow:
+    inset 0 0 0 0.05rem rgba(255, 255, 255, 0.4),
+    inset 0 0 0 0.1rem rgba(0, 0, 0, 0.6),
+    inset 0 0 0 0.15rem rgba(255, 255, 255, 0.15);
+}
+
+/* Legendary: gold-leaf frame (overrides family colour) with an animated
+   foil shimmer sweep. The sweep animates `transform`, not
+   `background-position`, so it stays compositor-only and cheap at 60fps
+   even with several legendary cards on screen at once. */
+.card[data-rarity="legendary"] {
+  --frame-light: var(--gold-leaf);
+  --frame-dark: var(--gold-leaf-dark);
+  --frame-shadow:
+    inset 0 0 0 0.06rem rgba(255, 240, 200, 0.6),
+    0 0 0.5rem rgba(212, 175, 90, 0.4);
+}
+
+.card[data-rarity="legendary"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card[data-rarity="legendary"]::after {
+    animation: card-foil-shimmer 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes card-foil-shimmer {
+  0%,
+  10% {
+    transform: translateX(0%);
+  }
+  90%,
+  100% {
+    transform: translateX(280%);
+  }
 }
 
 .card--mini {
@@ -343,11 +435,11 @@ body {
 }
 
 .card--highlight {
-  box-shadow: 0 0 0 2px var(--amber);
+  --state-shadow: 0 0 0 2px var(--amber);
 }
 
 .card--selected {
-  box-shadow: 0 0 0 2px var(--amber), 0 0 8px 2px var(--amber);
+  --state-shadow: 0 0 0 2px var(--amber), 0 0 8px 2px var(--amber);
 }
 
 .card-zoom-btn {

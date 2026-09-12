@@ -91,6 +91,7 @@ export function mountBracketScreen(root: HTMLElement, options: BracketScreenOpti
       const face = card.faces[0];
       const cardEl = el("div", "card card--zoom reveal-card");
       cardEl.dataset.family = face.family;
+      cardEl.dataset.rarity = card.rarity;
       cardEl.appendChild(el("span", "card-points", String(face.points)));
       cardEl.appendChild(el("span", "card-name", face.name));
       const chips = keywordChips(face);

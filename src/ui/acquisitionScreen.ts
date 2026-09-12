@@ -159,6 +159,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     if (card) {
       const face = card.faces[0];
       cardEl.dataset.family = face.family;
+      cardEl.dataset.rarity = card.rarity;
       cardEl.appendChild(el("span", "card-points", String(face.points)));
       cardEl.appendChild(el("span", "card-name", cardDisplayName(cardId)));
       const chips = keywordChips(face);

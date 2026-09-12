@@ -193,6 +193,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const face = activeFaceOf(card, faceIndex);
     const wrap = el("div", `card card--${opts.size}`);
     wrap.dataset.family = face.family;
+    wrap.dataset.rarity = card.rarity;
 
     if (!opts.faceUp) {
       wrap.classList.add("card--facedown");

@@ -907,6 +907,84 @@ a real frame to hang illustrations in ahead of 3.2's art wiring.
 newly filed items and act on them (or hand them to a session that will)
 the same as any other backlog.
 
+3.1 done. The real card frame (design.md §4's family colours, §7.3's
+rarity treatments — plain / rivets / engraved / gold-leaf + shimmer)
+replaces 2.1's flat single-colour border, entirely in `src/style.css`'s
+`.card` rules — no new TS module, since this is CSS/design work with no
+pure logic to unit-test (same class as 2.5's back-room CSS fixes). The
+family accent colour is still the one flat `--family-*` custom property
+2.1 already set per `data-family`; the frame derives a lighter and darker
+gradient stop from it at paint time with `color-mix()` rather than
+hand-picking new hex pairs per family, so there's only ever one colour
+value to maintain per family. The gradient border itself uses the
+two-background-layers trick (`linear-gradient(fill) padding-box,
+linear-gradient(family colours) border-box` with a transparent
+`border-color`) instead of `border-image`, because `border-image` ignores
+`border-radius` and would leave the frame's corners square. Rarity adds
+on top of that base frame: uncommon gets four corner rivets (a
+`::before` of small radial-gradient dots, sized in `em` so they scale
+with the `.card--mini`/`.card--zoom` font-size difference 2.1 already
+established, no separate size logic needed); rare gets a triple inset
+`box-shadow` groove; legendary overrides the gradient to a fixed
+gold-leaf colour pair regardless of family (so the Landlady and any
+family's signature legend both read as legendary first, family second)
+plus an animated foil-shimmer sweep. `.card--highlight`/`--selected`
+used to set `box-shadow` directly, which would have clobbered rare's
+groove or legendary's glow outright (box-shadow doesn't merge across
+rules); both now write into a `--state-shadow` custom property that's
+combined with rarity's `--frame-shadow` in one `box-shadow` declaration
+on `.card` itself, with `0 0 #0000` as the non-`none` no-op default
+(`box-shadow: none` can't sit in a comma list with real shadows).
+
+**Wiring: `data-rarity` was added next to the `data-family` that already
+existed at all four places a `.card` element gets built** —
+`matchScreen.ts`'s shared `buildCardEl` (hand, board, zoom modal) plus
+the three independently hand-rolled "reveal card" builders in
+`acquisitionScreen.ts`, `bracketScreen.ts`, and `pubHubScreen.ts` (Lost &
+Found/Pawnbroker/Tinker's Bench pulls, tournament prizes, first-win/Bar
+Bet reveals). Those three already duplicated `.card` construction from
+`matchScreen.ts` before this step; extracting a shared builder was judged
+a bigger refactor than a frame step needs and wasn't done here — worth
+doing whenever one of them needs a fourth near-identical copy.
+**Deliberately left untouched:** `deck-card-tile`
+(`deckBuilderScreen.ts`) and `backroom-tile` (`acquisitionScreen.ts`) —
+both are flat list/grid rows reporting a card's stats, never styled as a
+physical card, so "card frame" per design.md §7.3 doesn't apply to them.
+
+**There's still no illustration window cut into the frame** — with no
+real art wired in yet (3.2's job), there's nothing to hang inside one, so
+the text content (points/name/ability) keeps rendering straight over the
+card's flat fill layer exactly as 2.1 left it. The two-background-layers
+technique already isolates that fill from the border gradient, so 3.2 can
+swap the fill layer for a `background-image` (or composite an `<img>`
+into the content area) without touching any of this step's border/rarity
+CSS.
+
+Verified in the browser at a phone-width viewport: played a real hand
+against Mudd and confirmed the live family/rarity mix reads correctly
+(an uncommon Salon card showing verdigris-green rivets, an Irregulars cat
+in gaslight amber, a Yard gadget in gunmetal blue) at both the in-hand
+mini size and the zoomed full-card modal. Rare and legendary aren't
+reachable in a quick pickup game, so those two (plus a legendary-on-a-
+neutral-family case, for the Landlady) were checked by injecting
+synthetic `.card` elements with those `data-rarity` values directly into
+the live page — confirmed the engraved groove and gold-leaf override
+render as designed, and used the Web Animations API
+(`element.getAnimations()`) to confirm the foil shimmer runs as a single
+`running` animation on `transform` only, not `background-position` —
+`background-position` would repaint every frame; `transform` stays
+compositor-only, which is what the exit check's 60fps requirement is
+actually about. `npm run typecheck`, `npm test` (336 unit tests, all
+passing — no new ones needed, see above), `npx playwright test` (25 e2e,
+all passing), and `npm run build` all clean.
+
+**The `@media (prefers-reduced-motion: no-preference)` guard on the foil
+shimmer is technically 3.3's territory** (design.md's animation step is
+where "reduced-motion respected" is the named exit check), not 3.1's —
+added here anyway since it cost one extra rule and left unguarded would
+be exactly the kind of thing 3.3 would otherwise have to hunt down
+retroactively.
+
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
   on GitHub's shared CI runner during the 2.5 ship despite already having

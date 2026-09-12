@@ -174,6 +174,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const cardEl = el("div", "card card--zoom reveal-card");
     if (face) {
       cardEl.dataset.family = face.family;
+      cardEl.dataset.rarity = card!.rarity;
       cardEl.appendChild(el("span", "card-points", String(face.points)));
       cardEl.appendChild(el("span", "card-name", face.name));
       const chips = keywordChips(face);
