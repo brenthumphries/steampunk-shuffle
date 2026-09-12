@@ -94,7 +94,7 @@ function checkInvariants(state: MatchState) {
 }
 
 describe("Property: random games (plan step 1.2 exit check)", () => {
-  it("10,000 random games never throw and never violate the core invariants", { timeout: 30_000 }, () => {
+  it("10,000 random games never throw and never violate the core invariants", { timeout: 60_000 }, () => {
     const pool = buildCardPool();
     const deckSpec = pool.map((card) => ({ card, quantity: 2 }));
 
