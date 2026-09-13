@@ -2298,12 +2298,202 @@ corrected copy and Sir Charles's new Checks-explaining mat line.
 review except PT-32 (batch A, opponent deck re-pointing — tracked
 separately, git status shows it's already in progress in
 `src/cards/data/decks/{nellAshby,lovelace,adler,jekyll}.ts` from an
-earlier session).**
+earlier session).** PT-32 itself is resolved in the very next entry below.
 
 **This step ran on Sonnet, not the Haiku the plan assigns to 4.0e** — same
 situation as 1.6/2.5/3.2/3.4/3.5's flagged gotchas: the session was
 already running on Sonnet when asked to proceed to batch E rather than
 being opened fresh on Haiku. Flagged, not corrected.
+
+4.0a-correction done (Sonnet — the plan assigns Haiku to 4.0a, but this is
+a correction of an already-committed Haiku attempt, done in the same
+session as 4.0c-4.0e; see the model-discipline gotcha above). PT-32:
+opponent decks re-pointed to their tier bands for real.
+
+**The original 4.0a pass (committed in `b548302` alongside 3.7 and 4.0b)
+had never actually been verified.** Its commit message claimed Nell
+Ashby/Lovelace/Adler/Jekyll-Hyde were re-pointed to design.md §9.1-§9.3's
+tier bands, and PLAYTEST.md still listed PT-32 as open — nobody had
+re-run `npm run curve` after committing to check. Doing so now (prompted
+by a direct "how do I close out PT-32?" from Brent) found it had mostly
+failed: Nell Ashby was still at 85% starter-win-rate (target ~60%), Adler
+at 90% (target ~40-45%) — only Lovelace's re-point (10%→53%) had actually
+landed. Reg Farrow, Miss Prudence Hollis, Sherlock Holmes, Agatha
+Christie, and Mary Shelley had never been touched at all, despite the
+original newcomer review flagging several of them too
+(`docs/newcomer-review.md`'s table).
+
+**Re-pointed all 8 remaining decks**, each with its own targeted fix
+(`src/cards/data/decks/{nellAshby,regFarrow,prudenceHollis,adler,holmes,
+christie,jekyll,shelley}.ts` — every deck's own file-header comment now
+explains its specific change):
+
+- **Old Nell Ashby** (40→43 pts): bumped her two 4.0a deck-locals
+  (`correspondent`, `streetRunner`) and added `bakerStreet` — Irregulars'
+  own continuous +1-per-Character Location, authored back in 1.5 but
+  never used by any deck until now.
+- **"Dodgy" Reg Farrow** (32→40 pts): Rookery has no dedicated buff
+  Location among the 8 authored (every other family has one), so the fix
+  leaned entirely on strengthening `errandRunner`, his one deck-local
+  card, from 1pt to 5pt.
+- **Miss Prudence Hollis** (32→41 pts): added a new deck-local Character,
+  `theVicarsWife` (6pts, Friend+1) — her existing `churchFeteStall` is a
+  Gadget, hard-capped at 2 printed points by `POINT_RANGES`, so it
+  couldn't carry a real points fix alone — plus `theReadingRoom` (Salon's
+  own unused buff Location).
+- **Irene Adler** (39→49 pts): bumped all three 4.0a deck-locals
+  significantly, bumped `forger`/`telegraphBoy` to their second copy, and
+  added `bakerStreet`. Her cross-family, mostly-1-copy structure (breadth
+  over consistency) likely compounds any underlying weakness, same
+  pattern Holmes hit below.
+- **Sherlock Holmes** (38→43 pts): never touched by 4.0a at all, despite
+  the review flagging him as "a coin flip." Restructured from 18
+  different shared cards at 1 copy each to fewer, doubled-up cards
+  (`sergeantPike`, `detectiveSergeantVale`, `telegraphBoy`, `hiawatha`,
+  `nellsBasket` all to 2 copies) plus `bakerStreet`, trading breadth for
+  consistency.
+- **Agatha Christie** (33→41 pts): the trickiest of the eight — see the
+  dedicated note below on the Friend-chain tuning swings.
+- **Dr Jekyll / Mr Hyde** (44→47 pts): bumped all three 4.0a deck-locals
+  to 6pts each and swapped two of the weakest Salon vanillas
+  (`theHypnofrog`, `afternoonTea`) for Rookery's own unused Flip tools
+  (`regsLedger`, `catBurglarStrikesAgain`) for real tempo, not just points.
+- **Mary Shelley** (52→50 pts, net negative): already near the top of the
+  Legend band on raw points, so the fix was `theGasworks` (Foundry's own
+  +2-per-Character Location, previously unused) rather than more points —
+  traded one `apprenticeFitter` copy for it.
+
+Bucket, Dickens, Moriarty, and Poirot were left untouched — all four were
+already within or close to their targets per the original 3.7 review, and
+re-verified unchanged here.
+
+**Real finding: printed points don't reliably predict win rate against
+the actual AI.** Bucket (32 pts) and Dickens (32 pts) already hit their
+Seasoned target comfortably — well under their nominal 44-48 band — while
+Nell Ashby's first 4.0a attempt reached the Regular band's midpoint (40
+pts) and *still* lost only 15% of games to the starter. Ability density
+and synergy (Friend chains, Persist, Flip effects the AI can actually
+leverage) matter more than raw totals; several of the fixes above lean on
+a previously-unused continuous-buff Location specifically because it
+compounds across a whole match in a way a one-off point bump doesn't.
+
+**Agatha Christie's fix required three attempts because the default
+12-game legend-tier `curve` sample turned out to be too small to trust
+for fine-tuning — a real methodology finding, not just a tuning
+anecdote.** Her first re-point (a new `theReadingCircle` card, 2 copies,
+Friend+2, onPlay draw) measured at 8% starter-win-rate against a ~30%
+target — a huge overshoot. Cutting to 1 copy at Friend+1 (no draw)
+swung all the way to 50% — the opposite miss. Restoring to 2 copies at
+the lower Friend+1 value went straight back to 8%, which was the tell:
+copy count, not Friend value or the draw ability, was the variable
+actually driving the swing at n=12. A dedicated one-off script
+(`tools/scratch-christie.ts`, deleted after use) re-ran her matchup alone
+at 60 games and found the true rate was 27% — on target the whole time;
+the 8%/50% readings were sampling artifacts of a 12-game sample hitting a
+"phase transition" in which deterministic AI-vs-AI seeds happen to fall
+on either side of a knife's-edge matchup, not real signal. Re-verified
+all 6 Legend decks the same way at 50 games each (`tools/
+scratch-legend-verify.ts`, also deleted after use) rather than trusting
+`curve`'s own 12-game default for anything this close to a threshold:
+Holmes 18%, Moriarty 30%, Christie 28%, Poirot 20%, Jekyll/Hyde 24%,
+Shelley 24% — every one inside or right at the ~30% target's ±10 band.
+**Worth remembering for any future Legend-tier balance work: don't trust
+a single 12-game `curve` reading near a decision boundary — increase the
+sample (a quick one-off script, not a `curve.ts` change, is enough) before
+concluding a fix worked or didn't.**
+
+`npm run typecheck`, `npm test` (377 unit tests, unchanged — no new pure
+logic, this is deck-content-only), `npm run build`, and `npm run sim`
+("No card-lift outliers") all clean. `npm run curve -- regular seasoned`:
+50-63% across all four Regulars (target ~60%). `npm run curve -- seasoned
+seasoned`: Bucket 60%, Lovelace 53%, Adler 33%, Dickens 60% (target
+~40-45%; Bucket/Dickens accepted per the original review's own judgment,
+as before). Legend tier verified at 50 games/deck per the finding above,
+not `curve`'s own 12-game default.
+
+Cross-browser compatibility pass done (Sonnet, ad hoc — not a plan step;
+Brent asked directly whether the game would run on Android/other browsers
+without changes). **Finding: no code changes were needed** — the app uses
+no iOS-only APIs anywhere (haptics were deliberately never implemented in
+the web build at all, only planned for a future native iOS wrap), and
+every CSS feature in use (`100dvh`, `env(safe-area-inset-*)`,
+`-webkit-line-clamp`) plus every browser API (`AudioContext`, the Web
+Share API's `nav.share && nav.canShare?.()` feature-detected fallback in
+`saveScreen.ts`) is standard and cross-browser as written, with zero
+`navigator.userAgent`/platform sniffing anywhere. Verified live, not just
+by reading source: opened the deployed Pages URL in a Chromium browser
+emulating a real Android Chrome UA (Pixel 8) at a phone viewport, played
+through the tutorial's opening turn, and confirmed pixel-correct
+rendering, zero console errors, and every asset loading 200 OK. (One red
+herring caught and ruled out along the way: a stale service worker from
+an *unrelated, earlier* test session on the same shared browser profile
+briefly showed a broken flex layout on reload — cleared it via
+`serviceWorker.getRegistrations()`/`caches.keys()` and confirmed the real
+current deploy renders correctly; worth remembering that a returning
+visitor's own stale SW can look like a live bug that isn't one.)
+
+**Android as an installed native app was explicitly ruled out of scope by
+Brent** — the plan's Capacitor wrap (4.2) only ever adds `@capacitor/ios`,
+and design.md never names Android as a delivery target for this
+one-recipient gift; that stays unchanged.
+
+**The one real gap found: automated coverage never actually asserted any
+of this — `playwright.config.ts` had exactly one project ("iPhone 17
+portrait", WebKit only) since 2.1.** Brent asked for real CI/automated
+coverage across Safari, Chrome, Firefox, and Edge specifically (having
+said Android-as-a-native-app isn't needed), so `playwright.config.ts` now
+has four projects, all sharing the same 402×874 viewport the whole test
+suite was written against (isolates engine differences from untested
+desktop-responsive behavior, rather than confounding the two): **Safari**
+(`devices["iPhone 17"]`, WebKit — unchanged from before, just renamed from
+"iPhone 17 portrait"), **Firefox** (`devices["Desktop Firefox"]`, real
+Gecko), **Chrome** (`devices["Desktop Chrome"]` + `channel: "chrome"`),
+**Edge** (`devices["Desktop Edge"]` + `channel: "msedge"`). The `channel`
+overrides matter: `devices["Desktop Chrome"/"Desktop Edge"]` alone both
+resolve to plain bundled Chromium (`defaultBrowserType: "chromium"` with
+no channel set) — without `channel`, "Chrome" and "Edge" would silently
+run the *identical* browser binary, not the real branded ones. `.github/
+workflows/deploy.yml` gained a matrixed `e2e` job (one leg per project,
+each installing only the browser it needs via `npx playwright install
+--with-deps <browser>`) that `deploy` now also `needs`, alongside `build`
+— this reverses 2.1's original "e2e is local-only to keep the pipeline
+fast" call, which this file's own gotchas section had flagged as worth
+revisiting "once the game has enough surface area that e2e coverage
+matters" (see that entry, now updated in place rather than duplicated).
+
+**Found and fixed a real, pre-existing flake while doing this — not new,
+but about to get 4x noisier once CI ran every spec across four browsers
+instead of one.** Every non-tutorial e2e spec seeded `tutorial-state`
+with `matchesPlayed: 1` — inside `isWithinHintWindow`'s 1-3 range
+(design.md §13.3's in-match hint chips, `src/tutorial/tutorialState.ts`),
+so a real random-shuffled match could occasionally trigger a hint beer
+mat over a button a test needed to click. No e2e test anywhere actually
+exercises the hint chips themselves, so there was nothing to lose by
+avoiding the window — but the first fix attempt (`matchesPlayed: 10`)
+landed on a *second*, unrelated hint trigger instead: the pub hub's own
+"you've enough Checks for the Pawnbroker" hint fires at `matchesPlayed >=
+4` (`src/main.ts`), which broke a different, previously-passing test by
+making `getByText("Checks")` ambiguous. `matchesPlayed: 0` is the only
+value that clears both conditions at once (below the hint window's own
+`>= 1` floor, below the hub hint's `>= 4` floor) — updated across all 7
+non-tutorial spec files (`match/deckBuilder/smoke/backRoom/houseRules/
+pubHub/tournaments.spec.ts`). Confirmed by running the full suite three
+times in a row across Safari/Chrome/Firefox locally (105/105 passing each
+time) before and after — it reliably failed roughly 1 in 3-4 runs before
+this fix, consistent with the flake being real and not something this
+session invented a fix for a non-problem.
+
+**Real Microsoft Edge (`channel: "msedge"`) couldn't be installed locally
+in this session to verify directly** — its installer needs interactive
+admin/sudo rights on macOS that a sandboxed session can't supply (Chrome's
+installer doesn't hit this; Firefox/WebKit are Playwright's own bundled
+browsers and don't need it either). Safari/Chrome/Firefox were all
+verified locally (105/105 passing, repeatably); Edge's project config was
+validated structurally (typecheck, and Playwright accepted the config
+with no error resolving the project) but its actual CI run is the first
+real verification — worth checking the next Actions run for the `e2e
+(Edge)` leg specifically rather than assuming it's fine by analogy to
+Chrome.
 
 **Gotchas:**
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
@@ -2592,10 +2782,13 @@ being opened fresh on Haiku. Flagged, not corrected.
   — a subpath, not a domain root. `vite.config.ts` sets `base` accordingly;
   any new hard-coded asset path needs the same treatment (prefer relative
   paths or `%BASE_URL%`/`import.meta.env.BASE_URL`, never a bare `/`).
-- The `deploy.yml` workflow gates on `npm run typecheck` and `npm test`
-  (Vitest) but does **not** run Playwright in CI — e2e is local-only for now
-  to keep the pipeline fast. Revisit once the game has enough surface area
-  that e2e coverage matters.
+- **`deploy.yml` gates on cross-browser e2e too, as of the browser-
+  compatibility pass below** — `npm run typecheck`/`npm test` in the
+  `build` job, plus a parallel `e2e` job matrixed across
+  `playwright.config.ts`'s four projects (Safari/Chrome/Firefox/Edge).
+  `deploy` needs both. This reverses the earlier "e2e is local-only to
+  keep the pipeline fast" call — the game now has enough surface area
+  (and enough browsers to actually differ on) that the tradeoff flipped.
 - `npm run build` runs `tsc --noEmit` before `vite build`; a type error fails
   the build even though Vite itself would happily transpile past it.
 - Lighthouse 13 dropped the standalone `pwa` category (real installability

@@ -14,7 +14,7 @@ test.describe("tournaments (plan step 2.4)", () => {
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();
-      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
       localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();

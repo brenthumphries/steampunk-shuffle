@@ -6,7 +6,7 @@ test("taproom placeholder loads", async ({ page }) => {
   // lands in the tutorial (§13), not the pub hub — seed both done so this
   // stays a smoke test of the taproom.
   await page.evaluate(() => {
-    localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+    localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
     localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
   });
   await page.reload();

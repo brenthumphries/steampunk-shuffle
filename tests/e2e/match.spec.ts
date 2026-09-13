@@ -18,9 +18,16 @@ test.describe("match screen (plan step 2.1)", () => {
     // A brand-new player sees the dedication screen (design.md §14.1) then
     // lands in the tutorial (§13) instead of the pub hub — these tests
     // exercise the generic match screen, not either of those, so seed both
-    // already done.
+    // already done. `matchesPlayed: 0` deliberately avoids two separate
+    // hint triggers that don't matter to these tests but can cover a
+    // button they click: `isWithinHintWindow`'s 1-3 range (design.md
+    // §13.3's in-match hint chips) and the pub hub's own "hub" hint at
+    // matchesPlayed >= 4 (src/main.ts) — no e2e test here exercises either.
+    // Was `matchesPlayed: 1` (inside the in-match window) and flaked
+    // intermittently on exactly that; `10` first as a fix accidentally
+    // landed in the >= 4 hub-hint range instead, breaking a different test.
     await page.evaluate(() => {
-      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 1, shownHints: [] }));
+      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
       localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();

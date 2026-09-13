@@ -199,6 +199,14 @@
     "sourceFile": "art/inbox/constable-reeve.jpeg",
     "width": 600
   },
+  "correspondent": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/correspondent.jpeg",
+    "width": 600
+  },
   "cracksman": {
     "category": "character",
     "family": "rookery",
@@ -293,6 +301,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:36+00:00",
     "sourceFile": "art/inbox/forger.jpeg",
+    "width": 600
+  },
+  "furnace-stoker": {
+    "category": "character",
+    "family": "foundry",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/furnace-stoker.jpeg",
     "width": 600
   },
   "good-news-everybody": {
@@ -397,6 +413,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T18:55:08+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll2-inbox/sheet3/party-time-excellent.jpeg",
+    "width": 600
+  },
+  "persistent-ally": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/persistent-ally.jpeg",
     "width": 600
   },
   "pickpocket": {
@@ -543,6 +567,14 @@
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll-inbox/sheet4/professor-moriarty.jpeg",
     "width": 600
   },
+  "quick-courier": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/quick-courier.jpeg",
+    "width": 600
+  },
   "regs-ledger": {
     "category": "scheme",
     "family": "rookery",
@@ -591,6 +623,14 @@
     "sourceFile": "art/inbox/sergeant-pike.jpeg",
     "width": 600
   },
+  "shadow-confidant": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/shadow-confidant.jpeg",
+    "width": 600
+  },
   "sherlock-holmes": {
     "category": "character",
     "family": "irregulars",
@@ -607,12 +647,44 @@
     "sourceFile": "art/inbox/skeleton-key.jpeg",
     "width": 600
   },
+  "sleight-of-hand": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/sleight-of-hand.jpeg",
+    "width": 600
+  },
+  "society-patron": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/society-patron.jpeg",
+    "width": 600
+  },
   "steam-hammer": {
     "category": "character",
     "family": "foundry",
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:38+00:00",
     "sourceFile": "art/inbox/steam-hammer.jpeg",
+    "width": 600
+  },
+  "street-informant": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/street-informant.jpeg",
+    "width": 600
+  },
+  "street-runner": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:57+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/street-runner.jpeg",
     "width": 600
   },
   "street-sweeper": {
@@ -719,6 +791,14 @@
     "sourceFile": "art/inbox/the-photograph.jpeg",
     "width": 600
   },
+  "the-reading-circle": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:58+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/the-reading-circle.jpeg",
+    "width": 600
+  },
   "the-reading-room": {
     "category": "location",
     "family": "neutral",
@@ -741,6 +821,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T17:33:31+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll-inbox/sheet3/the-seasons-most-talked-about-engagement.jpeg",
+    "width": 600
+  },
+  "the-vicars-wife": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-13T01:50:58+00:00",
+    "sourceFile": "art/manual Gemini generations/prompt-sheet-6/the-vicars-wife.jpeg",
     "width": 600
   }
 }

@@ -6,6 +6,13 @@
 // trigger the engine doesn't have and so isn't authored (see ../README.md's
 // schema-gap list).
 
+// Re-pointed plan step 4.0a-correction (PT-32): never touched by the
+// first 4.0a pass. `npm run curve` showed the starter winning 50% against
+// the `legend` AI dial despite her already sitting near the top of the
+// Legend band (52 pts) — raw points weren't the limiting factor here, so
+// the fix adds `theGasworks` (Foundry's own +2-per-Character continuous
+// buff, previously unused by any deck), which compounds hard across a
+// deck this dense in Foundry Characters.
 import type { Card, Deck } from "../../cardTypes.ts";
 import {
   apprenticeFitter,
@@ -18,6 +25,7 @@ import {
   sabotage,
   partyTimeExcellent,
 } from "../families/foundry.ts";
+import { theGasworks } from "../locations.ts";
 import { maryShelley } from "../legends.ts";
 
 export const abbyNormal: Card = {
@@ -58,7 +66,7 @@ export const eyeGor: Card = {
 };
 
 export const shelleysDeck: Deck = [
-  { card: apprenticeFitter, quantity: 2 },
+  { card: apprenticeFitter, quantity: 1 },
   { card: boilerHand, quantity: 2 },
   { card: riveter, quantity: 2 },
   { card: steamHammer, quantity: 2 },
@@ -67,6 +75,7 @@ export const shelleysDeck: Deck = [
   { card: brassCog, quantity: 2 },
   { card: sabotage, quantity: 2 },
   { card: partyTimeExcellent, quantity: 2 },
+  { card: theGasworks, quantity: 1 },
   { card: maryShelley, quantity: 1 },
   { card: abbyNormal, quantity: 1 },
   { card: eyeGor, quantity: 1 },

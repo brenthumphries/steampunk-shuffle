@@ -1,0 +1,186 @@
+================================================================================
+[1/11] furnace-stoker  (character · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-ada-lovelace.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of an industrial Foundry furnace stoker, sleeves rolled to the elbow, soot-dusted forearms, feeding coal into a roaring firebox just out of frame, a steady, incurious expression — a man who has learned not to ask what the machine is for. Warm brass-and-copper key light from the furnace's own glow, cog-work and rivets rendered with real engineering logic. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of furnace machinery and rising heat-shimmer.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Ada Lovelace's deck filler (src/cards/data/decks/lovelace.ts, plan step 4.0a) — "Keeps the fire hot and the gears turning. Asks no questions." Attaches portrait-ada-lovelace as the Foundry reference, already her own portrait.
+
+================================================================================
+[2/11] correspondent  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a sharp-eyed Irregulars information broker, a satchel of letters and telegrams slung across one shoulder, several envelopes fanned in one hand as if sorting them mid-stride, a knowing half-smile. Warm gaslight-amber key light from a street lamp, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a busy postal corner, pigeons and passers-by indistinct.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Old Nell Ashby's deck filler (src/cards/data/decks/nellAshby.ts, plan step 4.0a / 4.0a-correction) — "Exchanges letters across the city and never misses a detail worth noting." Attaches portrait-old-nell-ashby as the Irregulars reference, already her own portrait.
+
+================================================================================
+[3/11] street-runner  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a nimble young Irregulars messenger girl caught mid-run, skirts hitched for speed, a folded note clutched tight, glancing back over one shoulder as if already planning her way home. Warm gaslight-amber key light, cool blue-grey ambient shadow fill emphasizing motion. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a narrow street receding behind her.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Old Nell Ashby's deck filler (src/cards/data/decks/nellAshby.ts, plan step 4.0a / 4.0a-correction) — "Carries urgent messages through every street and always finds her way back to the bar." Attaches portrait-old-nell-ashby as the Irregulars reference.
+
+================================================================================
+[4/11] sleight-of-hand  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a charming Rookery trickster mid-flourish, a coin balanced on the back of one hand about to vanish, an easy, disarming smile, a sharply cut oxblood-leather waistcoat. Warm gaslight key light, deep oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a crowded pub corner, easy to vanish into.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Irene Adler's deck-local card (src/cards/data/decks/adler.ts, plan step 4.0a / 4.0a-correction), Rookery half of her Rookery+Irregulars deck — "A coin vanishes. A watch reappears. Everyone stays friends." This sheet's Rookery default reference is Reg Farrow's portrait (family palette continuity); also worth attaching portrait-irene-adler by hand for continuity with the opponent this card actually belongs to.
+
+================================================================================
+[5/11] street-informant  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a watchful Irregulars informant leaning in a shadowed doorway, one hand extended slightly, palm up, an expectant look, ear angled as if still listening to something just out of frame. Warm gaslight-amber key light from a nearby lamp, cool blue-grey ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a fog-wrapped alley mouth.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Irene Adler's deck-local card (src/cards/data/decks/adler.ts, plan step 4.0a / 4.0a-correction), Irregulars half of her deck — "Hears everything. Forgets nothing. Asks for coins in return." Also worth attaching portrait-irene-adler by hand alongside the default Nell Ashby Irregulars reference, for continuity with the opponent this card belongs to.
+
+================================================================================
+[6/11] quick-courier  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a quick, light-footed Irregulars courier already turning away mid-delivery, a sealed message just released from her fingers, cloak flaring with the motion, a fleeting backward glance. Warm gaslight-amber key light, cool blue-grey ambient shadow fill suggesting quick motion. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a street corner she's already leaving.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Irene Adler's deck-local card (src/cards/data/decks/adler.ts, plan step 4.0a / 4.0a-correction) — "Delivers a message and vanishes before you can reply. Always finds her way back." Also worth attaching portrait-irene-adler by hand alongside the default Nell Ashby Irregulars reference.
+
+================================================================================
+[7/11] society-patron  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of an impeccably dressed Salon society patron, silk cravat and tailored coat, a politely incurious expression, one gloved hand resting on the back of a brocade chair. Warm gaslight key light with cool verdigris-green ambient fill from drawing-room furnishings. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a crowded, genteel drawing room.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Dr Jekyll / Mr Hyde's deck-local card (src/cards/data/decks/jekyll.ts, plan step 4.0a / 4.0a-correction), Salon (Jekyll) side — "A respectable gentleman. Asks no questions about your guests." Also worth attaching portrait-dr-jekyll-mr-hyde by hand alongside the default Hollis Salon reference.
+
+================================================================================
+[8/11] persistent-ally  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a solidly built Rookery operative standing his ground, arms loosely crossed, an unhurried, unmovable presence, a worn oxblood-leather coat. Warm gaslight key light, deep oxblood-leather tones dominant, cool ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a narrow alley he's plainly not leaving.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Dr Jekyll / Mr Hyde's deck-local card (src/cards/data/decks/jekyll.ts, plan step 4.0a / 4.0a-correction), Rookery (Hyde) side — "Doesn't leave. Can't be made to. Has your back through every round." Also worth attaching portrait-dr-jekyll-mr-hyde by hand alongside the default Reg Farrow Rookery reference.
+
+================================================================================
+[9/11] shadow-confidant  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of an unassuming Salon confidant half in shadow at the edge of a drawing-room gathering, a discreet, faintly amused expression, listening rather than speaking. Warm gaslight key light with cool verdigris-green ambient fill, the subject positioned at the light's edge. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a genteel parlour, faces indistinct.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Dr Jekyll / Mr Hyde's deck-local card (src/cards/data/decks/jekyll.ts, plan step 4.0a / 4.0a-correction) — "Keeps your secrets. Helps dispose of your mistakes." Also worth attaching portrait-dr-jekyll-mr-hyde by hand alongside the default Hollis Salon reference.
+
+================================================================================
+[10/11] the-reading-circle  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small circle of Salon ladies seated around a low table with teacups and an unread novel, caught mid-conversation rather than mid-reading, warm and conspiratorial, verdigris-green brocade upholstery throughout. Warm gaslight key light with cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a comfortable drawing room, a bookshelf just visible.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Agatha Christie's deck-local card (src/cards/data/decks/christie.ts, plan step 4.0a-correction, PT-32) — "Meets Tuesdays, ostensibly for Trollope. Nobody has finished a Trollope in years." Also worth attaching portrait-agatha-christie by hand alongside the default Hollis Salon reference. A group card, not a single-figure portrait — style-bible.md's Character framing still applies (bust-to-waist-equivalent, no full-room wide shot).
+
+================================================================================
+[11/11] the-vicars-wife  (character · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-miss-prudence-hollis.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a formidable, well-dressed vicar's wife, hands clasped primly, a look that suggests she is quietly running everything in the room, a high-collared dress with verdigris-green trim. Warm gaslight key light with cool verdigris-green ambient fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a church hall fete.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Miss Prudence Hollis's deck-local card (src/cards/data/decks/prudenceHollis.ts, plan step 4.0a-correction, PT-32) — "Runs the fete, the choir, and the parish gossip, in that order of importance." Attaches portrait-miss-prudence-hollis as the Salon reference, already her own portrait.

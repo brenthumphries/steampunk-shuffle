@@ -13,13 +13,6 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 
 ## P1 — Blocking
 
-### PT-32: Opponent decks are tuned by accident — printed points, not tier, decide who wins
-- **Seen:** 2026-09-12 (x1) — `npm run curve`, 40/30/12 games per opponent
-- **Note:** Starter deck "played sensibly" (`seasoned` dial) wins 100% vs Nell Ashby (28 pts), 93% vs Irene Adler (28, Seasoned), 67% vs Dr Jekyll / Mr Hyde (35, a Legend), and 10% vs Ada Lovelace (58, Seasoned). Mudd (42 pts) is the only deck that lands on design.md §9.1's target. Full table in `docs/newcomer-review.md`.
-- **Repro:** `npm run curve -- regular seasoned`, `-- seasoned seasoned`, `-- legend seasoned`.
-- **Fix:** re-point every non-Mudd deck to a tier band (Regular 38–42 · Seasoned 44–48 · Legend 48–54), Lovelace *down*; re-run `curve` after each; exit when the sensible column is within ±10 of design.md's target for every opponent. Batch A. Bands need Brent's nod first.
-- **Likely location:** `src/cards/data/decks/*.ts` (via `ss-card-author`)
-
 ## P2 — Bug
 
 ## P3 — Balance / polish / idea
@@ -35,6 +28,9 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 ## Resolved
 
 (moved here by whoever fixes an item — not touched by this skill)
+
+### PT-32: Opponent decks are tuned by accident — printed points, not tier, decide who wins
+- **Fixed:** 2026-09-12, plan step 4.0a-correction. The original 4.0a pass (committed alongside 3.7/4.0b, `b548302`) re-authored Nell Ashby, Lovelace, Adler, and Jekyll/Hyde toward the recommended tier bands (Regular 38–42 · Seasoned 44–48 · Legend 48–54) but was never actually re-verified with `npm run curve` before being committed, and PLAYTEST.md was never updated — re-running `curve` found most of it hadn't worked: Nell Ashby was still at 85% (target ~60%), Adler at 90% (target ~40-45%), and Reg Farrow/Hollis/Holmes/Christie/Jekyll/Shelley had never been touched at all. Re-pointed all 8 remaining decks (Nell Ashby, Reg Farrow, Miss Prudence Hollis, Irene Adler, Sherlock Holmes, Agatha Christie, Dr Jekyll/Mr Hyde, Mary Shelley) — see CLAUDE.md's "4.0a-correction" entry for the full breakdown, including the finding that raw printed points don't reliably predict win rate (Bucket/Dickens overperform their low points; several "fixed" decks still underperformed until given real ability synergy, not just points) and that the default 12-game legend-tier `curve` sample is too noisy to trust for fine-tuning — verified instead at 50 games/deck. Bucket, Dickens, Moriarty, and Poirot were left untouched (already within or close to target per the original 3.7 review). `npm run sim`: no card-lift outliers. Final sensible-column numbers: Regular 50-63% (target ~60%), Seasoned 33-60% (target ~40-45%, Bucket/Dickens unchanged from their already-accepted ~60%), Legend 18-30% at 50 games/deck (target ~30%).
 
 ### PT-3: The Parsonage Snug buffs every card on both sides, not Friend cards
 - **Fixed:** 2026-09-12, plan step 4.0b (batch B). `TargetFilter.hasKeyword` added and honoured in `matchesFilter`; The Parsonage Snug, The Season's Most Talked-About Engagement, and The Landlady all now filter on `hasKeyword: "friend"`, matching their printed text. See CLAUDE.md's 4.0b entry.
