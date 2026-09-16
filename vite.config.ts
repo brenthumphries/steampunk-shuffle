@@ -30,11 +30,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // webp: the 93 card-art assets in public/art/, required for offline
+        // webp: the card-art assets in public/art/, required for offline
         // play (AUDIT-3.6.md P1). json: public/art/manifest.json, the only
         // JSON file under public/ — fetched at runtime to resolve artId ->
-        // asset metadata (AUDIT-3.6.md P2).
-        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,webp,json}"],
+        // asset metadata (AUDIT-3.6.md P2). mp3: the optional ambience
+        // track (plan step 3.4, sourced and wired same day as this
+        // comment) — at ~4 MB it exceeds Workbox's default 2 MB
+        // per-file precache cap, hence maximumFileSizeToCacheInBytes below.
+        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,webp,json,mp3}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       devOptions: {
         enabled: true,

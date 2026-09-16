@@ -383,13 +383,23 @@ body {
     inset 0 0 0 0.15rem rgba(255, 255, 255, 0.15);
 }
 
-/* Legendary: gold-leaf frame (overrides family colour) with an animated
-   foil shimmer sweep. The sweep animates `transform`, not
-   `background-position`, so it stays compositor-only and cheap at 60fps
-   even with several legendary cards on screen at once. */
+/* Legendary: a gold-leaf sheen with an animated foil shimmer sweep. Bugfix
+   cluster B ("Decisions already made"): this used to override family
+   colour outright (flat gold-leaf regardless of family), which is exactly
+   what made rarity and family collide on the same visual channel — a
+   legendary card told you nothing about its family. Now the gold leaf is
+   blended *with* the family colour via color-mix rather than replacing it,
+   so a legendary card still reads as gold-leaf/foil first (rarity) while
+   its warmth/coolness still carries the family colour (e.g. Sherlock
+   Holmes' Yard-blue-tinted gold vs. Mary Shelley's Foundry-copper-tinted
+   gold) — family stays on the colour channel, rarity stays on the
+   material/texture channel, same split as uncommon's rivets and rare's
+   groove. The sweep animates `transform`, not `background-position`, so it
+   stays compositor-only and cheap at 60fps even with several legendary
+   cards on screen at once. */
 .card[data-rarity="legendary"] {
-  --frame-light: var(--gold-leaf);
-  --frame-dark: var(--gold-leaf-dark);
+  --frame-light: color-mix(in srgb, var(--family) 35%, var(--gold-leaf) 65%);
+  --frame-dark: color-mix(in srgb, var(--family) 35%, var(--gold-leaf-dark) 65%);
   --frame-shadow:
     inset 0 0 0 0.06rem rgba(255, 240, 200, 0.6),
     0 0 0.5rem rgba(212, 175, 90, 0.4);
@@ -665,6 +675,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  /* Bugfix cluster A: the Bar Bet stakes overlay can now hold a full
+     card-zoom detail plus the stake-option list, tall enough to exceed
+     the viewport on a short phone. Every overlay gets its own scroll
+     bound rather than special-casing just this one. */
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
 
 .overlay-title {
@@ -871,6 +887,41 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Bugfix cluster B (note #11): "what does the green border mean" — the
+   family filter had no key tying its colour mapping to a name, and colour
+   alone isn't accessible to colorblind players either. A swatch-plus-name
+   row right under the family dropdown ties the two together explicitly;
+   `[data-family]` reuses the exact same `--family-*` custom properties the
+   card tiles themselves use, so the legend can't silently drift from what
+   the tiles actually show. */
+.family-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  margin: -0.2rem 0 0.2rem;
+}
+
+.family-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Colour set inline from JS (src/ui/familyColors.ts) rather than a
+   `[data-family]` attribute selector here — that module is the one place
+   the family→colour mapping is unit-tested for completeness, so the
+   legend is guaranteed to draw from the exact same table the test checks,
+   not a second hand-copied CSS list. */
+.family-legend-swatch {
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* PT-24: an "owned only" toggle — the closest thing to a collection view,
@@ -902,17 +953,26 @@ body {
 
 .deck-card-tile {
   --family: var(--family-neutral);
+  /* Bugfix cluster B: family drives colour (`--tile-accent`, normally just
+     `--family`); rarity drives its own separate channel (rivets/groove/
+     gold-tint below, plus `--rarity-shadow`) so the two never collide on
+     the same property the way a single shared border-color would. */
+  --tile-accent: var(--family);
+  --rarity-shadow: 0 0 #0000;
+  --included-shadow: 0 0 #0000;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   background: #241a10;
-  border: 1px solid var(--family);
-  border-top: 0.25rem solid var(--family);
+  border: 1px solid var(--tile-accent);
+  border-top: 0.25rem solid var(--tile-accent);
   border-radius: 0.35rem;
   padding: 0.4rem 0.5rem;
   padding-right: 1.3rem; /* room for the zoom button */
   font-size: 0.75rem;
+  box-shadow: var(--rarity-shadow), var(--included-shadow);
+  overflow: hidden;
 }
 
 .deck-card-zoom-btn {
@@ -957,8 +1017,78 @@ body {
   --family: var(--family-neutral);
 }
 
+/* Bugfix cluster B (note #3): a 1px box-shadow ring alone was too subtle
+   to register as "this card is in the deck" at a glance — a distinct
+   corner badge (rendered by deckBuilderScreen.ts as `.deck-card-badge`)
+   is the primary signal now, the amber ring is just reinforcement. */
 .deck-card-tile--included {
-  box-shadow: 0 0 0 1px var(--amber);
+  --included-shadow: 0 0 0 2px var(--amber);
+}
+
+/* A normal-flow row (not absolutely positioned) so it can never collide
+   with the points pill (top-left, also in-flow) or the zoom button
+   (top-right corner, src/style.css's .deck-card-zoom-btn). */
+.deck-card-badge {
+  align-self: flex-start;
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--ground);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.05rem 0.4rem;
+}
+
+/* Rarity texture, layered on top of the family-coloured frame above — same
+   rivets/groove/gold-tint-and-shimmer vocabulary as the full `.card`
+   component (see its own comment for why each rarity gets a different
+   *channel* than family), just scaled down for this flat list tile. */
+.deck-card-tile[data-rarity="uncommon"]::before {
+  content: "";
+  position: absolute;
+  inset: 0.12rem;
+  background-image:
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--tile-accent) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--tile-accent) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--tile-accent) 70%),
+    radial-gradient(circle at 30% 30%, #f2e6c8, var(--tile-accent) 70%);
+  background-repeat: no-repeat;
+  background-size: 0.3em 0.3em;
+  background-position:
+    2% 3%,
+    calc(98% - 0.3em) 3%,
+    2% calc(97% - 0.3em),
+    calc(98% - 0.3em) calc(97% - 0.3em);
+  pointer-events: none;
+}
+
+.deck-card-tile[data-rarity="rare"] {
+  --rarity-shadow:
+    inset 0 0 0 0.04rem rgba(255, 255, 255, 0.35),
+    inset 0 0 0 0.08rem rgba(0, 0, 0, 0.55);
+}
+
+.deck-card-tile[data-rarity="legendary"] {
+  --tile-accent: color-mix(in srgb, var(--family) 35%, var(--gold-leaf) 65%);
+  --rarity-shadow: inset 0 0 0 0.05rem rgba(255, 240, 200, 0.55);
+}
+
+.deck-card-tile[data-rarity="legendary"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .deck-card-tile[data-rarity="legendary"]::after {
+    animation: card-foil-shimmer 3.2s ease-in-out infinite;
+  }
 }
 
 /* PT-1: an unowned card — dimmed, no +/- controls, but still zoomable (a
@@ -1750,6 +1880,15 @@ body {
   width: 100%;
 }
 
+/* Bugfix cluster A: a stake-list option is now a select-to-preview toggle,
+   not an instant-commit button — a distinct selected state so it's
+   unambiguous which card (if any) is about to be staked. */
+.stake-card-option--selected {
+  border-color: var(--amber);
+  background: rgba(200, 134, 44, 0.25);
+  color: var(--ink);
+}
+
 /* ---------------------------------------------------------------------
    Save & data screen (plan step 2.6, design.md §12.4).
 --------------------------------------------------------------------- */
@@ -1847,6 +1986,16 @@ body {
   gap: 0.75rem;
   max-width: 32rem;
   margin: 0 auto;
+  /* Bugfix cluster D: unlike its sibling screens (.deck-builder, .pub-hub,
+     .tournaments-screen), this was missing `height`+`overflow-y: auto` —
+     as a flex item of #app it grew to its own content height instead of
+     being bounded and independently scrollable, so it fell through to
+     whatever scroll behavior the browser gives an overflowing, unclipped
+     flex item (inconsistent between touch and mouse-wheel input; reported
+     as "works on phone, not on laptop"). Matches the same pattern every
+     other screen already uses. */
+  height: 100%;
+  overflow-y: auto;
 }
 
 .house-rules-header {

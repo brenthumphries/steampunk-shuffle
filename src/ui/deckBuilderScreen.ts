@@ -21,6 +21,7 @@ import { starterDeck } from "../cards/data/decks/starterDeck.ts";
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { buildCardZoomOverlay } from "./cardZoom.ts";
 import { ownedCopies } from "../decks/ownership.ts";
+import { ALL_FAMILY_COLORS } from "./familyColors.ts";
 import {
   addCopy,
   computeLegality,
@@ -241,6 +242,21 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     filters.appendChild(ownedOnlyLabel);
     screen.appendChild(filters);
 
+    // Bugfix cluster B (note #11): ties the family dropdown's names to the
+    // colors the cards below actually use — color alone isn't accessible
+    // to colorblind players, and nothing previously spelled out what each
+    // border color meant.
+    const legend = el("div", "family-legend");
+    for (const { family, color } of ALL_FAMILY_COLORS) {
+      const item = el("span", "family-legend-item");
+      const swatch = el("span", "family-legend-swatch");
+      swatch.style.backgroundColor = color;
+      item.appendChild(swatch);
+      item.appendChild(document.createTextNode(FAMILY_LABEL[family]));
+      legend.appendChild(item);
+    }
+    screen.appendChild(legend);
+
     const pub = loadPubState();
     const grid = el("div", "deck-grid");
     const deckFull = legality.totalCards >= 20;
@@ -254,6 +270,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
 
       const tile = el("div", "deck-card-tile");
       tile.dataset.family = face.family;
+      tile.dataset.rarity = card.rarity;
       tile.appendChild(el("span", "deck-card-points", String(face.points)));
       tile.appendChild(el("span", "deck-card-name", face.name));
       tile.appendChild(el("span", "deck-card-meta", `${TYPE_LABEL[face.type]} · ${card.rarity}`));
@@ -289,7 +306,13 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
 
       const qty = quantityInSlot(slot, card.id);
       const maxCopies = Math.min(owned, card.rarity === "legendary" ? 1 : 2);
-      if (qty > 0) tile.classList.add("deck-card-tile--included");
+      if (qty > 0) {
+        // Bugfix cluster B (note #3): a checkmark badge is the primary
+        // "already in this deck" signal now — the amber ring
+        // (`--included-shadow`, src/style.css) alone was too subtle.
+        tile.classList.add("deck-card-tile--included");
+        tile.appendChild(el("span", "deck-card-badge", "✓ In this deck"));
+      }
       tile.appendChild(el("span", "deck-card-owned", `Owned: ${owned}`));
 
       const controls = el("div", "deck-card-controls");
@@ -321,10 +344,25 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     return screen;
   }
 
+  /**
+   * Bugfix cluster C (note #12): every state change here does a full
+   * teardown/rebuild (`root.replaceChildren()`) rather than an in-place
+   * DOM update — the new `.deck-builder` element is a brand-new node, so
+   * its scroll position starts back at 0 even though nothing about the
+   * *grid* itself needed to remount. Capturing the outgoing screen's
+   * `scrollTop` and reapplying it to the incoming one keeps the add/select
+   * action from jumping the view back to the top, without restructuring
+   * this screen's whole render-on-every-change approach (same pattern the
+   * match/pub-hub screens rely on too).
+   */
   function render(): void {
     if (torn) return;
+    const previousScreen = root.querySelector<HTMLElement>(".deck-builder");
+    const scrollTop = previousScreen?.scrollTop ?? 0;
     root.replaceChildren();
-    root.appendChild(view.kind === "list" ? renderSlotList() : renderEditor(view.slotIndex, view.family, view.type, view.ownedOnly));
+    const screen = view.kind === "list" ? renderSlotList() : renderEditor(view.slotIndex, view.family, view.type, view.ownedOnly);
+    root.appendChild(screen);
+    screen.scrollTop = scrollTop;
     if (zoomed) {
       root.appendChild(
         buildCardZoomOverlay(zoomed, 0, () => {

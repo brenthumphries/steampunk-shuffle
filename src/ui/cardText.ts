@@ -86,17 +86,29 @@ export function abilityLines(face: CardFace): string[] {
   });
 }
 
-/** A short one-line label for a target-picker prompt, e.g. "Choose a target to Flip". */
+/**
+ * A short one-line label for a target-picker prompt, e.g. "Choose one card
+ * to Flip". Bugfix cluster G (note #13): every targeted onPlay effect in
+ * the actual card set resolves exactly one target (Effect.target.count
+ * defaults to 1 — src/engine/matchEngine.ts's selectTargets — and the one
+ * card that ever sets count > 1, The Reichenbach Falls, is an endOfRound
+ * trigger that never goes through this staging prompt at all), but a card
+ * like Inspector's Warrant ("Flip an opposing card worth 3 or less") reads
+ * ambiguously in isolation — nothing about the printed text itself rules
+ * out "every qualifying card." Spelling out "one" here, at the point the
+ * player is actually choosing, removes that ambiguity without rewording
+ * the printed card text quoted verbatim from docs/design.md.
+ */
 export function effectPromptLabel(effect: Effect): string {
   switch (effect.effect) {
     case "flip":
-      return "Choose a card to Flip";
+      return "Choose one card to Flip";
     case "unflip":
-      return "Choose a card to turn face-up";
+      return "Choose one card to turn face-up";
     case "return":
-      return "Choose a card to Return";
+      return "Choose one card to Return";
     case "buff":
-      return "Choose a card to boost";
+      return "Choose one card to boost";
     default:
       return "Choose a target";
   }

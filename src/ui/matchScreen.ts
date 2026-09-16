@@ -20,6 +20,7 @@ import {
 } from "../engine/matchEngine.ts";
 import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
 import { abilityLines, describeAutoTarget, effectPromptLabel, keywordChips } from "./cardText.ts";
+import { buildCardZoomEl } from "./cardZoom.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
 import { buildBeerMat } from "./beerMat.ts";
@@ -94,8 +95,18 @@ type Phase =
   | { kind: "staging"; play: StagedPlay }
   | { kind: "ai-turn" }
   | { kind: "human-pass" }
+  /** Bugfix cluster E (note #6): a brief hold on the opponent's just-played Scheme/Headline before moving on — see afterCommit's own comment. */
+  | { kind: "instant-announce"; card: Card }
   | { kind: "round-reveal"; result: RoundResult }
   | { kind: "match-over" };
+
+/** design.md §3: Schemes and Headlines resolve their On Play and discard in the same instant (Nokturna's "Instant" cards) — see cluster E's fix. */
+function isInstantType(card: Card): boolean {
+  const type = card.faces[0].type;
+  return type === "scheme" || type === "headline";
+}
+
+const INSTANT_ANNOUNCE_MS = 1300;
 
 function artUrl(assetId: string): string {
   return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
@@ -453,11 +464,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     options.onStateChange?.(state, aiSeed);
     const roundJustEnded = state.roundHistory.length > prevRoundCount;
 
+    // Bugfix cluster E (note #6): computed here, once, regardless of
+    // `options.hints` — `playedByAI` (the opponent's) also drives the
+    // instant-announce hold below, not just the headline hint.
+    const playedByAI = hintSnapshot ? findPlayedCard(hintSnapshot.prevHandB, AI) : undefined;
+
     if (options.hints && hintSnapshot) {
       if (state.location && state.location.instanceId !== hintSnapshot.prevLocationId) fireHint("location");
       const playedA = findPlayedCard(hintSnapshot.prevHandA, "A");
-      const playedB = findPlayedCard(hintSnapshot.prevHandB, "B");
-      if (playedA?.faces[0].type === "headline" || playedB?.faces[0].type === "headline") fireHint("headline");
+      if (playedA?.faces[0].type === "headline" || playedByAI?.faces[0].type === "headline") fireHint("headline");
       if (roundJustEnded) {
         // PT-10: diff "on board, face-up, had Return" (before this turn) against
         // "now in hand" (after cleanup), per side — not just "any Return card is
@@ -472,28 +487,52 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       }
     }
 
-    if (roundJustEnded) {
-      playSound("brassHit");
-      // In tutorial mode, the round-ending turn's own mat is never
-      // explicitly dismissed once the round-reveal/match-over overlay
-      // takes over (its "Continue"/"Leave the table" isn't dismissMat()) —
-      // left set, PT-2's scheduleNext() mat gate would wait on it forever,
-      // stalling the next round. Non-tutorial hints aren't gated the same
-      // way, so a hint mat that happens to fire on the round-ending turn
-      // is left alone and stays visible alongside the overlay.
-      if (options.tutorial) mat = null;
-      // PT-22: a round that also ends the match used to show its own
-      // round-reveal overlay, then match-over right behind it on the next
-      // tap — checked first here instead, so a deciding round goes
-      // straight to the one overlay that actually matters (its own score
-      // line moves into buildMatchOverOverlay).
-      phase = state.status === "complete" ? { kind: "match-over" } : { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
+    function proceed(): void {
+      if (roundJustEnded) {
+        playSound("brassHit");
+        // In tutorial mode, the round-ending turn's own mat is never
+        // explicitly dismissed once the round-reveal/match-over overlay
+        // takes over (its "Continue"/"Leave the table" isn't dismissMat()) —
+        // left set, PT-2's scheduleNext() mat gate would wait on it forever,
+        // stalling the next round. Non-tutorial hints aren't gated the same
+        // way, so a hint mat that happens to fire on the round-ending turn
+        // is left alone and stays visible alongside the overlay.
+        if (options.tutorial) mat = null;
+        // PT-22: a round that also ends the match used to show its own
+        // round-reveal overlay, then match-over right behind it on the next
+        // tap — checked first here instead, so a deciding round goes
+        // straight to the one overlay that actually matters (its own score
+        // line moves into buildMatchOverOverlay).
+        phase = state.status === "complete" ? { kind: "match-over" } : { kind: "round-reveal", result: state.roundHistory[state.roundHistory.length - 1]! };
+        render();
+        return;
+      }
+      phase = { kind: "idle" };
       render();
+      scheduleNext();
+    }
+
+    // Bugfix cluster E (note #6): a Scheme/Headline resolves its On Play
+    // and discards in the same atomic playTurn() call (design.md's
+    // "Instant" cards) — by the time this function runs, its effect has
+    // already landed and it's already gone from the board, which is
+    // exactly what made it "too fast to read" for the tester. This is a
+    // UI-only hold, not a change to the engine's resolution timing
+    // (`playTurn` stays atomic, same as every other card) — it just pauses
+    // the *next* turn from starting until the player's had a moment to see
+    // what the opponent just played. Only for the opponent's own plays,
+    // never the human's (who already sees the card while staging/
+    // confirming it, before it's ever committed).
+    if (playedByAI && isInstantType(playedByAI)) {
+      phase = { kind: "instant-announce", card: playedByAI };
+      render();
+      timer = setTimeout(() => {
+        timer = undefined;
+        proceed();
+      }, INSTANT_ANNOUNCE_MS);
       return;
     }
-    phase = { kind: "idle" };
-    render();
-    scheduleNext();
+    proceed();
   }
 
   function continueAfterRoundReveal(): void {
@@ -704,6 +743,16 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     return bar;
   }
 
+  /** Bugfix cluster E (note #6): a held, non-interactive reveal of the opponent's just-resolved Scheme/Headline — see afterCommit's own comment. */
+  function buildInstantAnnounceOverlay(card: Card): HTMLElement {
+    const overlay = el("div", "overlay overlay--instant-announce");
+    const box = el("div", "overlay-box");
+    box.appendChild(el("h2", "overlay-title", `${options.aiName} plays…`));
+    box.appendChild(buildCardZoomEl(card));
+    overlay.appendChild(box);
+    return overlay;
+  }
+
   function buildCoinTossOverlay(): HTMLElement {
     // PT-11: design.md §6.1's "Sir Charles's sovereign is tossed" has no
     // canonical heads/tails mapping — this is flavor, not a real coin, so
@@ -845,6 +894,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     root.appendChild(screen);
 
     if (phase.kind === "coin-toss") root.appendChild(buildCoinTossOverlay());
+    if (phase.kind === "instant-announce") root.appendChild(buildInstantAnnounceOverlay(phase.card));
     if (phase.kind === "round-reveal") root.appendChild(buildRoundRevealOverlay(phase.result));
     if (phase.kind === "match-over") root.appendChild(buildMatchOverOverlay());
     if (zoomed) root.appendChild(buildZoomOverlay());

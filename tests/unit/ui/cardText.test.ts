@@ -36,9 +36,9 @@ describe("abilityLines", () => {
 });
 
 describe("effectPromptLabel", () => {
-  it("labels a flip prompt", () => {
+  it("labels a flip prompt, spelling out 'one' so it can't read as flipping every qualifying card (bugfix cluster G, note #13)", () => {
     const target = { side: "opponent" as const };
-    expect(effectPromptLabel({ effect: "flip", target })).toBe("Choose a card to Flip");
+    expect(effectPromptLabel({ effect: "flip", target })).toBe("Choose one card to Flip");
   });
 });
 

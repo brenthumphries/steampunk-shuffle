@@ -12,7 +12,9 @@ import { loadPubState } from "../pub/pubState.ts";
 import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
+import { clearStakeSelection, selectStakeCard, type StakeSelectionState } from "../pub/barBetSelection.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { buildCardZoomEl } from "./cardZoom.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
 
@@ -79,6 +81,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   const pub = loadPubState();
   let revealQueue: PendingReveal[] = [...(options.pendingReveals ?? [])];
   let stakePrompt: Opponent | undefined;
+  let stakeSelection: StakeSelectionState = clearStakeSelection();
   let hintDismissed = false;
   let torn = false;
 
@@ -107,6 +110,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   function openBarBet(opponent: Opponent, event: Event): void {
     event.stopPropagation();
     stakePrompt = opponent;
+    stakeSelection = clearStakeSelection();
     render();
   }
 
@@ -167,9 +171,19 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     return row;
   }
 
+  /**
+   * Bugfix cluster A (notes #1, #2): selecting a card here used to stake it
+   * immediately, with only its bare name shown — no stats, no confirm, no
+   * way to back out. Now selecting a card just previews it (full card
+   * detail via the shared cardZoom component, same one the deck builder
+   * and match screen use) and a distinct "Stake This Card" action is what
+   * actually commits — `options.onStartMatch` (the only thing that starts
+   * the match and locks in the stake) is called from that confirm button
+   * alone, never from picking a card in the list.
+   */
   function buildStakeOverlay(opponent: Opponent): HTMLElement {
     const overlay = el("div", "overlay overlay--reveal");
-    const box = el("div", "overlay-box reveal-box");
+    const box = el("div", "overlay-box reveal-box stake-overlay-box");
     box.appendChild(el("h2", "overlay-title", `Stake a card against ${opponent.name}?`));
     // PT-21: name what's actually on offer, instead of "one of theirs."
     const betNames = opponent.betPool.map((id) => CARDS_BY_ID.get(id)?.faces[0].name ?? id);
@@ -177,15 +191,42 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
 
     const list = el("div", "stake-card-list");
     for (const cardId of stakeableCards(pub.collection)) {
-      const name = CARDS_BY_ID.get(cardId)?.faces[0].name ?? cardId;
-      const btn = el("button", "action-button action-button--secondary", `Stake ${name}`);
+      const card = CARDS_BY_ID.get(cardId);
+      const name = card?.faces[0].name ?? cardId;
+      const selected = stakeSelection.selectedCardId === cardId;
+      const btn = el("button", `action-button action-button--secondary stake-card-option${selected ? " stake-card-option--selected" : ""}`, name);
       btn.type = "button";
-      btn.addEventListener("click", () => options.onStartMatch(opponent, cardId));
+      btn.setAttribute("aria-pressed", String(selected));
+      btn.addEventListener("click", () => {
+        stakeSelection = selectStakeCard(cardId);
+        render();
+      });
       list.appendChild(btn);
     }
     box.appendChild(list);
 
-    const skipBtn = el("button", "action-button", "Play without staking");
+    const selectedCardId = stakeSelection.selectedCardId;
+    if (selectedCardId) {
+      const selectedCard = CARDS_BY_ID.get(selectedCardId);
+      if (selectedCard) {
+        box.appendChild(el("p", "overlay-score", "What you're staking:"));
+        box.appendChild(buildCardZoomEl(selectedCard));
+      }
+      const confirmBtn = el("button", "action-button", `Stake ${selectedCard?.faces[0].name ?? selectedCardId}`);
+      confirmBtn.type = "button";
+      confirmBtn.addEventListener("click", () => options.onStartMatch(opponent, selectedCardId));
+      box.appendChild(confirmBtn);
+
+      const deselectBtn = el("button", "action-button action-button--secondary", "Choose a different card");
+      deselectBtn.type = "button";
+      deselectBtn.addEventListener("click", () => {
+        stakeSelection = clearStakeSelection();
+        render();
+      });
+      box.appendChild(deselectBtn);
+    }
+
+    const skipBtn = el("button", "action-button action-button--secondary", "Play without staking");
     skipBtn.type = "button";
     skipBtn.addEventListener("click", () => options.onStartMatch(opponent, null));
     box.appendChild(skipBtn);
@@ -194,6 +235,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     cancelBtn.type = "button";
     cancelBtn.addEventListener("click", () => {
       stakePrompt = undefined;
+      stakeSelection = clearStakeSelection();
       render();
     });
     box.appendChild(cancelBtn);

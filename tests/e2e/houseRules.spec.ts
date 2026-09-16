@@ -46,4 +46,50 @@ test.describe("House Rules (plan step 2.7 / 4.0e)", () => {
     await page.getByRole("button", { name: "House Rules" }).click();
     await expect(page.getByText("The Birthday Invitational")).toBeVisible();
   });
+
+  // Bugfix cluster D (note #7): the page scrolled fine via touch but not via
+  // mouse wheel/trackpad — `.house-rules-screen` was the one screen missing
+  // the `height: 100%; overflow-y: auto` every sibling screen already has,
+  // so it overflowed #app unclipped instead of being its own scroll
+  // container. Mouse wheel is a desktop-only input device — mobile WebKit
+  // (the Safari project) doesn't support `page.mouse.wheel()` at all, and
+  // touch scrolling here was never the reported bug (note #7 itself says
+  // it already worked on phone), so this only runs on the three desktop
+  // projects. Shrink the viewport so the content genuinely overflows, then
+  // scroll with repeated wheel events (Firefox's wheel delta units scroll
+  // much less per call than Chromium's, so one large delta isn't enough to
+  // reliably reach the bottom) and confirm it gets there.
+  test("cluster D: content scrolls with the mouse wheel and reaches the bottom", async ({ page, isMobile }) => {
+    test.skip(isMobile, "mouse wheel isn't a mobile input device; touch scrolling here was already working (note #7)");
+    await page.setViewportSize({ width: 402, height: 400 });
+    await page.getByRole("button", { name: "House Rules" }).click();
+
+    const container = page.locator(".house-rules-screen");
+    await expect(container).toBeVisible();
+    const before = await container.evaluate((el) => el.scrollTop);
+
+    await container.hover();
+    // A wheel-triggered scroll can animate smoothly rather than jump
+    // instantly, so `page.mouse.wheel()` returning doesn't mean the scroll
+    // has settled yet — poll after each call rather than reading immediately.
+    for (let i = 0; i < 10; i++) {
+      const atBottom = await container.evaluate((el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
+      if (atBottom) break;
+      await page.mouse.wheel(0, 2000);
+      await expect.poll(() => container.evaluate((el) => el.scrollTop)).toBeGreaterThan(before);
+    }
+
+    await expect(page.getByText("How Checks work")).toBeVisible();
+    const atBottom = await container.evaluate((el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
+    expect(atBottom).toBe(true);
+  });
+
+  // Bugfix cluster F (note #9): the round-boundary "each side draws 3
+  // more cards" rule (design.md §6.1) was real and already implemented,
+  // just never explained anywhere in-game.
+  test("cluster F: explains that hands grow at the start of rounds 2 and 3, and via a card's own Draw effect", async ({ page }) => {
+    await page.getByRole("button", { name: "House Rules" }).click();
+    await expect(page.getByText(/at the start of rounds 2 and 3.*each side draws 3 more cards/)).toBeVisible();
+    await expect(page.getByText(/Hands don't otherwise refill mid-round/)).toBeVisible();
+  });
 });

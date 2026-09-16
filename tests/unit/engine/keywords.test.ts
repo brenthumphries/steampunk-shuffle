@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { createMatch, effectivePoints, playTurn, type MatchState, type PlayerId } from "../../../src/engine/matchEngine.ts";
 import { instanceId, makeCard, orderedDeck } from "./fixtures/helpers.ts";
+import { ALL_CARDS } from "../../../src/cards/data/index.ts";
 
 function bc(state: MatchState, playerId: PlayerId, id: string) {
   const found = state.players[playerId].board.find((b) => b.instanceId === id);
@@ -96,6 +97,44 @@ describe("Flip (design.md §5.7)", () => {
     state = playTurn(state, "A", instanceId("A", flipper));
 
     expect(bc(state, "B", instanceId("B", target)).faceUp).toBe(true);
+  });
+
+  // Bugfix cluster G (note #13): design.md §8.3's printed text ("Flip an
+  // opposing card worth 3 or less") and its tutorial narration ("Turn A
+  // card of mine face-down... Nicked" — singular) both confirm Inspector's
+  // Warrant flips exactly one qualifying card, not every one — the same as
+  // every other targeted onPlay effect in the card set (Effect.target.count
+  // defaults to 1; the sole count > 1 card, The Reichenbach Falls, is an
+  // untargeted endOfRound trigger, not a human-staged onPlay pick). This
+  // pins the actual resolution behavior against the real card, with more
+  // than one legal target on the board, so a future change to
+  // selectTargets/defaultSelect can't silently start flipping every
+  // qualifying card without a test noticing.
+  it("Inspector's Warrant flips exactly one qualifying opposing card — the highest-points one — even with several ≤3-point candidates", () => {
+    const warrant = ALL_CARDS.find((c) => c.id === "inspectors-warrant")!;
+    const targetLow = makeCard({ name: "Low Target", points: 1 });
+    const targetHigh = makeCard({ name: "High Target", points: 3 });
+    const aFiller1 = makeCard({ name: "A filler 1", points: 1 });
+    const aFiller2 = makeCard({ name: "A filler 2", points: 1 });
+    const bFiller = makeCard({ name: "B filler", points: 5 });
+
+    const deckA = orderedDeck([aFiller1, aFiller2, warrant]);
+    const deckB = orderedDeck([targetLow, targetHigh, bFiller]);
+
+    let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
+    state = playTurn(state, "A", instanceId("A", aFiller1));
+    state = playTurn(state, "B", instanceId("B", targetLow));
+    state = playTurn(state, "A", instanceId("A", aFiller2));
+    state = playTurn(state, "B", instanceId("B", targetHigh));
+    state = playTurn(state, "A", instanceId("A", warrant));
+
+    const lowBc = bc(state, "B", instanceId("B", targetLow));
+    const highBc = bc(state, "B", instanceId("B", targetHigh));
+    expect([lowBc.faceUp, highBc.faceUp].filter((faceUp) => !faceUp).length).toBe(1);
+    // defaultSelect (no chooser supplied) sorts by points descending — the
+    // 3-point card is the one actually chosen, not the 1-point one.
+    expect(highBc.faceUp).toBe(false);
+    expect(lowBc.faceUp).toBe(true);
   });
 
   it("does nothing when no legal target exists", () => {

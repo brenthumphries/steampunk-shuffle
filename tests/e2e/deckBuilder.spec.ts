@@ -131,4 +131,107 @@ test.describe("deck builder (plan step 2.2)", () => {
     await page.getByLabel("Owned only").check();
     await expect(page.locator(".deck-card-tile", { hasText: "Difference Engine" })).toHaveCount(0);
   });
+
+  // Bugfix cluster B (notes #4, #5, #10, #11): family drives the card
+  // frame's color, rarity gets its own separate texture channel, and a
+  // legend now ties the family dropdown's names to those colors.
+  test("cluster B: the family legend's swatch color matches the color actually used on that family's cards", async ({ page }) => {
+    await page.getByRole("button", { name: "Build a deck" }).click();
+    await page.locator(".deck-slot-row").first().locator(".deck-slot-info").click();
+
+    await page.getByRole("combobox").first().selectOption("yard");
+    const tileColor = await page.locator(".deck-card-tile").first().evaluate((el) => getComputedStyle(el).borderTopColor);
+
+    const swatchColor = await page
+      .locator(".family-legend-item", { hasText: "The Yard" })
+      .locator(".family-legend-swatch")
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+
+    expect(swatchColor).toBe(tileColor);
+    expect(swatchColor).not.toBe("rgba(0, 0, 0, 0)"); // sanity: a real color was actually applied
+  });
+
+  test("cluster B (note #10): Charlotte's border renders The Yard's color, matching her family in the card data and design.md §8.3", async ({ page }) => {
+    await page.getByRole("button", { name: "Build a deck" }).click();
+    await page.locator(".deck-slot-row").first().locator(".deck-slot-info").click();
+
+    const charlotte = page.locator(".deck-card-tile", { hasText: "Charlotte" });
+    await expect(charlotte).toHaveAttribute("data-family", "yard");
+    const yardColor = await page
+      .locator(".family-legend-item", { hasText: "The Yard" })
+      .locator(".family-legend-swatch")
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const charlotteColor = await charlotte.evaluate((el) => getComputedStyle(el).borderTopColor);
+    expect(charlotteColor).toBe(yardColor);
+  });
+
+  test("cluster B (note #3): a card already in the open deck renders visibly differently from one that isn't", async ({ page }) => {
+    await page.getByRole("button", { name: "Build a deck" }).click();
+    await page.locator(".deck-slot-row").first().locator(".deck-slot-info").click(); // slot 1, pre-seeded and legal
+
+    const includedTile = page.locator(".deck-card-tile", { hasText: "Constable on the Beat" });
+    await expect(includedTile).toHaveClass(/deck-card-tile--included/);
+    await expect(includedTile.getByText("In this deck")).toBeVisible();
+
+    const notIncludedTile = page.locator(".deck-card-tile", { hasText: "Constable Reeve" });
+    await expect(notIncludedTile).not.toHaveClass(/deck-card-tile--included/);
+    await expect(notIncludedTile.getByText("In this deck")).toHaveCount(0);
+  });
+
+  test("cluster B (notes #4, #5): rarity renders on its own visual channel, independent of family color", async ({ page }) => {
+    await page.getByRole("button", { name: "Build a deck" }).click();
+    await page.locator(".deck-slot-row").first().locator(".deck-slot-info").click();
+
+    // Sergeant Pike: uncommon, Yard — same family color as the commons
+    // around it, but a distinct rarity texture (corner rivets).
+    const pike = page.locator(".deck-card-tile", { hasText: "Sergeant Pike" });
+    await expect(pike).toHaveAttribute("data-rarity", "uncommon");
+    await expect(pike).toHaveAttribute("data-family", "yard");
+    const commonTile = page.locator(".deck-card-tile", { hasText: "Constable on the Beat" });
+    await expect(commonTile).toHaveAttribute("data-rarity", "common");
+
+    // Same family color on both, since rarity doesn't drive color.
+    const pikeColor = await pike.evaluate((el) => getComputedStyle(el).borderTopColor);
+    const commonColor = await commonTile.evaluate((el) => getComputedStyle(el).borderTopColor);
+    expect(pikeColor).toBe(commonColor);
+  });
+
+  // Bugfix cluster C (note #12): picking a card to add used to jump the
+  // screen back to the top, because every state change does a full
+  // teardown/rebuild of the scrollable `.deck-builder` element itself.
+  test("cluster C: adding a card doesn't reset the grid's scroll position", async ({ page }) => {
+    await page.getByRole("button", { name: "Build a deck" }).click();
+    // Slot 2 (empty), not the pre-seeded slot 1 — slot 1 is already a full,
+    // legal 20/20 deck, so every "+" button on it is disabled (deckFull)
+    // and there'd be nothing addable to click.
+    await page.locator(".deck-slot-row").nth(1).locator(".deck-slot-info").click();
+
+    const scroller = page.locator(".deck-builder");
+    await scroller.evaluate((el) => {
+      el.scrollTop = 300;
+    });
+    const before = await scroller.evaluate((el) => el.scrollTop);
+    expect(before).toBeGreaterThan(200);
+
+    // Click an enabled "+" button by raw viewport coordinates, not via
+    // Playwright's locator .click() — that auto-scrolls the target into
+    // view first, which would mask exactly the bug being tested for.
+    const plusButtons = page.locator(".deck-card-btn", { hasText: "+" });
+    const count = await plusButtons.count();
+    let clicked = false;
+    for (let i = 0; i < count; i++) {
+      const btn = plusButtons.nth(i);
+      if (await btn.isDisabled()) continue;
+      const box = await btn.boundingBox();
+      if (box && box.y >= 0 && box.y + box.height <= 874) {
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        clicked = true;
+        break;
+      }
+    }
+    expect(clicked).toBe(true);
+
+    const after = await scroller.evaluate((el) => el.scrollTop);
+    expect(Math.abs(after - before)).toBeLessThanOrEqual(5);
+  });
 });

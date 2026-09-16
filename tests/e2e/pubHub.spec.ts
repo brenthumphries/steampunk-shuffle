@@ -88,4 +88,63 @@ test.describe("pub hub (plan step 2.3)", () => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
   });
+
+  // Bugfix cluster A (notes #1, #2): a stakeable card used to stake itself
+  // the instant it was tapped, showing only its bare name — no stats, no
+  // confirm, no way to back out. Now it's select → preview (full card
+  // detail) → a separate confirm action.
+  test("cluster A: staking a card requires selecting it for preview, then a separate confirm", async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "steampunk-shuffle:pub-state",
+        JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
+      );
+    });
+    await page.reload();
+
+    const muddRow = page.locator(".patron-row").filter({ hasText: "Constable Tobias Mudd" });
+    await muddRow.getByRole("button", { name: "Bar bet" }).click();
+
+    // Before selecting a card, there's nothing to confirm yet.
+    await expect(page.getByRole("button", { name: "Stake Charlotte" })).toHaveCount(0);
+
+    // Selecting only previews it — full stats are now visible before any commitment.
+    await page.getByRole("button", { name: "Charlotte", exact: true }).click();
+    await expect(page.getByText("What you're staking:")).toBeVisible();
+    await expect(page.getByText("Persist")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Stake Charlotte" })).toBeVisible();
+
+    // "Choose a different card" clears the preview without staking anything.
+    await page.getByRole("button", { name: "Choose a different card" }).click();
+    await expect(page.getByRole("button", { name: "Stake Charlotte" })).toHaveCount(0);
+    await expect(page.getByText("Round 1 of 3")).toHaveCount(0);
+
+    // Selecting again and confirming is what actually starts the staked match.
+    await page.getByRole("button", { name: "Charlotte", exact: true }).click();
+    await page.getByRole("button", { name: "Stake Charlotte" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  });
+
+  test("cluster A: canceling the stake prompt returns to the hub with no bet placed", async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "steampunk-shuffle:pub-state",
+        JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
+      );
+    });
+    await page.reload();
+
+    const muddRow = page.locator(".patron-row").filter({ hasText: "Constable Tobias Mudd" });
+    await muddRow.getByRole("button", { name: "Bar bet" }).click();
+    await page.getByRole("button", { name: "Charlotte", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Stake Charlotte" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Never mind" }).click();
+    await expect(page.getByText("Stake a card against Constable Tobias Mudd?")).toHaveCount(0);
+    await expect(page.getByText("Round 1 of 3")).toHaveCount(0);
+
+    // Reopening starts from a clean preview state, not the previous selection.
+    await muddRow.getByRole("button", { name: "Bar bet" }).click();
+    await expect(page.getByRole("button", { name: "Stake Charlotte" })).toHaveCount(0);
+  });
 });
