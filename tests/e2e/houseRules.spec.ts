@@ -84,12 +84,13 @@ test.describe("House Rules (plan step 2.7 / 4.0e)", () => {
     expect(atBottom).toBe(true);
   });
 
-  // Bugfix cluster F (note #9): the round-boundary "each side draws 3
-  // more cards" rule (design.md §6.1) was real and already implemented,
-  // just never explained anywhere in-game.
-  test("cluster F: explains that hands grow at the start of rounds 2 and 3, and via a card's own Draw effect", async ({ page }) => {
+  // Bugfix cluster F (note #9): the per-turn draw rule (design.md §6.2 step
+  // 2) was real and already implemented, just never explained anywhere
+  // in-game. Originally this covered the older round-boundary "each side
+  // draws 3 more cards" rule; both were replaced by a draw at the start of
+  // every turn (see CLAUDE.md's draw-mechanic gotcha).
+  test("cluster F: explains that hands grow by one card at the start of every turn", async ({ page }) => {
     await page.getByRole("button", { name: "House Rules" }).click();
-    await expect(page.getByText(/at the start of rounds 2 and 3.*each side draws 3 more cards/)).toBeVisible();
-    await expect(page.getByText(/Hands don't otherwise refill mid-round/)).toBeVisible();
+    await expect(page.getByText(/at the start of every turn, before playing, you draw one card/)).toBeVisible();
   });
 });
