@@ -28,7 +28,7 @@ Rules that apply to every step below:
 1. **Start on the listed model.** Pick it in the Cowork/Claude Code model picker when you open the session, or pass it as the subagent model when a step says "subagent".
 2. **Escalate only on failure.** If a step fails its exit check twice on the listed model, move up exactly one tier (Haiku → Sonnet → Opus). Nothing starts on Fable; Fable is reserved for the two judgement calls in §4 marked ★, and only if Opus's output doesn't satisfy you.
 3. **Deterministic beats generative.** Whenever a task can be a script (image resizing, manifest generation, deploys, simulations), Claude writes the script once and Haiku runs it forever after.
-4. **Handoff doc first.** Every session begins by reading `CLAUDE.md`; every session ends by updating it (Haiku). This is what keeps cheap sessions cheap — no re-deriving context.
+4. **Handoff doc first.** Every session begins by reading `CLAUDE.md` and the last three entries in `docs/logs/`; every session ends with a `docs/logs/YYYY-MM-DD.md` entry (the brent-ops `/log` skill, Haiku). This is what keeps cheap sessions cheap — no re-deriving context. (The old `CLAUDE.md` `## Current state` history was migrated into `docs/logs/` on Sept 16, 2026.)
 
 Rough split of Claude usage by the end: ~45% Haiku, ~45% Sonnet, ~10% Opus.
 
