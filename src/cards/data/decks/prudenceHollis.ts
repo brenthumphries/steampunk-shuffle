@@ -10,6 +10,17 @@
 // real Friend-chain weight, since Salon's whole identity is "individually
 // weak, collectively strong" and her deck was neither strong nor dense
 // enough in Friend cards to actually get there.
+//
+// Re-pointed again after the draw-mechanic change (see CLAUDE.md's
+// gotcha): `tools/curve.ts`'s "played sensibly" read had the starter
+// beating Hollis only 43% of the time (target ~60%) — the same
+// Friend-chain-plus-Reading-Room combo that fixed PT-32 now overshoots.
+// Trimmed The Vicar's Wife (her single strongest card, and the Friend
+// keyword compounds with Reading Room's own continuous buff to every
+// Salon Character on the board) from 2 copies to 1, backfilled with a
+// second copy of Reading Room itself — inert padding, since only one
+// Location is ever active at a time (design.md §5.6), so it adds zero
+// points and zero synergy while holding the deck at 20 cards.
 import type { Card, Deck } from "../../cardTypes.ts";
 import {
   parlourGuest,
@@ -70,6 +81,6 @@ export const hollisDeck: Deck = [
   { card: seance, quantity: 2 },
   { card: theSeasonsMostTalkedAboutEngagement, quantity: 2 },
   { card: churchFeteStall, quantity: 2 },
-  { card: theVicarsWife, quantity: 2 },
-  { card: theReadingRoom, quantity: 1 },
+  { card: theVicarsWife, quantity: 1 },
+  { card: theReadingRoom, quantity: 2 },
 ];

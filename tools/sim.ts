@@ -510,8 +510,14 @@ function main(): void {
     runMirror(deck, "regular", "legend", 6, liftSink),
   ];
 
+  // `regular` AI has no deep search (design.md §9.4), so this section is
+  // cheap regardless of sample size — 100 games/opponent adds well under
+  // 10s to the whole run. Bumped from 15 after the draw-mechanic change
+  // (CLAUDE.md gotcha): at 15 games the reported band looked borderline
+  // (40-53%); at 100+ it's a clear, stable signal, and worse than the
+  // small sample suggested.
   const headToHead: HeadToHeadResult[] = REGULAR_DECKS.map((opponent) =>
-    runHeadToHead("Starter (Village Constable)", deck, opponent.name, opponent.deck, "regular", "regular", 15, liftSink),
+    runHeadToHead("Starter (Village Constable)", deck, opponent.name, opponent.deck, "regular", "regular", 100, liftSink),
   );
 
   // `legend` AI's 3-turn lookahead over 32 hidden-hand samples is the
