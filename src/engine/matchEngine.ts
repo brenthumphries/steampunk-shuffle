@@ -28,6 +28,11 @@ export * from "./matchTypes.ts";
 // Setup (design.md §6.1)
 // ---------------------------------------------------------------------------
 
+/** design.md §6.1: opening hand size. */
+const OPENING_HAND_SIZE = 4;
+/** design.md §6.2 step 2: cards drawn at the start of every turn. */
+const TURN_DRAW_AMOUNT = 1;
+
 export interface CreateMatchOptions {
   /** Who leads round 1. Omit to decide by coin toss (design.md §6.1) using `seed`. */
   leader?: PlayerId;
@@ -89,10 +94,11 @@ export function createMatch(deckA: Deck, deckB: Deck, opts: CreateMatchOptions =
     rngSeed: seed,
   };
 
-  // Opening hands (design.md §6.1) — distinct from the start-of-round draw
-  // (§6.2.1), which only fires from round 2 onward.
-  drawCards(state, "A", 5);
-  drawCards(state, "B", 5);
+  // Opening hands (design.md §6.1). Every turn from here also draws a card
+  // (§6.2 step 2, resolved in playTurn) — there is no separate round-start
+  // draw any more.
+  drawCards(state, "A", OPENING_HAND_SIZE);
+  drawCards(state, "B", OPENING_HAND_SIZE);
 
   return state;
 }
@@ -121,6 +127,7 @@ export function playTurn(state: MatchState, playerId: PlayerId, instanceId?: str
   }
 
   const next = structuredClone(state);
+  drawCards(next, playerId, TURN_DRAW_AMOUNT); // design.md §6.2 step 2: draw 1 at the start of every turn
   const player = next.players[playerId];
 
   if (player.hand.length === 0) {
@@ -203,7 +210,8 @@ function drawCards(state: MatchState, playerId: PlayerId, amount: number): void 
 function startOfRound(state: MatchState): void {
   // Transform every face-up two-faced card in play (§5.10). Round 1 is a
   // no-op here (nothing has been played yet); the opening deal happens in
-  // createMatch, not here.
+  // createMatch, not here. There is no round-start draw any more — cards
+  // are drawn per-turn instead (§6.2 step 2, in playTurn).
   for (const pid of PLAYER_IDS) {
     for (const bc of state.players[pid].board) {
       if (bc.faceUp && bc.card.faces.length === 2) {
@@ -212,9 +220,6 @@ function startOfRound(state: MatchState): void {
     }
   }
   resolveTriggeredAbilities(state, "startOfRound");
-  if (state.round > 1) {
-    for (const pid of PLAYER_IDS) drawCards(state, pid, 3);
-  }
 }
 
 /**

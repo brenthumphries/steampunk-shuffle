@@ -220,7 +220,10 @@ describe("Draw N (design.md §5.9)", () => {
     const onlyOneLeft = makeCard({ name: "Only One Left", points: 1 });
     const bFiller = makeCard({ name: "B filler", points: 1 });
 
-    // Exactly 1 card left in the deck after the opening 5-card hand is dealt.
+    // Exactly 2 cards left in the deck after the opening 4-card hand is
+    // dealt; A's turn-start draw (design.md §6.2 step 2) then pulls
+    // `drawer` into hand, leaving exactly 1 for its own onPlay "draw 3" to
+    // fall short on.
     const deckA = orderedDeck([
       makeCard({ name: "h1", points: 1 }),
       makeCard({ name: "h2", points: 1 }),
@@ -232,7 +235,7 @@ describe("Draw N (design.md §5.9)", () => {
     const deckB = orderedDeck([bFiller]);
 
     let state = createMatch(deckA, deckB, { seed: 1, shuffle: false, leader: "A" });
-    expect(state.players.A.deck).toHaveLength(1);
+    expect(state.players.A.deck).toHaveLength(2);
     state = playTurn(state, "A", instanceId("A", drawer));
 
     expect(state.players.A.deck).toHaveLength(0);

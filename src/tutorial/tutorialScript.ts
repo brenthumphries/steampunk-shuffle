@@ -8,11 +8,23 @@
 // the deck anyway).
 //
 // Deck order here fixes exactly what `drawCards` (src/engine/matchEngine.ts)
-// pulls: the opening 5-card hand is positions 0-4, Police Whistle's On Play
-// draw pulls whatever's at the front of what's left, and each later round's
-// "draw 3" pulls the next 3. Which *turn* plays which card doesn't depend on
-// hand order (each scripted play names its card by id, not by position), so
-// only draw order — not hand order — is load-bearing here.
+// pulls: the opening 4-card hand is positions 0-3, then every turn (any
+// side, any round) draws 1 more from the front of what's left (§6.2 step 2)
+// — there's no round-start batch draw any more. Police Whistle's own On
+// Play effect draws on top of that, mid-turn, right after its turn-start
+// draw. Which *turn* plays which card doesn't depend on hand order (each
+// scripted play names its card by id, not by position), so only draw
+// order — not hand order — is load-bearing here.
+//
+// The player deck's order is deliberately NOT "round 1's cards, then round
+// 2's, then round 3's": Bramwell sits right after The Parsonage Snug/
+// Hiawatha/Emily specifically so it's Police Whistle's On Play draw that
+// picks it up (position 7, the first draw after round 1's three ordinary
+// turn-draws have already consumed the three distractors ahead of it) —
+// not an earlier turn-draw, which would make "the whistle fetched you a
+// card" land on the wrong card. Every other named card just needs to be
+// drawn by the time its own turn plays it, which an otherwise-natural
+// ordering already satisfies.
 //
 // The house deck plays Boiler Hand twice (H2 in round 1, H3 in round 3, per
 // the script below) — the only card this script needs two copies of. Two
@@ -20,9 +32,9 @@
 // `B:boiler-hand#0` (src/engine/matchEngine.ts's `expandDeck` numbers copies
 // per-entry, not per-deck) — a collision, but a harmless one: the first
 // copy is played and swept into discard during round 1's cleanup long
-// before the second is even drawn (round 3's start-of-round draw), so the
-// two never coexist in the same hand/board for `playTurn`'s instanceId
-// lookup to have to disambiguate.
+// before the second is even drawn (its own turn-draw, deep into round 3),
+// so the two never coexist in the same hand/board for `playTurn`'s
+// instanceId lookup to have to disambiguate.
 
 import type { Card, Deck } from "../cards/cardTypes.ts";
 import {
@@ -54,23 +66,23 @@ function oneEach(cards: Card[]): Deck {
   return cards.map((card) => ({ card, quantity: 1 }));
 }
 
-/** The player's forced draws (design.md §13.2): opening hand, then Whistle draws Bramwell, then rounds 2/3's draws. */
+/** The player's forced draws (design.md §13.2): opening hand, then each turn's own draw — Police Whistle's On Play draw lands on Bramwell specifically (see header comment). */
 export const TUTORIAL_PLAYER_DECK: Deck = oneEach([
   constableOnTheBeat,
   nightWatchman,
-  parlourGuest,
   policeWhistle,
   inspectorsWarrant,
-  bramwell,
-  amateurSleuth,
-  charlotte,
-  seance,
   theParsonageSnug,
   hiawatha,
   emily,
+  bramwell,
+  parlourGuest,
+  amateurSleuth,
+  charlotte,
+  seance,
 ]);
 
-/** Sir Charles's forced draws: opening hand (3 played, 2 unused fillers), then rounds 2/3's draws. */
+/** Sir Charles's forced draws: opening hand (3 played, 2 unused fillers), then each turn's own draw. */
 export const TUTORIAL_HOUSE_DECK: Deck = oneEach([
   apprenticeFitter,
   boilerHand,

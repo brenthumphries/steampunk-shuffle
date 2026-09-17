@@ -52,6 +52,25 @@ the full-art zoom fix (`b263dc7`). 386 unit tests at last count.
 Standing knowledge that outlives any one step. Where a bullet says "above",
 the entry it means is now in `docs/logs/`.
 
+- **Changing the draw mechanic to a 4-card opening hand + draw 1 per turn
+  (no round-start batch draw) pulled every Starter-vs-Regular-tier win rate
+  (design.md §12.2, target ~60%) under target, though it also tightened
+  their spread a lot.** `npm run sim` re-run after the change: Mudd, Nell,
+  Farrow, and Hollis all landed in a 40–53% band (previously 20–60%, with
+  Hollis over target and Nell well under it) — every matchup is now closer
+  to the others, but all four sit below ~60% instead of straddling it.
+  AI-vs-random win rates rose (regular 68%→76%, seasoned 87%→93% — more
+  draws gives the AI more chances to find a good line), while same-
+  difficulty AI mirrors compressed toward a coin flip (legend-vs-legend
+  33%→17% — more draws narrows the edge that deeper search buys over
+  itself). Not adjusted here: this is simulated AI-vs-AI play (same caveat
+  as the wide-variance gotcha below), and the draw-mechanic change itself
+  was Brent's own call, not a balance one — but worth a look once real
+  playtesting starts, since the whole Regular tier drifting under target at
+  once is a different shape of problem than one deck running hot or cold.
+  The wide-variance gotcha below cites `docs/balance.md` numbers from
+  before this session — already stale by the time this entry was written
+  (a Nell Ashby re-pointing landed in between), and now doubly so.
 - **`tests/unit/engine/property.test.ts`'s 10,000-random-games test failed
   on GitHub's shared CI runner during the 2.5 ship despite already having
   an explicit 30s timeout (vs. ~9s locally)** — same class of flakiness as

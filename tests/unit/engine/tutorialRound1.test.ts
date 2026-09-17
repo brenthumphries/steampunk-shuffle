@@ -27,20 +27,22 @@ import { instanceId, orderedDeck } from "./fixtures/helpers.ts";
 
 describe("Tutorial round 1 (design.md §13.2)", () => {
   it("matches every intermediate score in the beer-mat script", () => {
-    // Player's forced draws (§13.2): opening hand, then Whistle draws Bramwell.
+    // Player's forced draws (§13.2): opening hand, then each turn's own
+    // draw — Police Whistle's On Play draw lands on Bramwell specifically
+    // (see src/tutorial/tutorialScript.ts's header comment).
     const playerDeck = orderedDeck([
       constableOnTheBeat,
       nightWatchman,
-      parlourGuest,
       policeWhistle,
       inspectorsWarrant,
-      bramwell, // drawn by Police Whistle
-      amateurSleuth,
-      charlotte,
-      seance,
       theParsonageSnug,
       hiawatha,
       emily,
+      bramwell, // drawn by Police Whistle's On Play, not an ordinary turn-draw
+      parlourGuest,
+      amateurSleuth,
+      charlotte,
+      seance,
     ]);
     // House forced plays for round 1 only; round 2/3 cards aren't needed here.
     const houseDeck = orderedDeck([apprenticeFitter, boilerHand, brassCog]);

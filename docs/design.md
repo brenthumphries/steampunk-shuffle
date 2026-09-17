@@ -161,11 +161,11 @@ Rules text: A deck may contain at most **one** copy of each legendary card.
 ## 6. Match rules (engine spec)
 
 ### 6.1 Setup
-Each player has a legal 20-card deck (§7.2). Shuffle. Draw 5. Sir Charles's sovereign is tossed to decide who **leads** round 1 (animated coin; in the tutorial the house always leads).
+Each player has a legal 20-card deck (§7.2). Shuffle. Draw 4. Sir Charles's sovereign is tossed to decide who **leads** round 1 (animated coin; in the tutorial the house always leads).
 
 ### 6.2 Round
-1. **Start of round.** Transform any two-faced cards (§5.10). If this isn't round 1, each player draws 3.
-2. **Three turns each, alternating**, leader first. On your turn you must play exactly one card from your hand. If your hand is empty you pass. There is no voluntary pass.
+1. **Start of round.** Transform any two-faced cards (§5.10).
+2. **Three turns each, alternating**, leader first. At the start of your turn, draw one card (§5.9) — then you must play exactly one card from your hand. If your hand is empty you pass. There is no voluntary pass.
 3. **End of round.** Compare scores. Higher score takes the round; equal scores, nobody takes it. Then: Return cards go to hand; face-down cards are discarded; face-up non-Persist cards are discarded; Persist cards and the Location stay.
 4. **Next leader:** whoever did **not** take the previous round. If nobody took it, the player who did not lead it.
 
@@ -405,7 +405,7 @@ Teaches: points, taking a round (R1) · Persist, Flip (R1–2) · Friend (R2) ·
 
 ### 13.2 Script
 
-Player's forced draws: opening hand **Constable on the Beat, Night Watchman, Parlour Guest, Police Whistle, Inspector's Warrant**; Whistle draws **Bramwell**; round 2 draws **Amateur Sleuth, Charlotte, Séance**; round 3 draws **The Parsonage Snug, Hiawatha, Emily** (unused distractors; the R3 prompts point at Bramwell, Charlotte, Séance).
+Player's forced draws: opening hand **Constable on the Beat, Night Watchman, Police Whistle, Inspector's Warrant**. From there every turn also draws one card (§6.2 step 2) before the play: round 1's remaining turn-draws surface **The Parsonage Snug, Hiawatha, Emily** as unused distractors, then Police Whistle's own On Play effect — not an ordinary turn-draw — draws **Bramwell** specifically, so "the whistle fetched you a card" lands on cue. The rest of the match's turn-draws bring up **Parlour Guest, Amateur Sleuth, Charlotte, Séance** in that order, each arriving a turn or two ahead of when it's actually played.
 
 House forced plays are in order below. The house leads round 1.
 

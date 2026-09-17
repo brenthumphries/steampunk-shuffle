@@ -37,19 +37,17 @@ const HOUSE_RULES = [
   "The Landlady's chair is the Landlady's chair.",
 ];
 
-// Bugfix cluster F (note #9): "hand stayed fixed to the initial deal" is
-// mostly a communication gap — design.md §6.1's "if this isn't round 1,
-// each player draws 3" (implemented in src/engine/matchEngine.ts's
-// startOfRound) means a hand genuinely does grow, just at round
-// boundaries, not per turn — and nothing here said so before this line was
-// added. Folded into the round-structure sentence rather than adding a
-// seventh, so this still reads as "the Shuffle, in six sentences"
-// (design.md §13.4).
+// Bugfix cluster F (note #9): "hand stayed fixed to the initial deal" was
+// flagged as a communication gap under the old round-batch draw — since
+// resolved by the draw mechanic itself changing (design.md §6.2 step 2,
+// implemented in src/engine/matchEngine.ts's playTurn): a hand now grows by
+// one card at the start of every turn, so this is stated plainly in the
+// round-structure sentence rather than needing a caveat.
 const ROUND_RULES = [
-  "Each player has a legal 20-card deck; shuffle and draw 5.",
+  "Each player has a legal 20-card deck; shuffle and draw 4.",
   "A coin toss decides who leads round 1.",
-  "Best of three rounds, three turns each a round, leader first — and at the start of rounds 2 and 3, before anyone plays, each side draws 3 more cards.",
-  "On your turn you play exactly one card from your hand — no voluntary pass. Hands don't otherwise refill mid-round; only a card's own Draw effect adds more.",
+  "Best of three rounds, three turns each a round, leader first — and at the start of every turn, before playing, you draw one card.",
+  "On your turn you play exactly one card from your hand — no voluntary pass.",
   "Higher score takes the round and nobody takes a tie — either way, whoever didn't take it leads the next round.",
   "First to two rounds takes the table; after three rounds it's most rounds, then most total points, then a draw.",
 ];
