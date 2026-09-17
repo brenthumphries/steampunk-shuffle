@@ -27,6 +27,18 @@ import { buildBeerMat } from "./beerMat.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
 import type { HintId } from "../tutorial/tutorialState.ts";
+import { buildMatchHud } from "./matchHud.ts";
+import {
+  buffDelta,
+  buildStaggerPlan,
+  computeSequenceDurationMs,
+  DISCARD_BEAT_MS,
+  discardedFromHand,
+  planDiscardFlights,
+  REDUCED_MOTION_MS,
+  type DiscardFlight,
+  type StaggerPlan,
+} from "./matchAnimation.ts";
 
 const HUMAN: PlayerId = "A";
 const AI: PlayerId = "B";
@@ -97,6 +109,8 @@ type Phase =
   | { kind: "human-pass" }
   /** Bugfix cluster E (note #6): a brief hold on the opponent's just-played Scheme/Headline before moving on — see afterCommit's own comment. */
   | { kind: "instant-announce"; card: Card }
+  /** Plan step 3.3 extension: a brief input-blocking hold while a just-committed turn's on-play/discard animation beats play out (any commit not already covered by instant-announce) — see afterCommit's holdMs computation. */
+  | { kind: "resolving" }
   | { kind: "round-reveal"; result: RoundResult }
   | { kind: "match-over" };
 
@@ -104,6 +118,11 @@ type Phase =
 function isInstantType(card: Card): boolean {
   const type = card.faces[0].type;
   return type === "scheme" || type === "headline";
+}
+
+/** Plan step 3.3 extension: does this card's front face (the only face On Play ever resolves for — design.md §5.10) have a real On Play ability, i.e. is its entrance worth the fuller announce/resolve/settle beat instead of the plain quick enter? */
+function cardHasOnPlayAbility(card: Card): boolean {
+  return (card.faces[0].abilities ?? []).some((a) => a.trigger === "onPlay" && a.effects.length > 0);
 }
 
 const INSTANT_ANNOUNCE_MS = 1300;
@@ -162,14 +181,36 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   // all. Updated at the end of every render(), so a re-render that isn't
   // caused by a board change (opening the zoom modal, a beer mat firing)
   // never replays an animation a prior render already showed.
-  function snapshotBoard(s: MatchState): Record<PlayerId, Map<string, boolean>> {
+  interface BoardSideSnapshot {
+    faceUp: Map<string, boolean>;
+    /** Plan step 3.3 extension: also snapshotted so a render can diff a one-shot buff's bonusPoints delta for the floating "+N"/"-N" indicator — the flip/enter flags above only ever needed a boolean. */
+    bonusPoints: Map<string, number>;
+  }
+  function snapshotBoardSide(s: MatchState, pid: PlayerId): BoardSideSnapshot {
     return {
-      A: new Map(s.players.A.board.map((bc) => [bc.instanceId, bc.faceUp])),
-      B: new Map(s.players.B.board.map((bc) => [bc.instanceId, bc.faceUp])),
+      faceUp: new Map(s.players[pid].board.map((bc) => [bc.instanceId, bc.faceUp])),
+      bonusPoints: new Map(s.players[pid].board.map((bc) => [bc.instanceId, bc.bonusPoints])),
     };
   }
-  let boardAnimSnapshot: Record<PlayerId, Map<string, boolean>> = snapshotBoard(state);
+  function snapshotBoard(s: MatchState): Record<PlayerId, BoardSideSnapshot> {
+    return { A: snapshotBoardSide(s, "A"), B: snapshotBoardSide(s, "B") };
+  }
+  let boardAnimSnapshot: Record<PlayerId, BoardSideSnapshot> = snapshotBoard(state);
   let locationAnimSnapshot: string | undefined = state.location?.instanceId;
+
+  /** Plan step 3.3 extension: same "as of last render" idea as the board snapshot above, for the human's own hand — a newly-drawn card (routine turn draw or an On Play draw effect) gets the draw-in entrance instead of appearing with no animation at all. Only the human's hand is ever rendered card-by-card (the AI's is a bare count), so only side A needs tracking. */
+  function snapshotHumanHand(s: MatchState): Set<string> {
+    return new Set(s.players[HUMAN].hand.map((c) => c.instanceId));
+  }
+  let handAnimSnapshot: Set<string> = snapshotHumanHand(state);
+
+  /** Plan step 3.3 extension: round/whose-turn "as of last render", so the HUD can flag a just-advanced round or just-changed turn for its handoff animation — same deferred-update timing as the snapshots above (see afterCommit). */
+  let hudAnimSnapshot: { round: number; activePlayer: PlayerId } = { round: state.round, activePlayer: currentPlayer(state) };
+
+  /** Read fresh each render rather than cached/listened-to — cheap, and avoids a matchMedia listener's lifecycle for a setting that changing mid-session is a rare edge case anyway. */
+  function prefersReducedMotion(): boolean {
+    return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+  }
 
   /**
    * Plays "steam"/"flip" for whatever this commit just changed, by diffing
@@ -185,7 +226,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     let anyPlay = !!state.location && state.location.instanceId !== locationAnimSnapshot;
     let anyFlip = false;
     for (const side of [HUMAN, AI]) {
-      const prevBoard = boardAnimSnapshot[side];
+      const prevBoard = boardAnimSnapshot[side].faceUp;
       for (const bc of state.players[side].board) {
         const prevFaceUp = prevBoard.get(bc.instanceId);
         if (prevFaceUp === undefined) anyPlay = true;
@@ -194,6 +235,149 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     }
     if (anyPlay) playSound("steam");
     if (anyFlip) playSound("flip");
+  }
+
+  /**
+   * Plan step 3.3 extension: everything afterCommit needs to know about this
+   * commit's visible on-play/discard consequences, computed once against the
+   * not-yet-updated snapshots (same timing reasoning as playCommitSounds —
+   * must run before the queueMicrotask snapshot update lands). `cardOf`
+   * resolves an instanceId to its Card for the "does the played card have an
+   * onPlay ability" check, covering hand, board, and discard so it works
+   * whichever zone the played card ended up in.
+   */
+  function analyzeCommitAnimation(hintSnapshot?: {
+    prevHandA: ReadonlySet<string>;
+    prevHandB: ReadonlySet<string>;
+  }): { holdMs: number; discardFlights: DiscardFlight[] } {
+    function cardOf(instanceId: string): Card | undefined {
+      for (const pid of [HUMAN, AI]) {
+        const p = state.players[pid];
+        const found = p.board.find((bc) => bc.instanceId === instanceId)?.card ?? p.discard.find((d) => d.instanceId === instanceId)?.card;
+        if (found) return found;
+      }
+      return undefined;
+    }
+    function hasOnPlayAbility(card: Card | undefined): boolean {
+      return card !== undefined && cardHasOnPlayAbility(card);
+    }
+
+    const affected = new Set<string>();
+    let newlyPlayedCard: Card | undefined;
+    for (const side of [HUMAN, AI] as const) {
+      const prevBoard = boardAnimSnapshot[side];
+      for (const bc of state.players[side].board) {
+        const prevFaceUp = prevBoard.faceUp.get(bc.instanceId);
+        if (prevFaceUp === undefined) {
+          newlyPlayedCard = bc.card; // just entered play this commit
+          continue;
+        }
+        if (prevFaceUp !== bc.faceUp) affected.add(bc.instanceId);
+        const delta = buffDelta(prevBoard.bonusPoints.get(bc.instanceId), bc.bonusPoints);
+        if (delta !== 0) affected.add(bc.instanceId);
+      }
+    }
+    if (state.location && state.location.instanceId !== locationAnimSnapshot) newlyPlayedCard ??= state.location.card;
+
+    let discardFlights: DiscardFlight[] = [];
+    if (hintSnapshot) {
+      const discardedA = discardedFromHand(hintSnapshot.prevHandA, state.players.A.discard.map((d) => d.instanceId));
+      const discardedB = discardedFromHand(hintSnapshot.prevHandB, state.players.B.discard.map((d) => d.instanceId));
+      discardFlights = [...planDiscardFlights("A", discardedA), ...planDiscardFlights("B", discardedB)];
+      // A self-spent Scheme/Headline never rendered on the board at all
+      // (resolvePlay discards it in the same synchronous pass it enters play
+      // — see matchEngine.ts's resolvePlay) — its onPlay ability still
+      // counts as "the played card" for the announce/resolve beat.
+      newlyPlayedCard ??= cardOf(discardedA[0] ?? discardedB[0] ?? "");
+    }
+
+    const holdMs = computeSequenceDurationMs(
+      {
+        hasOnPlayAbilityCard: hasOnPlayAbility(newlyPlayedCard),
+        affectedTargetCount: affected.size,
+        discardFromHandCount: discardFlights.length,
+      },
+      prefersReducedMotion(),
+    );
+    return { holdMs, discardFlights };
+  }
+
+  interface CapturedDiscardFlight extends DiscardFlight {
+    fromRect: DOMRect;
+    toRect: DOMRect;
+    card: Card;
+  }
+
+  /**
+   * Reads the still-current (pre-render) DOM for each discard's origin card
+   * and its owner's discard-pile marker — must run before any render() call
+   * for this commit (see afterCommit). Silently drops a flight whose origin/
+   * destination element or card can't be found (e.g. a unit test's minimal
+   * DOM, or root not yet attached) rather than throwing — a missed fly
+   * animation is a cosmetic gap, not worth failing the actual turn over.
+   */
+  function captureDiscardFlightRects(flights: readonly DiscardFlight[]): CapturedDiscardFlight[] {
+    const out: CapturedDiscardFlight[] = [];
+    for (const f of flights) {
+      const fromEl = root.querySelector(`[data-instance-id="${f.instanceId}"]`);
+      const toEl = root.querySelector(`.discard-pile[data-side="${f.owner}"] .discard-pile-stack`);
+      const card = state.players[f.owner].discard.find((d) => d.instanceId === f.instanceId)?.card;
+      if (!fromEl || !toEl || !card) continue;
+      out.push({ ...f, fromRect: fromEl.getBoundingClientRect(), toRect: toEl.getBoundingClientRect(), card });
+    }
+    return out;
+  }
+
+  /**
+   * Appends the flying discard clones directly to `root`, outside the
+   * normal render() tree, so the next unrelated render() (which does
+   * root.replaceChildren()) cleans them up for free if one happens to land
+   * mid-flight; otherwise their own removal timer does it. Positioned via
+   * `position: fixed` using the viewport rects captureDiscardFlightRects
+   * already grabbed, so this needs no further DOM measurement.
+   */
+  function spawnDiscardFlightClones(flights: readonly CapturedDiscardFlight[]): void {
+    if (torn) return;
+    const reduced = prefersReducedMotion();
+    for (const f of flights) {
+      const clone = buildCardEl(f.card, 0, { size: "mini", faceUp: true });
+      clone.classList.add("discard-flight-clone");
+      clone.style.position = "fixed";
+      clone.style.margin = "0";
+      clone.style.width = `${f.fromRect.width}px`;
+      clone.style.height = `${f.fromRect.height}px`;
+      clone.style.pointerEvents = "none";
+      clone.style.zIndex = "5";
+      const dx = f.toRect.left - f.fromRect.left;
+      const dy = f.toRect.top - f.fromRect.top;
+      if (reduced) {
+        // Collapse to the plan's single short cross-fade, shown already at
+        // the destination — never a zero-transition instant swap, but also
+        // never the full lift/arc/bounce trajectory.
+        clone.style.left = `${f.toRect.left}px`;
+        clone.style.top = `${f.toRect.top}px`;
+        clone.classList.add("discard-flight-clone--reduced");
+      } else {
+        clone.style.left = `${f.fromRect.left}px`;
+        clone.style.top = `${f.fromRect.top}px`;
+        clone.style.setProperty("--dx", `${dx}px`);
+        clone.style.setProperty("--dy", `${dy}px`);
+        clone.style.animationDelay = `${f.delayMs}ms`;
+      }
+      root.appendChild(clone);
+      const arrivalMs = (reduced ? REDUCED_MOTION_MS : Math.round(DISCARD_BEAT_MS * 0.78)) + f.delayMs;
+      const lifetime = (reduced ? REDUCED_MOTION_MS : DISCARD_BEAT_MS) + f.delayMs + 60;
+      setTimeout(() => clone.remove(), lifetime);
+      // The pile itself is already part of the (rebuilt) live DOM by now —
+      // re-queried fresh rather than reusing the captured `toEl` reference,
+      // which belongs to the pre-commit tree render() just tore down.
+      setTimeout(() => {
+        const pile = root.querySelector(`.discard-pile[data-side="${f.owner}"] .discard-pile-stack`);
+        if (!pile) return;
+        pile.classList.add("discard-pile-stack--bump");
+        setTimeout(() => pile.classList.remove("discard-pile-stack--bump"), 320);
+      }, arrivalMs);
+    }
   }
 
   // Tutorial script cursor (design.md §13.2) — index into options.tutorial.turns.
@@ -280,10 +464,20 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     pointsOverride?: number;
     onPrimary?: () => void;
     onZoom?: () => void;
-    /** This card just entered play (board or Location) since the last render — plays the "card play" animation. */
+    /** Stable id for the flight-clone lookup (plan step 3.3 extension — see captureDiscardFlightRects) and for future DOM queries; harmless to set everywhere. */
+    instanceId?: string;
+    /** This card just entered play (board or Location) since the last render — plays the "card play" announce beat. */
     enterAnimation?: boolean;
-    /** This card's faceUp flipped since the last render — plays the "flip" animation. */
+    /** The just-played card (enterAnimation) has at least one On Play ability — plays the fuller announce/resolve/settle beat (card-onplay-enter) instead of the plain quick enter. */
+    onPlayAbility?: boolean;
+    /** This card's faceUp flipped since the last render — plays the "flip" animation, as this commit's resolve-beat target. */
     flipAnimation?: boolean;
+    /** This card was just drawn into the human's hand since the last render (routine turn draw or an On Play draw effect) — plays a distinct slide-in entrance. */
+    drawAnimation?: boolean;
+    /** A one-shot buff resolved on this card this commit — the signed point delta to float ("+2"/"-2") over the points badge. */
+    buffDeltaAmount?: number;
+    /** This card's resolve-beat animation-delay (flip/buff/draw stagger), in ms — 0 or omitted plays immediately. */
+    resolveDelayMs?: number;
   }
 
   function buildCardEl(card: Card, faceIndex: 0 | 1, opts: CardBuildOpts): HTMLElement {
@@ -291,8 +485,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const wrap = el("div", `card card--${opts.size}`);
     wrap.dataset.family = face.family;
     wrap.dataset.rarity = card.rarity;
-    if (opts.enterAnimation) wrap.classList.add("card--play-enter");
+    if (opts.instanceId) wrap.dataset.instanceId = opts.instanceId;
+    if (opts.enterAnimation) wrap.classList.add(opts.onPlayAbility ? "card--onplay-enter" : "card--play-enter");
     if (opts.flipAnimation) wrap.classList.add("card--flip");
+    if (opts.drawAnimation) wrap.classList.add("card--draw-in");
+    if ((opts.flipAnimation || opts.drawAnimation) && opts.resolveDelayMs) wrap.style.animationDelay = `${opts.resolveDelayMs}ms`;
 
     if (!opts.faceUp) {
       wrap.classList.add("card--facedown");
@@ -317,6 +514,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
 
     const shownPoints = opts.pointsOverride ?? face.points;
+    const pointsWrap = el("span", "card-points-wrap");
     const pointsEl = el("span", "card-points", String(shownPoints));
     // PT-27: a card's shown points only ever differ from printed via a
     // buff (bonusPoints, Friend, a continuous Location/card effect) —
@@ -324,7 +522,17 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // hand/zoom card (no override) never gets a colour class here.
     if (shownPoints > face.points) pointsEl.classList.add("card-points--boosted");
     else if (shownPoints < face.points) pointsEl.classList.add("card-points--reduced");
-    wrap.appendChild(pointsEl);
+    if (opts.buffDeltaAmount) {
+      pointsEl.classList.add("card-points--pulse");
+      const float = el("span", "points-float", opts.buffDeltaAmount > 0 ? `+${opts.buffDeltaAmount}` : String(opts.buffDeltaAmount));
+      if (opts.resolveDelayMs) {
+        pointsEl.style.animationDelay = `${opts.resolveDelayMs}ms`;
+        float.style.animationDelay = `${opts.resolveDelayMs}ms`;
+      }
+      pointsWrap.appendChild(float);
+    }
+    pointsWrap.appendChild(pointsEl);
+    wrap.appendChild(pointsWrap);
     wrap.appendChild(el("span", "card-name", face.name));
 
     const chips = keywordChips(face);
@@ -445,6 +653,14 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       prevBoardReturnB: ReadonlySet<string>;
     },
   ): void {
+    // Plan step 3.3 extension: a discarded card's element won't exist in any
+    // future render (it's just gone from hand/board, nothing to attach a
+    // "just discarded" class to) — the only DOM it's ever in is *this*
+    // still-current, pre-commit tree, so its flight has to be captured here,
+    // synchronously, before anything below calls render() and tears it down.
+    const { holdMs, discardFlights } = analyzeCommitAnimation(hintSnapshot);
+    const capturedFlights = captureDiscardFlightRects(discardFlights);
+
     // A single commit can trigger several synchronous render() calls (the
     // idle-phase render right below, then immediately scheduleNext()'s
     // "ai-turn"/"human-pass" phase render) before the browser ever paints —
@@ -455,12 +671,16 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // against the *previous* commit's board and correctly shows this
     // commit's plays/flips as animated — while a later, unrelated render
     // (opening the zoom modal, a beer mat firing) diffs against the
-    // now-updated baseline and replays nothing.
+    // now-updated baseline and replays nothing. handAnimSnapshot/
+    // hudAnimSnapshot ride along on the same deferred timing, same reasoning.
     playCommitSounds();
     queueMicrotask(() => {
       boardAnimSnapshot = snapshotBoard(state);
       locationAnimSnapshot = state.location?.instanceId;
+      handAnimSnapshot = snapshotHumanHand(state);
+      hudAnimSnapshot = { round: state.round, activePlayer: currentPlayer(state) };
     });
+    if (capturedFlights.length > 0) queueMicrotask(() => spawnDiscardFlightClones(capturedFlights));
     options.onStateChange?.(state, aiSeed);
     const roundJustEnded = state.roundHistory.length > prevRoundCount;
 
@@ -532,6 +752,23 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       }, INSTANT_ANNOUNCE_MS);
       return;
     }
+
+    // Plan step 3.3 extension: every other commit with a visible on-play
+    // resolve/discard beat (the human's own play, or a non-instant AI card)
+    // gets the same kind of hold, sized to the sequence it actually needs to
+    // show (analyzeCommitAnimation, above) rather than the fixed
+    // INSTANT_ANNOUNCE_MS — round-ending turns skip this because the
+    // round-reveal/match-over overlay right above already blocks input on
+    // its own "Continue"/"Leave the table" tap.
+    if (!roundJustEnded && holdMs > 0) {
+      phase = { kind: "resolving" };
+      render();
+      timer = setTimeout(() => {
+        timer = undefined;
+        proceed();
+      }, holdMs);
+      return;
+    }
     proceed();
   }
 
@@ -566,10 +803,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
           if (!turn || turn.side !== AI) throw new Error("tutorial script is out of sync with the match state");
           const inst = state.players[AI].hand.find((c) => c.card.id === turn.cardId);
           if (!inst) throw new Error(`tutorial script expected "${turn.cardId}" in the house's hand`);
+          const hintSnapshot = captureHintSnapshot();
           state = playTurn(state, AI, inst.instanceId);
           scriptIndex += 1;
           mat = turn.mat;
-          afterCommit(prevRoundCount);
+          afterCommit(prevRoundCount, hintSnapshot);
         } else {
           const hintSnapshot = captureHintSnapshot();
           const difficulty = typeof options.difficulty === "function" ? options.difficulty(state) : options.difficulty;
@@ -619,6 +857,23 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       text.appendChild(el("span", "side-hand-count", `Hand: ${state.players[playerId].hand.length}`));
     }
     wrap.appendChild(text);
+    wrap.appendChild(buildDiscardPile(playerId));
+    return wrap;
+  }
+
+  /**
+   * Plan step 3.3 extension: a small discard-pile marker per side — there
+   * was no discard-pile UI at all before this (discarded cards simply
+   * vanished), which left "can tell which card left hand and see it land in
+   * the discard pile" unsatisfiable. `.discard-pile-stack`'s rect is the
+   * landing target `captureDiscardFlightRects` flies a clone toward; the
+   * `data-side` attribute is how that lookup finds the right pile.
+   */
+  function buildDiscardPile(playerId: PlayerId): HTMLElement {
+    const wrap = el("div", "discard-pile");
+    wrap.dataset.side = playerId;
+    wrap.appendChild(el("div", "discard-pile-stack"));
+    wrap.appendChild(el("span", "discard-pile-count", String(state.players[playerId].discard.length)));
     return wrap;
   }
 
@@ -631,7 +886,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
    * (the Location doesn't change at round end, so `state.location` itself
    * is still correct to reuse here — see render()'s revealState).
    */
-  function buildBoardRow(playerId: PlayerId, frozen?: { board: readonly BoardCard[]; pointsState: MatchState }): HTMLElement {
+  function buildBoardRow(playerId: PlayerId, resolvePlan: StaggerPlan, frozen?: { board: readonly BoardCard[]; pointsState: MatchState }): HTMLElement {
     const row = el("div", "board-row");
     const step = !frozen && phase.kind === "staging" ? currentStep(phase.play) : undefined;
     const candidateIds = new Set(step?.step.candidates.filter((oc) => oc.owner === playerId).map((oc) => oc.bc.instanceId) ?? []);
@@ -653,18 +908,25 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       // tried to target it — `excludeElusive` already keeps it out of
       // `candidateIds`, so without this it's simply untappable and silent.
       const isElusiveFlipAttempt = !isCandidate && bc.faceUp && step?.step.effect.effect === "flip" && (activeFaceOf(bc.card, bc.faceIndex).keywords?.elusive ?? false);
-      const prevFaceUp = frozen ? undefined : prevBoard.get(bc.instanceId);
+      const prevFaceUp = frozen ? undefined : prevBoard.faceUp.get(bc.instanceId);
+      const justEntered = !frozen && prevFaceUp === undefined;
+      const flipAnimation = !frozen && !justEntered && prevFaceUp !== bc.faceUp;
+      const delta = frozen || justEntered ? 0 : buffDelta(prevBoard.bonusPoints.get(bc.instanceId), bc.bonusPoints);
       row.appendChild(
         buildCardEl(bc.card, bc.faceIndex, {
           size: "mini",
           faceUp: bc.faceUp,
+          instanceId: bc.instanceId,
           pointsOverride: bc.faceUp ? effectivePoints(pointsState, playerId, bc) : undefined,
           highlight: isCandidate || autoTargetIds.has(bc.instanceId),
           selected: isCandidate && (step?.selected.includes(bc.instanceId) ?? false),
           onPrimary: frozen ? undefined : isCandidate ? () => handleTargetTap(bc.instanceId) : isElusiveFlipAttempt ? () => fireHint("elusive") : undefined,
           onZoom: bc.faceUp ? () => openZoom(bc.card, bc.faceIndex) : undefined,
-          enterAnimation: !frozen && prevFaceUp === undefined,
-          flipAnimation: !frozen && prevFaceUp !== undefined && prevFaceUp !== bc.faceUp,
+          enterAnimation: justEntered,
+          onPlayAbility: justEntered && cardHasOnPlayAbility(bc.card),
+          flipAnimation,
+          buffDeltaAmount: delta,
+          resolveDelayMs: flipAnimation || delta ? resolvePlan.delayMs(bc.instanceId) : undefined,
         }),
       );
     }
@@ -675,12 +937,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const wrap = el("div", "location-slot");
     if (state.location) {
       const loc = state.location;
+      const justEntered = locationAnimSnapshot !== loc.instanceId;
       wrap.appendChild(
         buildCardEl(loc.card, loc.faceIndex, {
           size: "mini",
           faceUp: true,
+          instanceId: loc.instanceId,
           onZoom: () => openZoom(loc.card, loc.faceIndex),
-          enterAnimation: locationAnimSnapshot !== loc.instanceId,
+          enterAnimation: justEntered,
+          onPlayAbility: justEntered && cardHasOnPlayAbility(loc.card),
         }),
       );
     } else {
@@ -731,6 +996,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       bar.appendChild(el("p", "action-prompt", `${options.aiName} is thinking…`));
     } else if (phase.kind === "human-pass") {
       bar.appendChild(el("p", "action-prompt", "No cards in hand — passing…"));
+    } else if (phase.kind === "resolving") {
+      bar.appendChild(el("p", "action-prompt", "Resolving…"));
     } else if (phase.kind === "idle" && state.status === "in-progress") {
       let prompt = currentPlayer(state) === HUMAN ? "Your turn — tap a card to play it." : "";
       if (options.tutorial && currentPlayer(state) === HUMAN) {
@@ -834,13 +1101,46 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   function render(): void {
     if (torn) return;
+    const reducedMotion = prefersReducedMotion();
     root.replaceChildren();
     const screen = el("div", "match-screen");
     screen.style.setProperty("--table-bg", `url(${artUrl("background-the-snug")})`);
 
+    // Plan step 3.3 extension: one stagger plan per render, shared by both
+    // board rows and the hand row, so "more than ~6 cards affected at once"
+    // is judged across the whole commit (e.g. a cross-board Death-style
+    // flip) rather than per row — see matchAnimation.ts's buildStaggerPlan.
+    const resolveAffectedIds: string[] = [];
+    for (const side of [AI, HUMAN] as const) {
+      for (const bc of state.players[side].board) {
+        const prev = boardAnimSnapshot[side];
+        const prevFaceUp = prev.faceUp.get(bc.instanceId);
+        if (prevFaceUp === undefined) continue; // newly entered, not a resolve-beat target
+        const flipped = prevFaceUp !== bc.faceUp;
+        const buffed = buffDelta(prev.bonusPoints.get(bc.instanceId), bc.bonusPoints) !== 0;
+        if (flipped || buffed) resolveAffectedIds.push(bc.instanceId);
+      }
+    }
+    for (const inst of state.players[HUMAN].hand) {
+      if (!handAnimSnapshot.has(inst.instanceId)) resolveAffectedIds.push(inst.instanceId);
+    }
+    const resolvePlan = reducedMotion ? { delayMs: () => 0, grouped: false } : buildStaggerPlan(resolveAffectedIds);
+
     const topbar = el("div", "match-topbar");
     const topbarLabels = el("div", "match-topbar-labels");
-    topbarLabels.appendChild(el("span", "match-round-label", `Round ${Math.min(state.round, 3)} of 3`));
+    const turnInRound = Math.floor(state.turnsPlayedThisRound / 2) + 1;
+    const activePlayer = currentPlayer(state);
+    topbarLabels.appendChild(
+      buildMatchHud({
+        round: state.round,
+        turnInRound,
+        activeSide: activePlayer === HUMAN ? "human" : "ai",
+        humanName: "You",
+        aiName: options.aiName,
+        roundJustAdvanced: state.round > hudAnimSnapshot.round,
+        turnJustChanged: activePlayer !== hudAnimSnapshot.activePlayer,
+      }),
+    );
     topbarLabels.appendChild(el("span", "match-rounds-won", `You ${state.roundsWon.A} – ${state.roundsWon.B} ${options.aiName}`));
     topbar.appendChild(topbarLabels);
     topbar.appendChild(buildMuteToggle());
@@ -856,11 +1156,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     };
     const frozenFor = (playerId: PlayerId) => (revealResult && revealState ? { board: revealResult.finalBoard[playerId], pointsState: revealState } : undefined);
 
-    const boardArea = el("div", "board-area");
+    const boardArea = el("div", "board-area" + (resolvePlan.grouped ? " board-area--group-resolve" : ""));
     boardArea.appendChild(buildSideLabel(AI, options.aiName, options.aiPortraitArtId, revealResult?.scores[AI]));
-    boardArea.appendChild(buildBoardRow(AI, frozenFor(AI)));
+    boardArea.appendChild(buildBoardRow(AI, resolvePlan, frozenFor(AI)));
     boardArea.appendChild(buildLocationSlot());
-    boardArea.appendChild(buildBoardRow(HUMAN, frozenFor(HUMAN)));
+    boardArea.appendChild(buildBoardRow(HUMAN, resolvePlan, frozenFor(HUMAN)));
     boardArea.appendChild(buildSideLabel(HUMAN, "You", undefined, revealResult?.scores[HUMAN]));
     screen.appendChild(boardArea);
 
@@ -876,14 +1176,18 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     for (const inst of state.players[HUMAN].hand) {
       const isStaged = inst.instanceId === stagedInstanceId;
       const tappable = options.tutorial ? handInteractive && inst.card.id === tutorialExpectedCardId : handInteractive;
+      const drawAnimation = !handAnimSnapshot.has(inst.instanceId);
       handRow.appendChild(
         buildCardEl(inst.card, 0, {
           size: "mini",
           faceUp: true,
+          instanceId: inst.instanceId,
           selected: isStaged,
           disabled: !tappable && !isStaged,
           onPrimary: tappable ? () => handleHandTap(inst.instanceId, inst.card) : undefined,
           onZoom: () => openZoom(inst.card, 0),
+          drawAnimation,
+          resolveDelayMs: drawAnimation ? resolvePlan.delayMs(inst.instanceId) : undefined,
         }),
       );
     }

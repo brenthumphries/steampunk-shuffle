@@ -38,10 +38,23 @@ test.describe("match screen (plan step 2.1)", () => {
     await dismissCoinToss(page);
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
 
+    // Plan step 3.3 extension: the round/turn/whose-turn HUD — round and
+    // turn both read "1" on a fresh match, and exactly one lamp is lit
+    // (readable by light state + fixed position, never both/neither).
+    await expect(page.locator(".round-gauge-label")).toHaveText("Round 1 of 3");
+    await expect(page.locator(".turn-dial-label")).toHaveText("Turn 1 of 3");
+    const litLamps = page.locator('.turn-lamp[data-lit="true"]');
+    await expect(litLamps).toHaveCount(1);
+
     // Whoever leads is decided by a coin toss (design.md §6.1) — wait out
     // the AI's opening move if it went first.
     const firstCard = page.locator(".hand-row .card--tappable").first();
     await expect(firstCard).toBeVisible({ timeout: 10_000 });
+
+    // It's the human's turn now (the hand is tappable) — the human lamp
+    // must be the lit one, matching currentPlayer().
+    await expect(page.locator('.turn-lamp--human[data-lit="true"]')).toHaveCount(1);
+    await expect(page.locator('.turn-lamp--ai[data-lit="true"]')).toHaveCount(0);
 
     const handLabelBefore = await page.locator(".hand-label").textContent();
     await firstCard.click();
@@ -65,6 +78,14 @@ test.describe("match screen (plan step 2.1)", () => {
     await expect(page.locator(".board-row .card").first()).toBeVisible();
     // The AI replies (or the round ends) within a few seconds either way.
     await expect(page.getByText(/Your turn|took the round|Round tied/)).toBeVisible({ timeout: 10_000 });
+
+    // Plan step 3.3 extension: once it's the human's turn again, the HUD's
+    // whose-turn lamp and turn counter agree with the engine — never
+    // off-by-one, including across the AI's reply in between.
+    const roundText = await page.locator(".round-gauge-label").textContent();
+    if (roundText === "Round 1 of 3") {
+      await expect(page.locator('.turn-lamp--human[data-lit="true"]')).toHaveCount(1);
+    }
   });
 
   test("card zoom opens a full-card detail overlay and closes on tap-away", async ({ page }) => {
