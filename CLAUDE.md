@@ -52,6 +52,32 @@ the full-art zoom fix (`b263dc7`). 386 unit tests at last count.
 Standing knowledge that outlives any one step. Where a bullet says "above",
 the entry it means is now in `docs/logs/`.
 
+- **PT-33/PT-34 (2026-09-26): "Leave Game" and the animation acknowledge-
+  gate both route through the match screen's existing `onExit`/`proceed()`
+  machinery rather than adding a parallel path — worth knowing before
+  touching either.** Leaving a match calls `options.onExit` with a
+  synthetic `{ winner: otherPlayer(HUMAN), reason: "conceded" }`
+  (`MatchResult.reason` gained that member, `src/engine/matchTypes.ts`) —
+  `main.ts`'s `finishPickupMatch`/`finishTournamentMatch` only ever branch
+  on `result.winner`, never `reason`, so this pays out exactly like a real
+  loss with zero new payout logic. `MatchScreenOptions.leaveGame` (absent
+  for the tutorial) supplies the pickup/tournament wording distinction;
+  don't add a third match kind here without also deciding its consequence
+  and confirm wording. Separately, the instant-announce and on-play/discard
+  "resolving" holds (`src/ui/matchScreen.ts`'s `afterCommit`) still run
+  their full existing timer (so the animation itself is never cut short)
+  but no longer auto-advance when it fires — a `ready` flag reveals a
+  "Continue" the player must tap, which calls `pendingProceed` (the
+  `proceed()` closure the timer used to invoke directly). This applies
+  uniformly regardless of `prefers-reduced-motion` — a reduced-motion
+  player still taps Continue, just after a shorter animation — a
+  deliberate simplicity call, not verified against real accessibility
+  feedback; revisit if that ever reads as an extra tap for no reason. The
+  tournament confirm's wording ("eliminates you from this tournament")
+  assumes every tournament is single-elimination with no lives, true of
+  every one authored so far (`advanceBracket`, `src/tournaments/
+  bracket.ts`) but worth checking again if a future tournament format
+  isn't.
 - **Changing the draw mechanic to a 4-card opening hand + draw 1 per turn
   (no round-start batch draw) pulled the Starter-vs-Regular-tier win rate
   (design.md §12.2, target ~60%) under target for two of the four

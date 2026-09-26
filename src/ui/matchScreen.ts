@@ -10,6 +10,7 @@ import {
   createMatch,
   currentPlayer,
   effectivePoints,
+  otherPlayer,
   playTurn,
   type BoardCard,
   type MatchResult,
@@ -99,6 +100,17 @@ export interface MatchScreenOptions {
   tutorial?: TutorialMatchOptions;
   /** design.md §13.3's hint chips — ignored during a tutorial match (see `tutorial`). */
   hints?: HintOptions;
+  /**
+   * PT-33: shows a "Leave Game" button while the match is in progress.
+   * Omitted for the tutorial (product call: leaving isn't offered there —
+   * the tutorial's forced script is short and finite). `matchKind` only
+   * changes the confirm dialog's wording; both routes end the match the
+   * same way, through `onExit` with a synthetic "conceded" result — the
+   * caller's existing win/loss payout logic (recordPickupResult /
+   * recordTournamentMatchResult) already treats "the other side won" as a
+   * loss, so no separate "player left" payout path was needed.
+   */
+  leaveGame?: { matchKind: "pickup" | "tournament" };
 }
 
 type Phase =
@@ -107,10 +119,24 @@ type Phase =
   | { kind: "staging"; play: StagedPlay }
   | { kind: "ai-turn" }
   | { kind: "human-pass" }
-  /** Bugfix cluster E (note #6): a brief hold on the opponent's just-played Scheme/Headline before moving on — see afterCommit's own comment. */
-  | { kind: "instant-announce"; card: Card }
-  /** Plan step 3.3 extension: a brief input-blocking hold while a just-committed turn's on-play/discard animation beats play out (any commit not already covered by instant-announce) — see afterCommit's holdMs computation. */
-  | { kind: "resolving" }
+  /**
+   * Bugfix cluster E (note #6), extended by PT-34: a hold on the opponent's
+   * just-played Scheme/Headline before moving on — see afterCommit's own
+   * comment. `ready` flips true once the card has had its full
+   * `INSTANT_ANNOUNCE_MS` on screen; only then does a "Continue" button
+   * appear, so the timer still guarantees a minimum look at the card but
+   * never rushes the player past it — they decide when to move on.
+   */
+  | { kind: "instant-announce"; card: Card; ready: boolean }
+  /**
+   * Plan step 3.3, extended by PT-34: an input-blocking hold while a
+   * just-committed turn's on-play/discard animation beats play out (any
+   * commit not already covered by instant-announce) — see afterCommit's
+   * holdMs computation. Same `ready` gate as instant-announce: the
+   * animation still plays for its full computed duration, then a
+   * "Continue" prompt takes over instead of auto-advancing.
+   */
+  | { kind: "resolving"; ready: boolean }
   | { kind: "round-reveal"; result: RoundResult }
   | { kind: "match-over" };
 
@@ -164,6 +190,10 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   const isFreshMatch = !options.initialState && !options.tutorial;
   let phase: Phase = state.status === "complete" ? { kind: "match-over" } : isFreshMatch ? { kind: "coin-toss" } : { kind: "idle" };
   let zoomed: { card: Card; faceIndex: 0 | 1 } | null = null;
+  /** PT-33: the Leave Game confirm dialog, opened by its topbar button. A plain flag rather than a `Phase` variant, since it can be opened over several underlying phases (idle, staging, ai-turn) and must return to whichever one it found on Cancel. */
+  let leaveConfirmOpen = false;
+  /** PT-34: the `proceed()` closure captured by whichever `afterCommit` call is currently holding on an "instant-announce"/"resolving" phase, invoked once the player taps that phase's "Continue" control instead of a timer doing it automatically. */
+  let pendingProceed: (() => void) | undefined;
   // Typed via the ambient (Node) `setTimeout` rather than `window.setTimeout`
   // — with both the "dom" lib and @types/node loaded (tsconfig.json), only
   // the bare global's return type resolves consistently; it's still the
@@ -744,11 +774,13 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // never the human's (who already sees the card while staging/
     // confirming it, before it's ever committed).
     if (playedByAI && isInstantType(playedByAI)) {
-      phase = { kind: "instant-announce", card: playedByAI };
+      phase = { kind: "instant-announce", card: playedByAI, ready: false };
+      pendingProceed = proceed;
       render();
       timer = setTimeout(() => {
         timer = undefined;
-        proceed();
+        if (phase.kind === "instant-announce") phase = { ...phase, ready: true };
+        render();
       }, INSTANT_ANNOUNCE_MS);
       return;
     }
@@ -761,15 +793,23 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     // round-reveal/match-over overlay right above already blocks input on
     // its own "Continue"/"Leave the table" tap.
     if (!roundJustEnded && holdMs > 0) {
-      phase = { kind: "resolving" };
+      phase = { kind: "resolving", ready: false };
+      pendingProceed = proceed;
       render();
       timer = setTimeout(() => {
         timer = undefined;
-        proceed();
+        if (phase.kind === "resolving") phase = { ...phase, ready: true };
+        render();
       }, holdMs);
       return;
     }
     proceed();
+  }
+
+  /** PT-34: the "Continue" tap that resumes a turn held on "instant-announce"/"resolving" — see pendingProceed's own comment. */
+  function acknowledgeResolve(): void {
+    pendingProceed?.();
+    pendingProceed = undefined;
   }
 
   function continueAfterRoundReveal(): void {
@@ -997,7 +1037,20 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     } else if (phase.kind === "human-pass") {
       bar.appendChild(el("p", "action-prompt", "No cards in hand — passing…"));
     } else if (phase.kind === "resolving") {
-      bar.appendChild(el("p", "action-prompt", "Resolving…"));
+      // PT-34: the animation itself still plays for its full computed
+      // duration (holdMs) before `ready` flips true — only then does the
+      // player get a "Continue" they must tap, instead of the turn
+      // auto-advancing once the animation finishes.
+      if (phase.ready) {
+        const buttons = el("div", "action-buttons");
+        const continueBtn = el("button", "action-button", "Continue");
+        continueBtn.type = "button";
+        continueBtn.addEventListener("click", acknowledgeResolve);
+        buttons.appendChild(continueBtn);
+        bar.appendChild(buttons);
+      } else {
+        bar.appendChild(el("p", "action-prompt", "Resolving…"));
+      }
     } else if (phase.kind === "idle" && state.status === "in-progress") {
       let prompt = currentPlayer(state) === HUMAN ? "Your turn — tap a card to play it." : "";
       if (options.tutorial && currentPlayer(state) === HUMAN) {
@@ -1011,11 +1064,18 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
 
   /** Bugfix cluster E (note #6): a held, non-interactive reveal of the opponent's just-resolved Scheme/Headline — see afterCommit's own comment. */
-  function buildInstantAnnounceOverlay(card: Card): HTMLElement {
+  /** PT-34: `ready` (set once `INSTANT_ANNOUNCE_MS` has elapsed) gates the "Continue" button — before that, the card is just shown, with nothing to tap yet. */
+  function buildInstantAnnounceOverlay(card: Card, ready: boolean): HTMLElement {
     const overlay = el("div", "overlay overlay--instant-announce");
     const box = el("div", "overlay-box");
     box.appendChild(el("h2", "overlay-title", `${options.aiName} plays…`));
     box.appendChild(buildCardZoomEl(card));
+    if (ready) {
+      const btn = el("button", "action-button", "Continue");
+      btn.type = "button";
+      btn.addEventListener("click", acknowledgeResolve);
+      box.appendChild(btn);
+    }
     overlay.appendChild(box);
     return overlay;
   }
@@ -1056,6 +1116,53 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     btn.type = "button";
     btn.addEventListener("click", continueAfterRoundReveal);
     box.appendChild(btn);
+    overlay.appendChild(box);
+    return overlay;
+  }
+
+  /** PT-33: opens the confirm dialog rather than leaving directly — see leaveConfirmOpen's own comment. */
+  function buildLeaveGameButton(): HTMLElement {
+    const btn = el("button", "leave-game-button", "Leave Game");
+    btn.type = "button";
+    btn.addEventListener("click", () => {
+      leaveConfirmOpen = true;
+      render();
+    });
+    return btn;
+  }
+
+  /**
+   * PT-33: names the specific consequence for this match's own kind
+   * (pickup vs tournament) rather than a generic "you'll lose" — Brent's
+   * own spec asked for that distinction. Leaving always ends the match
+   * immediately as a loss for the human; a resumed match's own state never
+   * reaches "complete" in that case, so this bypasses the normal
+   * match-over overlay/phase entirely and calls onExit straight from here.
+   */
+  function buildLeaveConfirmOverlay(): HTMLElement {
+    const overlay = el("div", "overlay overlay--leave-confirm");
+    const box = el("div", "overlay-box");
+    box.appendChild(el("h2", "overlay-title", "Leave the game?"));
+    const consequence =
+      options.leaveGame!.matchKind === "tournament"
+        ? "Leaving now counts as a loss and eliminates you from this tournament."
+        : "Leaving now pays out the same as a loss.";
+    box.appendChild(el("p", "overlay-score", consequence));
+    const buttons = el("div", "action-buttons");
+    const cancelBtn = el("button", "action-button action-button--secondary", "Cancel");
+    cancelBtn.type = "button";
+    cancelBtn.addEventListener("click", () => {
+      leaveConfirmOpen = false;
+      render();
+    });
+    buttons.appendChild(cancelBtn);
+    const leaveBtn = el("button", "action-button", "Leave anyway");
+    leaveBtn.type = "button";
+    leaveBtn.addEventListener("click", () => {
+      options.onExit({ winner: otherPlayer(HUMAN), reason: "conceded" });
+    });
+    buttons.appendChild(leaveBtn);
+    box.appendChild(buttons);
     overlay.appendChild(box);
     return overlay;
   }
@@ -1143,6 +1250,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     );
     topbarLabels.appendChild(el("span", "match-rounds-won", `You ${state.roundsWon.A} – ${state.roundsWon.B} ${options.aiName}`));
     topbar.appendChild(topbarLabels);
+    if (options.leaveGame && state.status === "in-progress") topbar.appendChild(buildLeaveGameButton());
     topbar.appendChild(buildMuteToggle());
     screen.appendChild(topbar);
 
@@ -1198,11 +1306,12 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     root.appendChild(screen);
 
     if (phase.kind === "coin-toss") root.appendChild(buildCoinTossOverlay());
-    if (phase.kind === "instant-announce") root.appendChild(buildInstantAnnounceOverlay(phase.card));
+    if (phase.kind === "instant-announce") root.appendChild(buildInstantAnnounceOverlay(phase.card, phase.ready));
     if (phase.kind === "round-reveal") root.appendChild(buildRoundRevealOverlay(phase.result));
     if (phase.kind === "match-over") root.appendChild(buildMatchOverOverlay());
     if (zoomed) root.appendChild(buildZoomOverlay());
     if (mat) root.appendChild(buildBeerMat(mat, dismissMat));
+    if (leaveConfirmOpen) root.appendChild(buildLeaveConfirmOverlay());
   }
 
   options.onStateChange?.(state, aiSeed);

@@ -12,6 +12,27 @@ async function dismissCoinToss(page: Page): Promise<void> {
   await page.locator(".overlay--coin-toss button", { hasText: "Continue" }).click();
 }
 
+/**
+ * PT-34: a real (random-shuffled) match can hit an on-play/discard or
+ * instant-announce hold at any point — either side's play might have an
+ * ability, affect a target, or cause a discard — and each one now waits on
+ * a "Continue" tap instead of a timer. A test that just wants the match to
+ * keep moving polls until `isVisible` is true, tapping away any "Continue"
+ * it finds along the way rather than assuming none will appear.
+ */
+async function waitVisibleDismissingContinues(page: Page, isVisible: () => Promise<boolean>, timeoutMs = 10_000): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const continueBtn = page.getByRole("button", { name: "Continue" });
+        if (await continueBtn.isVisible().catch(() => false)) await continueBtn.click().catch(() => undefined);
+        return isVisible().catch(() => false);
+      },
+      { timeout: timeoutMs },
+    )
+    .toBe(true);
+}
+
 test.describe("match screen (plan step 2.1)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
@@ -47,9 +68,10 @@ test.describe("match screen (plan step 2.1)", () => {
     await expect(litLamps).toHaveCount(1);
 
     // Whoever leads is decided by a coin toss (design.md §6.1) — wait out
-    // the AI's opening move if it went first.
+    // the AI's opening move if it went first, dismissing any "Continue"
+    // hold (PT-34) its play might need.
     const firstCard = page.locator(".hand-row .card--tappable").first();
-    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    await waitVisibleDismissingContinues(page, () => firstCard.isVisible());
 
     // It's the human's turn now (the hand is tappable) — the human lamp
     // must be the lit one, matching currentPlayer().
@@ -70,14 +92,18 @@ test.describe("match screen (plan step 2.1)", () => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
     await dismissCoinToss(page);
 
+    // Whoever leads might play an on-play-ability card first, holding on a
+    // "Continue" (PT-34) before the human's own turn — dismiss any of those
+    // rather than assuming the AI's opening move never needs one.
     const firstCard = page.locator(".hand-row .card--tappable").first();
-    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    await waitVisibleDismissingContinues(page, () => firstCard.isVisible());
     await firstCard.click();
     await page.getByRole("button", { name: "Play", exact: true }).click();
 
     await expect(page.locator(".board-row .card").first()).toBeVisible();
-    // The AI replies (or the round ends) within a few seconds either way.
-    await expect(page.getByText(/Your turn|took the round|Round tied/)).toBeVisible({ timeout: 10_000 });
+    // The AI replies (or the round ends) within a few seconds either way —
+    // dismissing any "Continue" holds (PT-34) along the way.
+    await waitVisibleDismissingContinues(page, () => page.getByText(/Your turn|took the round|Round tied/).isVisible());
 
     // Plan step 3.3 extension: once it's the human's turn again, the HUD's
     // whose-turn lamp and turn counter agree with the engine — never
@@ -108,8 +134,11 @@ test.describe("match screen (plan step 2.1)", () => {
     await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
     await dismissCoinToss(page);
 
+    // Whoever leads might play an on-play-ability card first, holding on a
+    // "Continue" (PT-34) before the human's own turn — dismiss any of those
+    // rather than assuming the AI's opening move never needs one.
     const firstCard = page.locator(".hand-row .card--tappable").first();
-    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    await waitVisibleDismissingContinues(page, () => firstCard.isVisible());
     await firstCard.click();
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await expect(page.locator(".board-row .card").first()).toBeVisible();

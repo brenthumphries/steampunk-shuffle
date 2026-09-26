@@ -2,13 +2,15 @@ import { expect, test, type Page } from "@playwright/test";
 import { ALL_CARDS } from "../../src/cards/data/index.ts";
 import type { MatchState } from "../../src/engine/matchEngine.ts";
 
-// Plan step 3.3 extension (plan/animation-and-turn-indicator-plan.md): the
-// On-Play/discard 3-beat animation sequence and its input-blocking
-// "Resolving…" hold. Same forced-state technique as instantAnnounce.spec.ts
-// — a hand-built MatchState saved under the active-match key — so the
-// scenario (a card with a real On Play target, and a self-discarding
-// Scheme/Headline) is deterministic instead of hoping a random match deals
-// one.
+// Plan step 3.3 extension (plan/animation-and-turn-indicator-plan.md),
+// extended by PT-34: the On-Play/discard 3-beat animation sequence and its
+// input-blocking "Resolving…" hold. Since PT-34, that hold ends in a
+// "Continue" the player must tap themselves rather than auto-advancing once
+// the animation's own duration elapses. Same forced-state technique as
+// instantAnnounce.spec.ts — a hand-built MatchState saved under the
+// active-match key — so the scenario (a card with a real On Play target,
+// and a self-discarding Scheme/Headline) is deterministic instead of
+// hoping a random match deals one.
 
 const inspectorsWarrant = ALL_CARDS.find((c) => c.id === "inspectors-warrant")!; // Scheme: On Play, flip an opposing card worth 3 or less; self-discards straight after (design.md §3).
 const constableOnTheBeat = ALL_CARDS.find((c) => c.id === "constable-on-the-beat")!; // 3 pts — the one legal flip target below.
@@ -75,10 +77,18 @@ test.describe("on-play/discard 3-beat animation sequencing (plan step 3.3 extens
     // straight to the next actor.
     await expect(page.getByText("Resolving…")).toBeVisible({ timeout: 5000 });
 
-    // It resolves within the sequence's own budget (well under the plan's
-    // hard 2.5s cap) and the flip actually landed — not just an animation.
+    // The animation plays for its own budget (well under the plan's hard
+    // 2.5s cap) and the flip actually landed — not just an animation —
+    // but PT-34 means it doesn't auto-advance from there: "Resolving…"
+    // gives way to a "Continue" the player must tap themselves.
     await expect(page.getByText("Resolving…")).toHaveCount(0, { timeout: 3000 });
     await expect(page.locator('.board-row .card[data-instance-id="human-board-1"]')).toHaveClass(/card--facedown/);
+    const continueBtn = page.getByRole("button", { name: "Continue" });
+    await expect(continueBtn).toBeVisible();
+    await page.waitForTimeout(500);
+    await expect(continueBtn).toBeVisible(); // still held well past the old auto-advance window — waiting on the tap, not a timer
+    await continueBtn.click();
+    await expect(continueBtn).toHaveCount(0);
   });
 
   test("a self-discarding Scheme/Headline (the human's own play) lands visibly in the discard pile", async ({ page }) => {

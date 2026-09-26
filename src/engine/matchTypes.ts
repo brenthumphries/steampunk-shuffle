@@ -56,7 +56,14 @@ export interface RoundResult {
 
 export interface MatchResult {
   winner: PlayerId | "draw";
-  reason: "two-rounds" | "more-rounds-after-three" | "total-score-after-three" | "draw-after-three";
+  /**
+   * PT-33: "conceded" is never set by the engine itself — matchScreen.ts
+   * synthesizes a `{ winner: <the other side>, reason: "conceded" }` result
+   * when the player leaves a match early, so it flows through the same
+   * win/loss payout path (recordPickupResult / recordTournamentMatchResult)
+   * as a normal loss, without matchEngine.ts needing to know leaving exists.
+   */
+  reason: "two-rounds" | "more-rounds-after-three" | "total-score-after-three" | "draw-after-three" | "conceded";
 }
 
 export interface MatchState {

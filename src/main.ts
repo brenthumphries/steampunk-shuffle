@@ -197,6 +197,7 @@ function mountMatch(params: {
     initialState: params.resume,
     hints: params.hints,
     previewResult: params.previewResult,
+    leaveGame: { matchKind: params.context.kind },
     onStateChange: (state, aiSeed) => {
       saveActiveMatch({ matchState: state, aiSeed, humanDeck: params.humanDeck, humanDeckName: params.humanDeckName, context: params.context });
     },

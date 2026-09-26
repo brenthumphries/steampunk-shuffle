@@ -80,6 +80,23 @@ body {
   flex-shrink: 0;
 }
 
+/* PT-33: the in-match "Leave Game" button, same pill shape as the mute
+   toggle it sits next to in .match-topbar, but never offered during the
+   tutorial (see MatchScreenOptions.leaveGame). */
+.leave-game-button {
+  font: inherit;
+  font-size: 0.7rem;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid rgba(242, 230, 208, 0.4);
+  border-radius: 999px;
+  color: var(--ink);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 /* ---------------------------------------------------------------------
    Match screen (plan step 2.1). Family frame colours from
    docs/style-bible.md §2 / design.md §4. The card frame itself (border

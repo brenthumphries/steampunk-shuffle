@@ -2,12 +2,15 @@ import { expect, test } from "@playwright/test";
 import { ALL_CARDS } from "../../src/cards/data/index.ts";
 import type { MatchState } from "../../src/engine/matchEngine.ts";
 
-// Bugfix cluster E (note #6): a Scheme/Headline ("Instant") card resolves
-// its On Play and discards in the same atomic playTurn() call, so a
-// tester watching the AI play one couldn't read what it said before it
-// was gone. matchScreen.ts holds on an "instant-announce" overlay naming
-// the card for INSTANT_ANNOUNCE_MS before moving on — this test forces a
-// deterministic scenario (a resumed match whose only legal AI move is a
+// Bugfix cluster E (note #6), extended by PT-34: a Scheme/Headline
+// ("Instant") card resolves its On Play and discards in the same atomic
+// playTurn() call, so a tester watching the AI play one couldn't read what
+// it said before it was gone. matchScreen.ts holds on an "instant-announce"
+// overlay naming the card for INSTANT_ANNOUNCE_MS, then — since even that
+// fixed hold was still "a little too fast" per PT-34's playtest note —
+// shows a "Continue" button the player must tap themselves rather than
+// auto-advancing, so they can take as long as they need. This test forces
+// a deterministic scenario (a resumed match whose only legal AI move is a
 // Scheme) via the active-match save format, rather than hoping a real
 // random-shuffled match happens to draw one.
 
@@ -71,18 +74,29 @@ test.describe("match screen: instant-card announce (bugfix cluster E)", () => {
     await page.reload();
   });
 
-  test("note #6: the opponent's Scheme is announced and held legibly before the turn moves on", async ({ page }) => {
+  test("note #6 / PT-34: the opponent's Scheme is announced, held legibly, and waits for the player to continue", async ({ page }) => {
     const overlay = page.locator(".overlay--instant-announce");
     await expect(overlay).toBeVisible({ timeout: 5000 });
     await expect(overlay.getByText("Inspector's Warrant")).toBeVisible();
     await expect(overlay.getByText(/Flip an opposing card/)).toBeVisible();
 
-    // Held legibly for a real beat, not gone within a frame or two.
+    // Held legibly for a real beat, not gone within a frame or two, and no
+    // "Continue" button yet — the player can't rush past it before it's
+    // had its minimum time on screen.
     await page.waitForTimeout(600);
     await expect(overlay).toBeVisible();
+    const continueBtn = overlay.getByRole("button", { name: "Continue" });
+    await expect(continueBtn).toHaveCount(0);
 
-    // Eventually resolves and moves on to the human's turn.
-    await expect(overlay).toHaveCount(0, { timeout: 3000 });
+    // PT-34: once that minimum hold elapses, it waits indefinitely for an
+    // explicit tap rather than auto-advancing — still visible well past
+    // the old fixed-timer window.
+    await expect(continueBtn).toBeVisible({ timeout: 3000 });
+    await page.waitForTimeout(1000);
+    await expect(overlay).toBeVisible();
+
+    await continueBtn.click();
+    await expect(overlay).toHaveCount(0);
     await expect(page.getByText("Your turn")).toBeVisible();
 
     // The effect actually resolved: Constable on the Beat (3 pts, ≤3) was
