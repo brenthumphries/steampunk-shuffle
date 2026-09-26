@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // Plan step 2.1's exit check: "full match playable on your phone" at the
 // 402×874 iPhone 17 viewport (playwright.config.ts's only project). These
@@ -31,6 +31,20 @@ async function waitVisibleDismissingContinues(page: Page, isVisible: () => Promi
       { timeout: timeoutMs },
     )
     .toBe(true);
+}
+
+/**
+ * A self-discarding Scheme/Headline (design.md's "Instant" cards — Inspector's
+ * Warrant, Séance in the starter deck) resolves and discards atomically, so it
+ * never occupies `.board-row`; a Location (The Parsonage Snug) mounts in the
+ * separate location slot instead. A test that plays "the first tappable card"
+ * and then expects to find it in `.board-row .card` excludes these three by
+ * name — pre-existing gap (this pattern predates PT-33/PT-34), not something
+ * either fix introduced, but worth closing now that it's understood.
+ */
+const OFF_BOARD_CARD_NAMES = /Inspector's Warrant|Séance|The Parsonage Snug/;
+function boardBoundTappableCard(page: Page): Locator {
+  return page.locator(".hand-row .card--tappable").filter({ hasNotText: OFF_BOARD_CARD_NAMES }).first();
 }
 
 test.describe("match screen (plan step 2.1)", () => {
@@ -94,8 +108,10 @@ test.describe("match screen (plan step 2.1)", () => {
 
     // Whoever leads might play an on-play-ability card first, holding on a
     // "Continue" (PT-34) before the human's own turn — dismiss any of those
-    // rather than assuming the AI's opening move never needs one.
-    const firstCard = page.locator(".hand-row .card--tappable").first();
+    // rather than assuming the AI's opening move never needs one. Also
+    // avoid a card that would never land on the board (see
+    // boardBoundTappableCard) since this test asserts on `.board-row`.
+    const firstCard = boardBoundTappableCard(page);
     await waitVisibleDismissingContinues(page, () => firstCard.isVisible());
     await firstCard.click();
     await page.getByRole("button", { name: "Play", exact: true }).click();
@@ -136,8 +152,11 @@ test.describe("match screen (plan step 2.1)", () => {
 
     // Whoever leads might play an on-play-ability card first, holding on a
     // "Continue" (PT-34) before the human's own turn — dismiss any of those
-    // rather than assuming the AI's opening move never needs one.
-    const firstCard = page.locator(".hand-row .card--tappable").first();
+    // rather than assuming the AI's opening move never needs one. Also
+    // avoid a card that would never land on the board (see
+    // boardBoundTappableCard) since this test asserts on `.board-row`
+    // both before and after the reload.
+    const firstCard = boardBoundTappableCard(page);
     await waitVisibleDismissingContinues(page, () => firstCard.isVisible());
     await firstCard.click();
     await page.getByRole("button", { name: "Play", exact: true }).click();
