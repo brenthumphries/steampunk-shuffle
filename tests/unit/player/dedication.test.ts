@@ -1,12 +1,11 @@
-// `dedicationShouldShow` (seasonal-events-plan.md §1, option b) is not wired
-// into src/main.ts yet — waiting on Brent's call. These pin its behaviour so
-// adopting it is a one-line change.
+// `dedicationShouldShow` (seasonal-events-plan.md §1, option b), wired into
+// src/main.ts. These pin the hold window.
 
 import { describe, expect, it } from "vitest";
 
 import { dedicationShouldShow } from "../../../src/player/playerState.ts";
 
-describe("dedicationShouldShow (option b, not yet wired in)", () => {
+describe("dedicationShouldShow (option b)", () => {
   it("never shows once it's been seen", () => {
     expect(dedicationShouldShow(new Date(2026, 9, 30), true)).toBe(false);
     expect(dedicationShouldShow(new Date(2026, 11, 1), true)).toBe(false);

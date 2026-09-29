@@ -49,8 +49,8 @@ the full-art zoom fix (`b263dc7`). 386 unit tests at last count.
 
 As of 2026-09-28: the Hallowe'en seasonal-event layer is built (steps A-E
 of `seasonal-events-plan.md`; log `docs/logs/2026-09-28.md`) and unshipped
-until Brent runs `ss-ship`. 548 unit tests. Still open: the dedication-screen
-call, and art for the eight Nightfall cards (step F).
+until Brent runs `ss-ship`. 548 unit tests. Still open: art for the Nightfall cards
+and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
@@ -73,8 +73,9 @@ the entry it means is now in `docs/logs/`.
   bracket took 8-18 seconds to build on a laptop, a frozen Enter tap.
   Moonrise is live in round 3 and in round 2 once a player holds a round
   win (`isFinalRound` in `src/engine/matchEngine.ts`, `docs/design.md`
-  §5.15). `dedicationShouldShow` in `src/player/playerState.ts` is written
-  but deliberately not wired in, pending Brent's call.
+  §5.15). `dedicationShouldShow` in `src/player/playerState.ts` gates the
+  dedication screen: held Sep 1 to Oct 29, shown on a first launch on or
+  after Oct 30 (wired in 2026-09-28).
 
 - **PT-33/PT-34 (2026-09-26): "Leave Game" and the animation acknowledge-
   gate both route through the match screen's existing `onExit`/`proceed()`

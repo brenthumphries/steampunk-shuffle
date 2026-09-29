@@ -52,18 +52,16 @@ const DEDICATION_HOLD_FROM = { month: 9, day: 1 } as const;
 const BIRTHDAY = { month: 10, day: 30 } as const;
 
 /**
- * ★ NOT WIRED IN — waiting on Brent's decision (seasonal-events-plan.md §1).
- * `src/main.ts` still shows the dedication on the first launch, whenever
- * that is. If she first opens the game in early October to get the
- * Hallowe'en content, she'd read the birthday dedication weeks early.
+ * Wired into `src/main.ts` (Brent's call, 2026-09-28). Without it, a first
+ * launch in early October would show the birthday dedication weeks early,
+ * because the Hallowe'en content makes the game worth opening before Oct 30.
  *
- * This is option (b): hold it back from Sep 1 until Oct 30, then show it on
- * her first launch on or after her birthday. The hold has a start date on
- * purpose: "before Oct 30 in the calendar year" alone would also hold a
- * first launch in, say, February 2027 until October 2027.
- *
- * To adopt it, change `main.ts`'s `if (!loadPlayerState().dedicationSeen)` to
- * `if (dedicationShouldShow(today(), loadPlayerState().dedicationSeen))`.
+ * Option (b) of seasonal-events-plan.md §1: hold it back from Sep 1 until
+ * Oct 30, then show it on her first launch on or after her birthday. The
+ * hold has a start date on purpose: "before Oct 30 in the calendar year"
+ * alone would also hold a first launch in, say, February 2027 until October
+ * 2027. Not shown while held, and `dedicationSeen` stays false, so it still
+ * appears later.
  */
 export function dedicationShouldShow(date: Date, dedicationSeen: boolean): boolean {
   if (dedicationSeen) return false;

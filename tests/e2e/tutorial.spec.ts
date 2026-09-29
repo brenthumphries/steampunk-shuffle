@@ -9,10 +9,24 @@ import { expect, test } from "@playwright/test";
 // updates exactly as the script says once it's played.
 
 test.describe("dedication screen (plan step 3.5, design.md §14.1)", () => {
+  // The dedication is held back from Sep 1 to Oct 29 (dedicationShouldShow,
+  // src/player/playerState.ts), so these pin the clock outside that window
+  // (`?now=` needs `&preview=1` in this production-build server).
   test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => localStorage.clear());
-    await page.reload();
+    await page.goto("/steampunk-shuffle/?now=2026-11-05&preview=1");
+  });
+
+  test("a first launch during the hold (Sep 1 to Oct 29) skips the dedication and lands in the tutorial", async ({ page }) => {
+    await page.goto("/steampunk-shuffle/?now=2026-10-15&preview=1");
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await expect(page.getByText("Licensed to")).toHaveCount(0);
+  });
+
+  test("a first launch on her birthday, Oct 30, shows the dedication", async ({ page }) => {
+    await page.goto("/steampunk-shuffle/?now=2026-10-30&preview=1");
+    await expect(page.getByText("Licensed to")).toBeVisible();
   });
 
   test("a truly fresh install sees the dedication screen before the tutorial", async ({ page }) => {
