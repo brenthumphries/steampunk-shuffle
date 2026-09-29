@@ -1,0 +1,182 @@
+================================================================================
+[1/11] turnip-lantern  (gadget · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Object study of a hollowed turnip lantern on a scarred bar top, crudely carved with a butter knife: ragged triangular eyes and a lopsided jagged grin, a stub of candle inside throwing a warm glow through the cuts, pale cream-white flesh showing at the carved edges. Shallow depth of field, no hands in frame, the tail of a black cat just leaving the edge of the frame. Warm gaslight-amber key light with the candle as a second small source, deep ink-black shadow, parchment-cream highlights and a sparing touch of sovereign gold. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no pumpkin, no orange gourd, no plastic or modern Halloween decorations, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Gadget, neutral. "Carved from a turnip with a butter knife and a grudge. The cat won't go near it." Victorian Britain carved turnips, not pumpkins: the negatives are load-bearing, Gemini defaults to a pumpkin.
+
+================================================================================
+[2/11] resurrection-man  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a broad, unhurried Victorian resurrection man, a body-snatcher by trade, collar turned up against the cold, a hooded lantern in one hand and a spade over the other shoulder, a churchyard wall and bare yew behind him, a patient, professional expression, a man paid by the job. Oxblood-leather-toned key light from the lantern, cool ambient night fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a wet churchyard at night.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no corpse or body visible, no skulls or bones, no gore
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Rookery, uncommon. "Paid by the body, and not fussy about the paperwork." Distinct from grave-robber: this one is the broad, calm professional; the Grave Robber is wiry and furtive. Attaches portrait-dodgy-reg-farrow as the Rookery reference.
+
+================================================================================
+[3/11] spirit-photograph  (scheme · salon)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+A small vignette: a framed albumen photograph propped on a drawing-room mantel, a stiff family group of three seated figures with a fourth, faint, translucent shape standing just behind them, brocade and a stopped mantel clock either side, a single candle beside it. Symbolic rather than literal, the figures small and soft-focus, no clear faces. Warm gaslight key light, cool verdigris-green ambient shadow. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no legible text on the photograph or frame, no clear or recognisable faces, no horror imagery
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Salon, uncommon scheme. "Three friends in the portrait. Only two were in the room." Its ability turns face-down Friend cards face-up, so the extra figure is a Friend who was not visible.
+
+================================================================================
+[4/11] the-witching-hour  (location · neutral)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Wide establishing view of the empty Wheatstone Bridge taproom at midnight, every chair pulled slightly out from its table as if just vacated, the brass clock over the bar striking twelve with its hands a blur, cards fanned across a table as if mid-hand, candle smoke hanging under the ceiling pipes, moonlight through the fogged windows. Full-bleed, enough depth to read as a place at a glance, no figures. Cold gunmetal-blue moonlight against a few warm amber gaslamps guttering low. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no people or animals in frame, no legible numerals or lettering on the clock face, no pumpkins
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, rare Location, neutral. "Midnight, and every card in the room has second thoughts." Also the All Hallows' Wake's house Location, so it is on screen in every tournament match. Attaches the taproom reference (always) so it reads as the same room as background-the-taproom-halloween.
+
+================================================================================
+[5/11] grave-robber  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a wiry, furtive young grave robber, cap pulled low, mud to the knees, a spade over one shoulder and a sack at his hip, a crooked grin as if he has just heard a joke nobody else has, cemetery railings and leaning headstones in soft silhouette behind him. Oxblood-leather-toned key light from a half-hooded lamp, cool ambient night fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a moonlit cemetery.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no corpse or body visible, no skulls or bones, no gore
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Rookery, common, Undying. "Digs by night, sells by morning, and has never once been the one in the hole." Distinct from resurrection-man: wiry and furtive, not a burly professional. Inherits the Rookery reference.
+
+================================================================================
+[6/11] night-constable  (character · yard)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-constable-tobias-mudd.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a tall night constable in a caped greatcoat and helmet, a bull's-eye lantern held low, his breath visible, fog thickening behind him and the beat stretching away longer than it should, a level, watchful expression. Gunmetal-blue key light with a warm pinpoint from the lantern, a pale crescent moon high in the fog. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a fog-bound street and iron railings.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no modern police uniform, no legible lettering on the helmet plate or lantern
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Yard, common, Moonrise +2. "Walks the same beat after dark. It is somehow longer." The moon in the sky is the Moonrise cue. Attaches portrait-constable-tobias-mudd as the Yard reference.
+
+================================================================================
+[7/11] lamplighter-at-dusk  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a slight lamplighter at dusk, one hand raising a long lighting pole to a gas lamp that has just flared to life, already half-turned away and mid-stride, his face in shadow under a cap, gone before anyone could thank him, a thin crescent moon rising over the rooftops. Gaslight-amber key light from the newly lit lamp, cool blue-grey dusk fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a row of townhouse roofs and lamps coming on one by one.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no clearly visible face, no modern street lighting
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Irregulars, common, Elusive + Moonrise +2. "Lights the lamps and is somewhere else by the time anyone thinks to thank him." Elusive is the half-turned, already-leaving pose. Attaches portrait-old-nell-ashby as the Irregulars reference.
+
+================================================================================
+[8/11] galvanic-battery  (gadget · foundry)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Object study of a galvanic battery on a scarred workbench: a row of glass Leyden jars with brass terminals and copper wire coiled between them, a thin arc of pale gold light jumping across one gap, riveted brass fittings and a hand-wound coil beside it. Shallow depth of field, no hands in frame. Warm brass-and-copper key light with the arc as a small second source, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no modern electronics or batteries, no blue-white lightning, no people in frame
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Nightfall, Foundry, uncommon, Undying. "A jar of lightning. Stored, never spent." The spark stays pale gold to stay inside the style-bible palette (no electric blue).
+
+================================================================================
+[9/11] thomas-marvel  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a shabby, quick-witted tramp in a battered top hat and a coat two sizes too big, a bundle of stolen-looking books tucked under one arm, glancing sidelong toward the road behind him as if already planning his exit, an innocent expression he has clearly practised. Gaslight-amber key light from a lamp over a country inn door, cool blue-grey dusk fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a village inn yard and a muddy lane.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no photoreal likeness of a real person, no caricature
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Griffin's deck-local (src/cards/data/decks/griffin.ts), Irregulars, uncommon, Elusive, 5 points. "Carried the books, spent the money, and still insists he was never there." Named for the tramp in Wells's The Invisible Man (1897). Attaches portrait-old-nell-ashby as the Irregulars reference.
+
+================================================================================
+[10/11] mrs-hall  (character · irregulars)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-old-nell-ashby.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a brisk, stout Victorian village landlady in a white apron and lace cap, arms folded, a ring of keys at her belt and a ledger under one elbow, an expression of long-suffering disapproval, as a woman who has just been told about the bandages again. Warm gaslight-amber key light from an inn parlour lamp, cool ambient shadow fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a low-beamed country inn parlour and a stair behind her.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no photoreal likeness of a real person, no caricature, no legible writing in the ledger
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Griffin's deck-local (src/cards/data/decks/griffin.ts), Irregulars, common, 4 points. "Wanted the rent, the bandages explained, and a great deal fewer questions about the furniture." The landlady of the Coach and Horses in Wells's The Invisible Man. Inherits the Irregulars reference.
+
+================================================================================
+[11/11] renfield  (character · rookery)
+--------------------------------------------------------------------------------
+Attach these images first:
+  - art/reference/The_Wheatstone_Bridge_taproom.jpeg
+  - public/art/portrait-dodgy-reg-farrow.webp
+
+Paste this into Gemini:
+--------------------------------------------------------------------------------
+Bust-to-waist portrait of a thin, eager man in a plain, slightly too-short dark coat, wide-eyed and earnest, hands clasped in front of him as if promising something he cannot deliver, a hungry devotion in his face as he looks off toward someone just out of frame, a barred window and dim lamp behind him. Oxblood-leather-toned key light from a low lamp, cool ambient night fill. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight with real cast shadows. Background a soft blur of a bare stone room and a barred window.
+
+no text, no lettering, no watermark, no signature, no logo, no photorealistic photography look, no 3D render look, no anime style, no goggles-and-corsets cosplay clichés, no modern clothing or objects (unless an explicit easter egg), no gore, no graphic violence, no distorted or extra hands/limbs, no border or frame, no vignette, no colors outside the palette in section 2, no straitjacket or restraints, no caricature of illness, no photoreal likeness of a real person, no gore or blood
+
+Aspect ratio 3:4.
+--------------------------------------------------------------------------------
+Notes: Count's deck-local (src/cards/data/decks/count.ts, also Spring-Heeled Jack's), Rookery, uncommon, 5 points. "Eats what he's given, promises what he's asked, and has never once been thanked." Stoker's Dracula (1897). Devotion, not horror: keep him sympathetic, not a caricature. Inherits the Rookery reference.
