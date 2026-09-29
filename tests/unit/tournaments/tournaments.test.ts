@@ -14,24 +14,33 @@ const peelers = TOURNAMENTS_BY_ID.get("peelers-cup")!;
 const reichenbach = TOURNAMENTS_BY_ID.get("reichenbach-open")!;
 const invitational = TOURNAMENTS_BY_ID.get("birthday-invitational")!;
 
+const A_DAY = new Date(2026, 8, 11);
+
 describe("isUnlocked", () => {
   it("The Tuesday Knockout is always open", () => {
-    expect(knockout.isUnlocked(0, false)).toBe(true);
+    expect(knockout.isUnlocked(0, false, A_DAY)).toBe(true);
   });
 
   it("The Peelers' Cup unlocks after 5 wins", () => {
-    expect(peelers.isUnlocked(4, false)).toBe(false);
-    expect(peelers.isUnlocked(5, false)).toBe(true);
+    expect(peelers.isUnlocked(4, false, A_DAY)).toBe(false);
+    expect(peelers.isUnlocked(5, false, A_DAY)).toBe(true);
   });
 
   it("The Reichenbach Open unlocks after 20 wins", () => {
-    expect(reichenbach.isUnlocked(19, false)).toBe(false);
-    expect(reichenbach.isUnlocked(20, false)).toBe(true);
+    expect(reichenbach.isUnlocked(19, false, A_DAY)).toBe(false);
+    expect(reichenbach.isUnlocked(20, false, A_DAY)).toBe(true);
   });
 
   it("The Birthday Invitational unlocks only once triggered, regardless of wins", () => {
-    expect(invitational.isUnlocked(1000, false)).toBe(false);
-    expect(invitational.isUnlocked(0, true)).toBe(true);
+    expect(invitational.isUnlocked(1000, false, A_DAY)).toBe(false);
+    expect(invitational.isUnlocked(0, true, A_DAY)).toBe(true);
+  });
+
+  it("the year-round tournaments ignore the date entirely", () => {
+    for (const date of [new Date(2026, 8, 30), new Date(2026, 9, 15), new Date(2026, 10, 1)]) {
+      expect(knockout.isUnlocked(0, false, date)).toBe(true);
+      expect(peelers.isUnlocked(5, false, date)).toBe(true);
+    }
   });
 });
 

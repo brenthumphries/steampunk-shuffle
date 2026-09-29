@@ -13,6 +13,7 @@
 import type { Deck } from "../cards/cardTypes.ts";
 import type { Difficulty } from "../ai/aiOpponent.ts";
 import type { MatchState } from "../engine/matchEngine.ts";
+import { eventLineOverride, eventSirCharlesLines, isVisitorInTown } from "../events/seasonalEvents.ts";
 import {
   houseDeck,
   muddsDeck,
@@ -29,9 +30,21 @@ import {
   poirotsDeck,
   jekyllsDeck,
   shelleysDeck,
+  griffinsDeck,
+  pharaohsDeck,
+  countsDeck,
+  wolfsDeck,
+  creaturesDeck,
+  jacksDeck,
 } from "../cards/data/decks/index.ts";
 
-export type OpponentTier = "house" | "regular" | "seasoned" | "legend";
+/**
+ * "visitor" (seasonal-events-plan.md §2 rule 2): a seasonal-event opponent.
+ * Plays the `seasoned` dial and pays Seasoned Checks, but isn't in the
+ * year-round unlock ladder or the legends-in-town rotation — whether one is
+ * in the pub is the event registry's call (src/events/seasonalEvents.ts).
+ */
+export type OpponentTier = "house" | "regular" | "seasoned" | "legend" | "visitor";
 
 export interface Opponent {
   id: string;
@@ -48,8 +61,14 @@ export interface Opponent {
    * on the board by then) play legend. A judgment call, not a locked spec.
    */
   difficulty: Difficulty | ((state: MatchState) => Difficulty);
-  /** Reward card id, given once on the first pickup win (§9.1-9.3). Sir Charles has none. */
+  /** Reward card id, given once on the first pickup win (§9.1-9.3). Sir Charles has none, nor does a `tournamentOnly` opponent (their card is the tournament's prize). */
   rewardCardId: string | null;
+  /**
+   * Sits at the table only inside one specific tournament (Spring-Heeled Jack
+   * in the All Hallows' Wake): never in Tonight's Patrons, and never drawn
+   * into any other tournament's field even though his tier is `legend`.
+   */
+  tournamentOnly?: boolean;
   /** Combined pickup + tournament wins (§12.1) needed before this opponent appears in "tonight's patrons". */
   unlockWins: number;
   portraitArtId?: string;
@@ -84,6 +103,84 @@ export const SIR_CHARLES: Opponent = {
 
 export const OPPONENTS: Opponent[] = [
   SIR_CHARLES,
+  // Seasonal visitors (seasonal-events-plan.md §3) sit right after the
+  // house so a fresh arrival is at the top of Tonight's Patrons, not below
+  // the legends. `unlockWins` mirrors the event's `minWins`, for reference
+  // only: whether a visitor is in the pub is src/events/seasonalEvents.ts's
+  // call (`isVisitorInTown`).
+  {
+    id: "mr-griffin",
+    name: "Mr Griffin, the Unseen",
+    tier: "visitor",
+    deck: griffinsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "mr-griffin",
+    unlockWins: 3,
+    portraitArtId: "portrait-mr-griffin",
+    line: "Don't mind me. Nobody ever does.",
+    betPool: ["turnip-lantern", "resurrection-man", "the-witching-hour"],
+  },
+  {
+    id: "clockwork-pharaoh",
+    name: "The Clockwork Pharaoh",
+    tier: "visitor",
+    deck: pharaohsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "clockwork-pharaoh",
+    unlockWins: 3,
+    portraitArtId: "portrait-clockwork-pharaoh",
+    line: "Three thousand years in a glass case. Deal.",
+    betPool: ["turnip-lantern", "spirit-photograph", "the-witching-hour"],
+  },
+  {
+    id: "carpathian-count",
+    name: "The Carpathian Count",
+    tier: "visitor",
+    deck: countsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "the-count",
+    unlockWins: 3,
+    portraitArtId: "portrait-carpathian-count",
+    line: "Such a charming establishment. Do invite me in.",
+    betPool: ["grave-robber", "resurrection-man", "the-witching-hour"],
+  },
+  {
+    id: "hampstead-wolf",
+    name: "The Hampstead Wolf",
+    tier: "visitor",
+    deck: wolfsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "gentleman-of-the-heath",
+    unlockWins: 3,
+    portraitArtId: "portrait-hampstead-wolf",
+    line: "Is it a full moon? I never check.",
+    betPool: ["night-constable", "lamplighter-at-dusk", "turnip-lantern"],
+  },
+  {
+    id: "galvanic-creature",
+    name: "The Galvanic Creature",
+    tier: "visitor",
+    deck: creaturesDeck,
+    difficulty: "seasoned",
+    rewardCardId: "the-creature",
+    unlockWins: 3,
+    portraitArtId: "portrait-galvanic-creature",
+    line: "She made me. She did not make me welcome.",
+    betPool: ["galvanic-battery", "turnip-lantern", "the-witching-hour"],
+  },
+  {
+    id: "spring-heeled-jack",
+    name: "Spring-Heeled Jack",
+    tier: "legend",
+    deck: jacksDeck,
+    difficulty: "legend",
+    rewardCardId: null,
+    tournamentOnly: true,
+    unlockWins: 0,
+    portraitArtId: "portrait-spring-heeled-jack",
+    line: "You'll never catch me. Everybody's tried.",
+    betPool: ["grave-robber", "resurrection-man", "the-witching-hour"],
+  },
   {
     id: "mudd",
     name: "Constable Tobias Mudd",
@@ -282,12 +379,28 @@ export function legendsInTown(date: Date): readonly [string, string] {
 }
 
 export function isOpponentInTown(opponent: Opponent, totalWins: number, date: Date): boolean {
+  if (opponent.tournamentOnly) return false;
+  if (opponent.tier === "visitor") return isVisitorInTown(opponent.id, totalWins, date);
   if (totalWins < opponent.unlockWins) return false;
   if (opponent.tier !== "legend") return true;
   return legendsInTown(date).includes(opponent.id);
 }
 
-/** "Tonight's patrons" (design.md §11.2): all unlocked Regulars/Seasoned, today's two Legends, and Sir Charles (always). */
+/** "Tonight's patrons" (design.md §11.2): all unlocked Regulars/Seasoned, today's two Legends, any arrived seasonal visitors, and Sir Charles (always). */
 export function tonightsPatrons(totalWins: number, date: Date): Opponent[] {
   return OPPONENTS.filter((o) => isOpponentInTown(o, totalWins, date));
+}
+
+/**
+ * The pickup line shown on an opponent's patron row today. Sir Charles
+ * rotates through his own line plus any live event's lines, one per local
+ * calendar day; an event can also replace another opponent's line outright
+ * (Mary Shelley on meeting the Creature).
+ */
+export function patronLine(opponent: Opponent, date: Date): string {
+  const override = eventLineOverride(opponent.id, date);
+  if (override) return override;
+  if (opponent.id !== SIR_CHARLES.id) return opponent.line;
+  const pool = [opponent.line, ...eventSirCharlesLines(date)];
+  return pool[localDayIndex(date) % pool.length]!;
 }

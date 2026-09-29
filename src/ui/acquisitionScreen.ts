@@ -15,6 +15,7 @@ import { pawnbrokerWindow, canAfford, buyFromPawnbroker, type PawnbrokerSlot } f
 import { canFuse, fuseChoicesFor, fuse, TINKER_FEE_CHECKS, TINKERS_BENCH_UNLOCK_WINS, type FuseChoice } from "../pub/tinkersBench.ts";
 import { claimLostAndFound, countInCollection, hasClaimedLostAndFoundToday, loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
 import { playSound } from "../audio/soundEngine.ts";
+import { today } from "../events/eventClock.ts";
 
 export interface AcquisitionScreenOptions {
   onBack: () => void;
@@ -57,7 +58,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
   }
 
   function claimToday(): void {
-    const now = new Date();
+    const now = today();
     const card = rollLostAndFound(pub.collection, now);
     persist(claimLostAndFound(pub, card.id, now));
     revealCardId = card.id;
@@ -67,7 +68,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
 
   function buy(slot: PawnbrokerSlot): void {
     if (!canAfford(pub, slot.price)) return;
-    persist(buyFromPawnbroker(pub, slot.card.id, slot.price, new Date()));
+    persist(buyFromPawnbroker(pub, slot.card.id, slot.price, today()));
     render();
   }
 
@@ -83,7 +84,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
   function buildLostAndFoundSection(): HTMLElement {
     const section = el("section", "backroom-section");
     section.appendChild(el("h2", "backroom-section-title", "Lost & Found"));
-    const claimedToday = hasClaimedLostAndFoundToday(pub, new Date());
+    const claimedToday = hasClaimedLostAndFoundToday(pub, today());
     section.appendChild(el("p", "backroom-section-note", claimedToday ? "“Nobody's claimed it. I've asked.” Come back tomorrow." : "There's something in the box behind the bar. Free."));
     const btn = el("button", "action-button", claimedToday ? "Claimed today" : "Take it");
     btn.type = "button";
@@ -97,7 +98,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     const section = el("section", "backroom-section");
     section.appendChild(el("h2", "backroom-section-title", "The Pawnbroker"));
     const grid = el("div", "backroom-grid");
-    for (const slot of pawnbrokerWindow(pub, new Date())) {
+    for (const slot of pawnbrokerWindow(pub, today())) {
       const face = slot.card.faces[0];
       const tile = el("div", "backroom-tile");
       tile.dataset.family = face.family;

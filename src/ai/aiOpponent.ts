@@ -15,6 +15,7 @@ import type { Card, Deck } from "../cards/cardTypes.ts";
 import {
   boardScore,
   currentPlayer,
+  isFinalRound,
   otherPlayer,
   playTurn,
   type CardInstance,
@@ -166,22 +167,33 @@ function evaluateState(state: MatchState, forPlayer: PlayerId): number {
   const opponent = otherPlayer(forPlayer);
   let score = (state.roundsWon[forPlayer] - state.roundsWon[opponent]) * 1000;
   score += boardScore(state, forPlayer) - boardScore(state, opponent);
-  score += 0.5 * handPotential(state.players[forPlayer].hand);
-  score -= 0.5 * handPotential(state.players[opponent].hand);
+  score += 0.5 * handPotential(state.players[forPlayer].hand, state);
+  score -= 0.5 * handPotential(state.players[opponent].hand, state);
   return score;
 }
 
-function handPotential(hand: CardInstance[]): number {
-  return hand.reduce((sum, instance) => sum + cardPotentialValue(instance.card), 0);
+function handPotential(hand: CardInstance[], state: MatchState): number {
+  return hand.reduce((sum, instance) => sum + cardPotentialValue(instance.card, state), 0);
 }
 
-/** Rough future-scoring value of a card still in hand: printed points plus a nudge for useful keywords/abilities. */
-function cardPotentialValue(card: Card): number {
+/**
+ * Rough future-scoring value of a card still in hand: printed points plus a
+ * nudge for useful keywords/abilities. The seasonal keywords are nudges in
+ * the same spirit (see this file's "nudge, don't override" note above):
+ * - Undying survives being Flipped, so it holds its value against a
+ *   Flip-heavy opponent — a small bonus like Persist.
+ * - Moonrise is worth its full bonus in a round that's already final, and
+ *   half of it otherwise: held back for the final round, but not counted on,
+ *   since a 2-0 sweep can end the match before it's ever live.
+ */
+function cardPotentialValue(card: Card, state: MatchState): number {
   const face = card.faces[0];
   let value = face.points;
   if (face.keywords?.persist) value += 0.5;
   if (face.keywords?.elusive) value += 0.5;
   if (face.keywords?.friend) value += 0.5;
+  if (face.keywords?.undying) value += 0.5;
+  if (face.keywords?.moonrise !== undefined) value += face.keywords.moonrise * (isFinalRound(state) ? 1 : 0.5);
   if (face.abilities?.some((a) => a.trigger === "onPlay")) value += 0.5;
   return value;
 }
@@ -218,7 +230,7 @@ function applyBehaviorDials(
     if (conceded) {
       // Prefer dumping the least useful card over spending a good one on a
       // round that's already lost (§9.4: "dumps low cards").
-      entry.score -= 0.5 * cardPotentialValue(card);
+      entry.score -= 0.5 * cardPotentialValue(card, state);
     }
 
     if (!isLastTurnOfRound && hasFlipOnPlay(card)) {

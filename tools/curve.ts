@@ -6,9 +6,10 @@
 // (design.md §12.2's wording). Complements `tools/sim.ts`, whose
 // starter-vs-Regular row uses `regular` on both sides.
 //
-// Run: `npm run curve -- <regular|seasoned|legend> [humanDial] [games]`
+// Run: `npm run curve -- <regular|seasoned|legend|visitor|wake> [humanDial] [games] [deckName]`
 // Targets (design.md §9.1-§9.3, §12.2): starter should win ~60% vs
-// Regulars, ~40-45% vs Seasoned, ~30% vs Legends.
+// Regulars, ~40-45% vs Seasoned, ~30% vs Legends; seasonal visitors are
+// Seasoned-tier intent (seasonal-events-plan.md §5: 40-50%).
 
 import { chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
 import { createMatch, currentPlayer, playTurn, type MatchResult } from "../src/engine/matchEngine.ts";
@@ -19,6 +20,8 @@ import {
   REGULAR_DECK_NAMES,
   SEASONED_DECK_NAMES,
   LEGEND_DECK_NAMES,
+  VISITOR_DECK_NAMES,
+  WAKE_LEGEND_DECK_NAME,
 } from "../src/cards/data/decks/index.ts";
 
 const TURN_GUARD = 60;
@@ -46,16 +49,24 @@ const TIERS: Record<string, { names: readonly string[]; dial: Difficulty; defaul
   regular: { names: REGULAR_DECK_NAMES, dial: "regular", defaultGames: 40 },
   seasoned: { names: SEASONED_DECK_NAMES, dial: "seasoned", defaultGames: 30 },
   legend: { names: LEGEND_DECK_NAMES, dial: "legend", defaultGames: 12 },
+  // Seasonal visitors play the seasoned dial and pay Seasoned Checks (src/pub/opponents.ts).
+  visitor: { names: VISITOR_DECK_NAMES, dial: "seasoned", defaultGames: 30 },
+  // Spring-Heeled Jack alone, on the legend dial (seasonal-events-plan.md §3.3).
+  wake: { names: [WAKE_LEGEND_DECK_NAME], dial: "legend", defaultGames: 12 },
 };
 
 function main(): void {
   const tierName = process.argv[2] ?? "regular";
   const tier = TIERS[tierName];
-  if (!tier) throw new Error(`unknown tier "${tierName}" — expected regular | seasoned | legend`);
+  if (!tier) throw new Error(`unknown tier "${tierName}" — expected regular | seasoned | legend | visitor | wake`);
   const humanDial = (process.argv[3] ?? "seasoned") as Difficulty;
   const games = Number(process.argv[4] ?? tier.defaultGames);
+  // Optional 5th argument: play only the deck with this exact name, to re-check one deck without paying for the whole tier.
+  const only = process.argv[5];
+  const names = only ? tier.names.filter((n) => n === only) : tier.names;
+  if (only && names.length === 0) throw new Error(`no deck named "${only}" in tier "${tierName}"`);
 
-  for (const name of tier.names) {
+  for (const name of names) {
     const entry = KNOWN_DECKS.find((d) => d.name === name);
     if (!entry) throw new Error(`no deck named "${name}"`);
     let wins = 0;

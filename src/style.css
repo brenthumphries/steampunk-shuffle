@@ -1700,6 +1700,17 @@ body {
   opacity: 0.8;
 }
 
+/* Sir Charles's "win a few hands first" line while a seasonal event's visitors are still hidden. */
+.patron-notice {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  background: #241a10;
+  border-left: 3px solid var(--amber);
+  border-radius: 0.3rem;
+}
+
 .patron-list {
   display: flex;
   flex-direction: column;
@@ -1747,12 +1758,14 @@ body {
   font-weight: 600;
 }
 
+/* Two lines, not one: a seasonal Sir Charles line runs longer than any year-round patron's. */
 .patron-line {
   font-size: 0.75rem;
   opacity: 0.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .patron-meta {
@@ -1780,6 +1793,11 @@ body {
 
 .patron-tier--legend {
   border-color: var(--family-rookery);
+}
+
+.patron-tier--visitor {
+  border-color: var(--amber);
+  font-style: italic;
 }
 
 .patron-record,
@@ -2066,10 +2084,13 @@ body {
   background: linear-gradient(135deg, var(--family-neutral), #241a10);
 }
 
+/* Two lines, not one: "Mr Griffin, the Unseen" and "The Galvanic Creature" don't fit on one at phone width. */
 .bracket-opponent-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .bracket-stage-badge {

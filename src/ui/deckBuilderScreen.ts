@@ -6,9 +6,9 @@
 // which is mutated in place on every keystroke instead of triggering a
 // rebuild, so the player doesn't lose cursor position/focus while typing.
 //
-// Ownership gating (plan step 4.0d, PT-1): the grid is still every one of
-// the 60 v1 cards (expanding it to include collection-only extras like the
-// Seasoned reward cards is a separate, not-yet-done step), but a card's
+// Ownership gating (plan step 4.0d, PT-1): the grid is every one of the 60
+// v1 cards plus any extra the player owns (Seasoned reward cards and
+// seasonal-event cards — src/decks/cardCatalog.ts), and a card's
 // owned copies (src/decks/ownership.ts) now cap how many of it can be
 // added — an unowned card renders dimmed, with no +/− controls, but stays
 // zoomable (a wishlist). The Landlady's design.md §14.3 "Reserved" case
@@ -16,10 +16,10 @@
 // only her specific flavor text as a per-card override.
 
 import { CARD_TYPES, FAMILIES, type Card, type CardType, type Deck, type Family } from "../cards/cardTypes.ts";
-import { ALL_CARDS } from "../cards/data/index.ts";
 import { starterDeck } from "../cards/data/decks/starterDeck.ts";
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { buildCardZoomOverlay } from "./cardZoom.ts";
+import { builderCards, deckCardsById } from "../decks/cardCatalog.ts";
 import { ownedCopies } from "../decks/ownership.ts";
 import { ALL_FAMILY_COLORS } from "./familyColors.ts";
 import {
@@ -74,7 +74,7 @@ function artUrl(assetId: string): string {
 }
 
 export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOptions): () => void {
-  const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
+  const cardsById = deckCardsById();
   let stored: DeckSlotsState = loadDeckSlotsState();
   let view: View = { kind: "list" };
   let zoomed: Card | null = null;
@@ -260,7 +260,7 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     const pub = loadPubState();
     const grid = el("div", "deck-grid");
     const deckFull = legality.totalCards >= 20;
-    for (const card of ALL_CARDS) {
+    for (const card of builderCards(pub.collection)) {
       const face = card.faces[0];
       if (family !== "all" && face.family !== family) continue;
       if (type !== "all" && face.type !== type) continue;

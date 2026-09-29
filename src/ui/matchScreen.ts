@@ -81,6 +81,13 @@ export interface MatchScreenOptions {
    * §9.3 — see src/pub/opponents.ts).
    */
   difficulty: Difficulty | ((state: MatchState) => Difficulty);
+  /**
+   * A tournament's "house Location" (seasonal-events-plan.md §2 rule 4),
+   * placed in the shared slot before the first turn of a fresh match. Not
+   * needed on resume: the saved state already has whatever Location is in
+   * play.
+   */
+  houseLocation?: Card;
   /** Resume a previously-saved mid-match state (design.md §12.4: "kill the app mid-match → resume") instead of dealing a fresh one. */
   initialState?: { state: MatchState; aiSeed: number };
   /** Called on mount and after every committed turn (human play, AI turn, forced pass) so the caller can autosave the match (design.md §12.4). */
@@ -178,7 +185,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     options.initialState?.state ??
     (options.tutorial
       ? createMatch(options.humanDeck, options.aiDeck, { seed: 1, shuffle: false, leader: AI }) // design.md §13.1: "the house always leads" in the tutorial
-      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now() }));
+      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now(), initialLocation: options.houseLocation }));
   let aiSeed = options.initialState?.aiSeed ?? (Date.now() ^ 0x9e3779b9);
   // A resumed match may have finished (killed while the match-over overlay
   // was up, before "Leave the table" was tapped) — scheduleNext() no-ops

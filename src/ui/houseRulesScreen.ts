@@ -8,7 +8,8 @@
 
 import { DECK_SIZE, MAX_COPIES, MAX_DECK_POINTS, MAX_LEGENDARY_COPIES } from "../cards/cardTypes.ts";
 import { DAILY_BONUS_CHECKS, LOSE_CHECKS, WIN_CHECKS } from "../pub/pubState.ts";
-import { TOURNAMENTS } from "../tournaments/tournaments.ts";
+import { today } from "../events/eventClock.ts";
+import { isTournamentListed, TOURNAMENTS } from "../tournaments/tournaments.ts";
 
 export interface HouseRulesScreenOptions {
   invitationalTriggered: boolean;
@@ -68,6 +69,8 @@ const KEYWORDS: KeywordEntry[] = [
   { name: "Draw N", reminder: "Draw N cards from the top of your deck. No hand limit." },
   { name: "Transform", reminder: "At the start of each round, this card turns over to its other face." },
   { name: "Reveal", reminder: "Shows your opponent's hand to you until end of turn." },
+  { name: "Undying", reminder: "If this is face-down at the end of the round, it goes back to your hand instead of the discard." },
+  { name: "Moonrise +N", reminder: "Worth N more in the final round: round three, or any round that could end the match." },
   { name: "Legendary", reminder: "A deck may contain at most one copy of each legendary card." },
 ];
 
@@ -139,8 +142,9 @@ export function mountHouseRulesScreen(root: HTMLElement, options: HouseRulesScre
     const tTable = el("div", "house-rules-tournaments");
     for (const t of TOURNAMENTS) {
       // PT-5: same reasoning as tournamentsScreen.ts — the Invitational stays
-      // off this page too until its date trigger actually fires.
-      if (t.id === "birthday-invitational" && !options.invitationalTriggered) continue;
+      // off this page too until its date trigger actually fires, and a
+      // seasonal tournament only appears while its event is on.
+      if (!isTournamentListed(t, options.invitationalTriggered, today(), false)) continue;
       const row = el("div", "house-rules-tournament-row");
       row.appendChild(el("span", "house-rules-tournament-name", t.name));
       row.appendChild(el("span", "house-rules-tournament-meta", `${t.whenLabel} · ${t.fieldLabel} · ${t.entryRuleLabel}`));

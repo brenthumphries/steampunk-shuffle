@@ -4,8 +4,11 @@
 // full-rebuild pattern as the other screens (src/ui/pubHubScreen.ts etc).
 
 import type { Deck } from "../cards/cardTypes.ts";
+import { today } from "../events/eventClock.ts";
+import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
+import { resolveHouseLocation } from "../tournaments/houseLocation.ts";
 import type { PrizeCard, Tournament, TournamentId } from "../tournaments/tournaments.ts";
-import { TOURNAMENTS } from "../tournaments/tournaments.ts";
+import { isTournamentListed, TOURNAMENTS } from "../tournaments/tournaments.ts";
 
 export interface TournamentsScreenOptions {
   totalWins: number;
@@ -28,13 +31,14 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
 }
 
 function prizeCardLabel(prizeCard: PrizeCard): string {
-  return prizeCard.kind === "fixed" ? "The Landlady" : `a random ${prizeCard.rarity}`;
+  if (prizeCard.kind === "randomRarity") return `a random ${prizeCard.rarity}`;
+  return ACQUIRABLE_CARDS_BY_ID.get(prizeCard.cardId)?.faces[0].name ?? "a prize card";
 }
 
 /** Mounts the tournament list into `root` and returns a teardown function. */
 export function mountTournamentsScreen(root: HTMLElement, options: TournamentsScreenOptions): () => void {
   function buildRow(tournament: Tournament): HTMLElement {
-    const unlocked = tournament.isUnlocked(options.totalWins, options.invitationalTriggered);
+    const unlocked = tournament.isUnlocked(options.totalWins, options.invitationalTriggered, today());
     const isResumable = options.activeBracketTournamentId === tournament.id;
     const entryCheck = tournament.checkEntryDeck(options.deck);
     const canAffordEntry = options.checks >= tournament.entryChecks;
@@ -44,20 +48,26 @@ export function mountTournamentsScreen(root: HTMLElement, options: TournamentsSc
     row.appendChild(el("p", "tournament-meta", `${tournament.whenLabel} · ${tournament.fieldLabel}`));
     row.appendChild(el("p", "tournament-meta", `Entry: ${tournament.entryRuleLabel}${tournament.entryChecks > 0 ? ` · ${tournament.entryChecks} Checks` : " · free"}`));
     row.appendChild(el("p", "tournament-prize", `Win: ${tournament.prizeChecks} Checks + ${prizeCardLabel(tournament.prizeCard)} · Consolation: ${tournament.consolationChecks} Checks`));
+    const houseLocation = resolveHouseLocation(tournament);
+    if (houseLocation) {
+      row.appendChild(el("p", "tournament-meta", `House rule: ${houseLocation.faces[0].name} is in play at the start of every match.`));
+    }
+
+    // A bracket already in progress can be finished even after its window
+    // closes, so "Resume" is checked before "Locked".
+    if (isResumable) {
+      const btn = el("button", "action-button", "Resume");
+      btn.type = "button";
+      btn.addEventListener("click", () => options.onResume(tournament));
+      row.appendChild(btn);
+      return row;
+    }
 
     if (!unlocked) {
       row.appendChild(el("p", "tournament-locked", "Locked"));
       const btn = el("button", "action-button action-button--secondary", "Locked");
       btn.type = "button";
       btn.disabled = true;
-      row.appendChild(btn);
-      return row;
-    }
-
-    if (isResumable) {
-      const btn = el("button", "action-button", "Resume");
-      btn.type = "button";
-      btn.addEventListener("click", () => options.onResume(tournament));
       row.appendChild(btn);
       return row;
     }
@@ -97,7 +107,9 @@ export function mountTournamentsScreen(root: HTMLElement, options: TournamentsSc
       // PT-5: the Birthday Invitational (name, date, prize) is meant to be a
       // surprise (design.md §14.6) — invisible entirely until its date
       // trigger fires, not just shown "Locked" with every detail printed.
-      if (tournament.id === "birthday-invitational" && !options.invitationalTriggered) continue;
+      // A seasonal tournament is likewise only listed while its event is on
+      // (or while a bracket of it is still in progress).
+      if (!isTournamentListed(tournament, options.invitationalTriggered, today(), options.activeBracketTournamentId === tournament.id)) continue;
       list.appendChild(buildRow(tournament));
     }
     screen.appendChild(list);

@@ -156,6 +156,14 @@ Rules text: A deck may contain at most **one** copy of each legendary card.
 - When a card is played: it enters play → its own On Play resolves → then any "whenever a card is played" effects from Locations resolve. There are no other triggered effects in v1; keep it that way unless this section is amended.
 - The engine must never ask a question it can't answer deterministically: every targeted ability has a target-selection rule for the AI (highest effective points, then leftmost/oldest) and prompts the human.
 
+### 5.14 Undying (seasonal — Hallowe'en, §17)
+*(If this is face-down at the end of the round, it goes back to your hand instead of the discard.)*
+Rules text: At end of round, a **face-down** card with Undying goes to its owner's hand instead of the discard. It is the one keyword that works while its card is face-down, so it is the answer to Flip, just as Return (§5.8) only ever works on face-up cards. If a card has both Return and Undying, Return applies while it is face-up and Undying while it is face-down, so it reaches the hand either way. If it has both Persist and Undying, it stays on the table while face-up and goes to hand instead of the discard once flipped. Undying is resolved in the end-of-round cleanup (§6.2 step 3), not as a triggered effect, so it does not add a trigger kind (§5.13). It resolves after any end-of-round ability, so a card flipped by one still comes home.
+
+### 5.15 Moonrise +N (seasonal — Hallowe'en, §17)
+*(Worth N more in the final round.)*
+Rules text: While it is the final round, a face-up card with Moonrise gets +N effective points. Continuous, like Friend (§5.4): recomputed whenever the board changes, and it stacks with Friend and Location modifiers. A face-down card has no Moonrise. **The final round** is round 3, which always ends the match (§6.3), and also round 2 when one player already holds a round win, since that round can end the match too (2–0). Round 2 after a tied round 1 is not final: no one can take the table yet. The check reads only rounds *before* the current one, so a round's score means the same before and after its result is recorded.
+
 ---
 
 ## 6. Match rules (engine spec)
@@ -516,3 +524,16 @@ The Invitational is date-triggered so it arrives while she's already playing. If
 - **0.3 (style bible):** palette from §4 frames; Sir Charles's reference sheet from §1.3; the cats from §8.2; the Landlady's art rule from §14.3.
 
 **Resolved with Brent (Sept 10, 2026):** pub name is *The Wheatstone Bridge*; dedication wording in §14.1 is final; the Reichenbach Falls and Poirot mechanics are approved as written; cat families and tricks in §8.2 are approved.
+
+---
+
+## 17. Seasonal events
+
+A seasonal event is a date-windowed content layer: visitor opponents, event cards, a tournament and pub dressing that exist only inside a calendar window, then leave the pub again. Hallowe'en at the Bridge (Oct 1 – Oct 31) is the first. The full plan, with the reasoning behind each choice, is `seasonal-events-plan.md`. The code is `src/events/`.
+
+1. **One clock.** Whether an event is live is decided by the phone's *local* calendar day, through `activeEvents(date)` and `isEventLive(id, date)` in `src/events/seasonalEvents.ts`. Nothing else checks a date. A window recurs every year and both ends are inclusive. Anything that gates gameplay on the calendar reads `today()` (`src/events/eventClock.ts`), never `new Date()`.
+2. **Visitors.** A visitor is an opponent of tier `"visitor"`. They play the `seasoned` AI dial and pay Seasoned Checks (15 per win). They are not part of the legends-in-town rotation (§12.3) or the win-count unlock ladder (§12.1). A visitor is in Tonight's Patrons from their own arrival date to the end of the window, once the player has the event's `minWins` (3 for Hallowe'en). A first win pays their reward card as usual (§11.2). Below `minWins`, Sir Charles hints instead: *"Odd folk on the cellar stairs this month. Win a few hands first, and I'll introduce you."*
+3. **Owned cards are permanent.** Event cards stay in the collection and are legal in any deck all year. Once the window closes they drop out of the Lost & Found and Pawnbroker rolls. A card lost in a Bar Bet still reappears at the Pawnbroker at any time of year (§11: nothing is ever lost for good). A visitor's legendary is earned by beating them (§11.2); Spring-Heeled Jack's is the All Hallows' Wake prize, and he pays no first-win reward of his own.
+4. **Event tournaments.** `Tournament.isUnlocked` takes today's date, so a tournament can open only while its event is live. It can also name a `houseLocationId`: a Location placed in the shared slot at the start of every match in it (`createMatch`'s `initialLocation` option). Either player can still replace it. A bracket already in progress can be finished after the window closes; it just can't be entered again.
+5. **Pub dressing.** While an event is live the hub swaps in the event's taproom art (falling back to the everyday taproom if that image can't load) and adds the event's lines to Sir Charles's pool, one per day.
+6. **Dev clock.** `?now=YYYY-MM-DD` overrides "today" in dev builds. In a deployed build it is honoured only when the URL also has `?preview=1`, so Brent can check any date on his phone and the copy she plays never reads it by accident.

@@ -12,6 +12,11 @@ describe("keywordChips", () => {
     expect(keywordChips(face({ keywords: { persist: true, friend: 2 } }))).toEqual(["Persist", "Friend +2"]);
     expect(keywordChips(face({}))).toEqual([]);
   });
+
+  it("shows Undying and Moonrise, the latter with its amount", () => {
+    expect(keywordChips(face({ keywords: { undying: true } }))).toEqual(["Undying"]);
+    expect(keywordChips(face({ keywords: { elusive: true, moonrise: 4 } }))).toEqual(["Elusive", "Moonrise +4"]);
+  });
 });
 
 describe("abilityLines", () => {
@@ -25,6 +30,18 @@ describe("abilityLines", () => {
   it("renders a plain Draw N with no target", () => {
     const f = face({ abilities: [{ trigger: "onPlay", effects: [{ effect: "draw", amount: 1 }] }] });
     expect(abilityLines(f)).toEqual(["On Play: Draw 1."]);
+  });
+
+  it("names the keyword a target filter asks for, and says 'up to' when a card can take several targets", () => {
+    const f = face({
+      abilities: [{ trigger: "onPlay", effects: [{ effect: "unflip", target: { side: "self", count: 2, filter: { hasKeyword: "friend" } } }] }],
+    });
+    expect(abilityLines(f)).toEqual(["On Play: Turn up to 2 of your face-down Friend cards face-up."]);
+  });
+
+  it("keeps a single-target unflip in its plain form", () => {
+    const f = face({ abilities: [{ trigger: "onPlay", effects: [{ effect: "unflip", target: { side: "self" } }] }] });
+    expect(abilityLines(f)).toEqual(["On Play: Turn your card face-up."]);
   });
 
   it("omits the trigger label for a continuous ability", () => {
@@ -59,5 +76,12 @@ describe("describeAutoTarget (PT-12)", () => {
   it("joins two or more names with 'and'", () => {
     expect(describeAutoTarget({ effect: "flip", target }, ["Charlotte", "Brass Cog"])).toBe("Flips Charlotte and Brass Cog.");
     expect(describeAutoTarget({ effect: "flip", target }, ["A", "B", "C"])).toBe("Flips A, B and C.");
+  });
+});
+
+describe("effectPromptLabel for a multi-target effect", () => {
+  it("says 'up to N cards' instead of 'one card' when the effect can take several", () => {
+    expect(effectPromptLabel({ effect: "unflip", target: { side: "self", count: 2 } })).toBe("Choose up to 2 cards to turn face-up");
+    expect(effectPromptLabel({ effect: "flip", target: { side: "opponent", count: 1 } })).toBe("Choose one card to Flip");
   });
 });

@@ -8,7 +8,7 @@
 import type { Card, Rarity } from "../cards/cardTypes.ts";
 import { stepRandom } from "../engine/rng.ts";
 import { localDayIndex, OPPONENTS } from "./opponents.ts";
-import { ACQUIRABLE_CARDS_BY_ID, NON_LEGENDARY_ACQUIRABLE_CARDS } from "./acquirableCards.ts";
+import { ACQUIRABLE_CARDS_BY_ID, acquirablePoolFor } from "./acquirableCards.ts";
 import { addCopyToCollection, localDateKey, removeOneFromPawnedCards, type PubState } from "./pubState.ts";
 
 export const PAWNBROKER_WINDOW_SIZE = 3;
@@ -64,13 +64,14 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
   }
 
   const unclaimedRewards = unclaimedRewardCardIds(state);
+  const pool = acquirablePoolFor(date);
   let seed = localDayIndex(date) ^ PAWNBROKER_SALT;
   let guard = 0;
   while (slots.length < PAWNBROKER_WINDOW_SIZE && guard < 200) {
     const step = stepRandom(seed);
     seed = step.seed;
     guard++;
-    const card = NON_LEGENDARY_ACQUIRABLE_CARDS[Math.floor(step.value * NON_LEGENDARY_ACQUIRABLE_CARDS.length)]!;
+    const card = pool[Math.floor(step.value * pool.length)]!;
     if (shown.has(card.id) || bought.has(card.id) || unclaimedRewards.has(card.id)) continue;
     slots.push({ card, price: PAWNBROKER_PRICES[card.rarity as PricedRarity], isPawned: false });
     shown.add(card.id);

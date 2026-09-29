@@ -32,6 +32,8 @@ export * from "./matchTypes.ts";
 const OPENING_HAND_SIZE = 4;
 /** design.md §6.2 step 2: cards drawn at the start of every turn. */
 const TURN_DRAW_AMOUNT = 1;
+/** design.md §6.3: a match never runs past three rounds. */
+const MAX_ROUNDS = 3;
 
 export interface CreateMatchOptions {
   /** Who leads round 1. Omit to decide by coin toss (design.md §6.1) using `seed`. */
@@ -44,6 +46,15 @@ export interface CreateMatchOptions {
    * special cards" (design.md §16, plan step 2.7) — this is that override.
    */
   shuffle?: boolean;
+  /**
+   * Places this Location in the shared slot before the first turn (a
+   * tournament's "house Location", seasonal-events-plan.md §2 rule 4). Either
+   * player can still replace it by playing their own Location. Takes the
+   * card rather than an id: the engine has no card registry, by design. Its
+   * instanceId is `house:<id>`, which belongs to neither player, so the AI's
+   * hidden-hand sampling never mistakes it for a card out of someone's deck.
+   */
+  initialLocation?: Card;
 }
 
 function expandDeck(deck: Deck, ownerTag: string): CardInstance[] {
@@ -93,6 +104,10 @@ export function createMatch(deckA: Deck, deckB: Deck, opts: CreateMatchOptions =
     status: "in-progress",
     rngSeed: seed,
   };
+
+  if (opts.initialLocation) {
+    state.location = { instanceId: `house:${opts.initialLocation.id}`, card: opts.initialLocation, faceIndex: 0, faceUp: true, bonusPoints: 0 };
+  }
 
   // Opening hands (design.md §6.1). Every turn from here also draws a card
   // (§6.2 step 2, resolved in playTurn) — there is no separate round-start
@@ -279,14 +294,20 @@ function finishRound(state: MatchState): void {
 
   // End-of-round cleanup (§6.2.3), using board state *after* endOfRound
   // abilities have run. Return beats Persist if a card somehow has
-  // both (§5.8); face-down cards are always discarded regardless of either.
+  // both (§5.8). A face-down card is discarded regardless of Return or
+  // Persist — except Undying (§5.14), the one keyword that works face-down:
+  // a face-down Undying card goes back to its owner's hand. A card with both
+  // Return and Undying therefore reaches the hand either way (Return while
+  // face-up, Undying while face-down), and one with Persist and Undying
+  // stays only while face-up.
   for (const pid of PLAYER_IDS) {
     const p = state.players[pid];
     const staying: BoardCard[] = [];
     for (const bc of p.board) {
-      const keywords = bc.faceUp ? activeFace(bc).keywords : undefined;
+      const keywords = activeFace(bc).keywords;
       if (!bc.faceUp) {
-        p.discard.push({ instanceId: bc.instanceId, card: bc.card });
+        if (keywords?.undying) p.hand.push({ instanceId: bc.instanceId, card: bc.card });
+        else p.discard.push({ instanceId: bc.instanceId, card: bc.card });
       } else if (keywords?.return) {
         p.hand.push({ instanceId: bc.instanceId, card: bc.card });
       } else if (keywords?.persist) {
@@ -310,7 +331,7 @@ function finishRound(state: MatchState): void {
     return;
   }
 
-  if (state.round >= 3) {
+  if (state.round >= MAX_ROUNDS) {
     if (state.roundsWon.A !== state.roundsWon.B) {
       state.status = "complete";
       state.result = { winner: state.roundsWon.A > state.roundsWon.B ? "A" : "B", reason: "more-rounds-after-three" };
@@ -346,11 +367,26 @@ function isElusive(bc: BoardCard): boolean {
   return bc.faceUp && Boolean(activeFace(bc).keywords?.elusive);
 }
 
-/** Printed + one-shot bonuses + Friend, but *not* continuous buffs (see effectivePoints). */
+/**
+ * Whether Moonrise (§5.15) is live this round: round 3, which always ends
+ * the match, and round 2 when a player already holds a round win, since
+ * that round can end it too (2-0). Counted from `roundHistory` restricted to
+ * earlier rounds rather than `roundsWon`, so the answer doesn't change in
+ * the instant `finishRound` records the current round's own result — a
+ * score or a round-reveal read after that point sees the same thing the
+ * round was scored with.
+ */
+export function isFinalRound(state: MatchState): boolean {
+  if (state.round >= MAX_ROUNDS) return true;
+  return state.roundHistory.some((r) => r.round < state.round && r.winner !== "tie");
+}
+
+/** Printed + one-shot bonuses + Friend + Moonrise, but *not* continuous buffs (see effectivePoints). */
 function basePoints(state: MatchState, owner: PlayerId, bc: BoardCard): number {
   if (!bc.faceUp) return 0;
   const face = activeFace(bc);
   let pts = face.points + bc.bonusPoints;
+  if (face.keywords?.moonrise !== undefined && isFinalRound(state)) pts += face.keywords.moonrise;
   if (face.keywords?.friend !== undefined) {
     const hasOtherFriend = state.players[owner].board.some(
       (other) => other.instanceId !== bc.instanceId && other.faceUp && activeFace(other).keywords?.friend !== undefined,

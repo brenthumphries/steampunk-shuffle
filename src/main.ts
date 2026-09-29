@@ -15,6 +15,8 @@ import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
+import { deckCardsById } from "./decks/cardCatalog.ts";
+import { today } from "./events/eventClock.ts";
 import { loadDeckSlotsState, saveDeckSlotsState, seedStarterDeckIfMissing } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "./pub/acquirableCards.ts";
@@ -25,6 +27,7 @@ import type { Tournament } from "./tournaments/tournaments.ts";
 import { TOURNAMENTS_BY_ID } from "./tournaments/tournaments.ts";
 import { advanceBracket, breakTournamentDraw, createBracket, currentMatchIndex, type BracketRoundIndex, type TournamentBracket } from "./tournaments/bracket.ts";
 import { resolvePrize } from "./tournaments/prizes.ts";
+import { resolveHouseLocation } from "./tournaments/houseLocation.ts";
 import { checkInvitationalTrigger, clearActiveBracket, loadTournamentState, saveTournamentState, startBracket, updateActiveBracket } from "./tournaments/tournamentState.ts";
 import { TUTORIAL_BEFORE_DEAL, TUTORIAL_HOUSE_DECK, TUTORIAL_MATCH_END_MAT, TUTORIAL_PLAYER_DECK, TUTORIAL_REWARD_CHECKS, TUTORIAL_ROUND_END_MATS, TUTORIAL_TURNS } from "./tutorial/tutorialScript.ts";
 import { HINT_IDS, HINT_TEXT, hasShownHint, isWithinHintWindow, loadTutorialState, markHintShown, markTutorialCompleted, recordMatchPlayed, saveTutorialState, type HintId } from "./tutorial/tutorialState.ts";
@@ -36,7 +39,8 @@ if (!app) {
   throw new Error("#app root element is missing from index.html");
 }
 
-const cardsById = new Map<string, Card>(ALL_CARDS.map((c) => [c.id, c]));
+// Every card a saved deck or a prize can name — the labeled 60 plus reward and event cards (src/decks/cardCatalog.ts).
+const cardsById: ReadonlyMap<string, Card> = deckCardsById();
 
 // Sound (plan step 3.4). iOS needs audio unlocked by a real user gesture —
 // `unlockAudio()` runs synchronously inside the very first tap anywhere in
@@ -82,13 +86,13 @@ function refreshSelectedDeck(): void {
  * Re-checks the Birthday Invitational's Oct-30 date trigger (design.md
  * §14.6) against "now" every time a screen that could reveal it is shown,
  * rather than only once at boot — same reasoning as
- * src/pub/opponents.ts's `legendsInTown` recomputing from `new Date()` on
+ * src/pub/opponents.ts's `legendsInTown` recomputing from `today()` on
  * every pub-hub render: a session left open across midnight into Oct 30
  * should still pick it up.
  */
 function syncTournamentTrigger(): void {
   const state = loadTournamentState();
-  const next = checkInvitationalTrigger(state, new Date());
+  const next = checkInvitationalTrigger(state, today());
   if (next !== state) saveTournamentState(next);
 }
 
@@ -178,6 +182,8 @@ function mountMatch(params: {
   aiName: string;
   aiPortraitArtId?: string;
   difficulty: Difficulty | ((state: MatchState) => Difficulty);
+  /** A tournament's house Location, seeded into a fresh match's shared slot (not needed on `resume`). */
+  houseLocation?: Card;
   context: MatchContext;
   resume?: { state: MatchState; aiSeed: number };
   hints?: HintOptions;
@@ -194,6 +200,7 @@ function mountMatch(params: {
     aiName: params.aiName,
     aiPortraitArtId: params.aiPortraitArtId,
     difficulty: params.difficulty,
+    houseLocation: params.houseLocation,
     initialState: params.resume,
     hints: params.hints,
     previewResult: params.previewResult,
@@ -218,7 +225,7 @@ function formatPickupReward(opponent: Opponent, result: MatchResult): string | n
   if (result.winner === "draw") return null;
   const outcome = result.winner === "A" ? "win" : "loss";
   const pub = loadPubState();
-  const { checksEarned, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, new Date());
+  const { checksEarned, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
   const parts = [`+${checksEarned} Checks`];
   if (rewardCardId) {
     const card = ACQUIRABLE_CARDS_BY_ID.get(rewardCardId);
@@ -232,7 +239,7 @@ function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, resu
 
   const outcome = result.winner === "draw" ? "draw" : result.winner === "A" ? "win" : "loss";
   let pub = loadPubState();
-  const { next, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, new Date());
+  const { next, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
   pub = next;
 
   const reveals: PendingReveal[] = [];
@@ -400,6 +407,7 @@ function startBracketMatch(tournament: Tournament, bracket: TournamentBracket, o
     aiName: opponent.name,
     aiPortraitArtId: opponent.portraitArtId,
     difficulty: opponent.difficulty,
+    houseLocation: resolveHouseLocation(tournament),
     context: { kind: "tournament", tournamentId: tournament.id },
     onFinish: (result) => finishTournamentMatch(tournament, bracket, opponent, result),
   });

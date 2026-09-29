@@ -14,10 +14,12 @@
 // how the player's own matches turn out — a player upset in the
 // quarterfinal doesn't change who wins seats 4-7's sub-bracket.
 
-import { stepRandom } from "../engine/rng.ts";
+import type { Card } from "../cards/cardTypes.ts";
+import { shuffle, stepRandom } from "../engine/rng.ts";
 import { createMatch, currentPlayer, type MatchState, type PlayerId } from "../engine/matchEngine.ts";
 import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
 import type { Opponent } from "../pub/opponents.ts";
+import { resolveHouseLocation } from "./houseLocation.ts";
 import type { Tournament } from "./tournaments.ts";
 
 const TURN_GUARD = 80;
@@ -38,8 +40,20 @@ export interface TournamentBracket {
   status: "in-progress" | "eliminated" | "champion";
 }
 
-function resolveDifficulty(difficulty: Opponent["difficulty"], state: MatchState): Difficulty {
-  return typeof difficulty === "function" ? difficulty(state) : difficulty;
+/**
+ * The most expensive dial the bracket's own simulated matches use. `legend`
+ * (3-turn lookahead over 32 hidden-hand samples, design.md §9.4) makes a
+ * bracket with a Legend in it take 8-18 seconds to generate on a laptop, all
+ * of it a frozen screen on the "Enter" tap — and a phone is slower. Those
+ * matches only decide which unseen seats reach the semifinal and final, so
+ * the deck decides them and the dial only shades the odds; the player's own
+ * matches against a Legend still play on the real `legend` dial.
+ */
+const SIMULATED_MATCH_DIFFICULTY_CAP: Difficulty = "seasoned";
+
+export function simulatedDifficulty(difficulty: Opponent["difficulty"], state: MatchState): Difficulty {
+  const resolved = typeof difficulty === "function" ? difficulty(state) : difficulty;
+  return resolved === "legend" ? SIMULATED_MATCH_DIFFICULTY_CAP : resolved;
 }
 
 /**
@@ -48,8 +62,10 @@ function resolveDifficulty(difficulty: Opponent["difficulty"], state: MatchState
  * (design.md §6.3); a coin flip (seeded, so still deterministic) stands in
  * for that here exactly as it would for a player's own drawn match.
  */
-function simulateAIMatch(a: Opponent, b: Opponent, seed: number): string {
-  let state = createMatch(a.deck, b.deck, { seed, shuffle: true });
+function simulateAIMatch(a: Opponent, b: Opponent, seed: number, houseLocation: Card | undefined): string {
+  // The same house Location the player's own matches start with, so the AI
+  // half of a bracket is decided under the tournament's real rules.
+  let state = createMatch(a.deck, b.deck, { seed, shuffle: true, initialLocation: houseLocation });
   let seedA = seed ^ 0x1234567;
   let seedB = seed ^ 0x0badc0de;
   let guard = 0;
@@ -57,11 +73,11 @@ function simulateAIMatch(a: Opponent, b: Opponent, seed: number): string {
     guard++;
     const acting: PlayerId = currentPlayer(state);
     if (acting === "A") {
-      const move = playAITurn(state, "A", b.deck, resolveDifficulty(a.difficulty, state), seedA);
+      const move = playAITurn(state, "A", b.deck, simulatedDifficulty(a.difficulty, state), seedA);
       state = move.state;
       seedA = move.nextSeed;
     } else {
-      const move = playAITurn(state, "B", a.deck, resolveDifficulty(b.difficulty, state), seedB);
+      const move = playAITurn(state, "B", a.deck, simulatedDifficulty(b.difficulty, state), seedB);
       state = move.state;
       seedB = move.nextSeed;
     }
@@ -108,13 +124,26 @@ export function createBracket(tournament: Tournament, eligiblePool: readonly Opp
     throw new Error(`${tournament.name}: eligible pool has ${eligiblePool.length} opponents, needs at least 7`);
   }
   const weightOf = tournament.seatWeight ?? (() => 1);
-  const { picked, seed: seedAfterDraw } = weightedDraw(eligiblePool, 7, seed, weightOf);
+  const fixed = (tournament.fixedSeats?.(eligiblePool) ?? []).slice(0, 7);
+  const rest = eligiblePool.filter((o) => !fixed.includes(o));
+  const drawn = weightedDraw(rest, 7 - fixed.length, seed, weightOf);
+  let picked = drawn.picked;
+  let seedAfterDraw = drawn.seed;
+  if (fixed.length > 0) {
+    // Fixed seats are listed first; shuffle so the player's quarterfinal
+    // opponent (picked[0]) isn't always one of them. Tournaments without
+    // fixed seats skip this, so their existing seeded draws are unchanged.
+    const seated = shuffle([...fixed, ...drawn.picked], drawn.seed);
+    picked = seated.result;
+    seedAfterDraw = seated.seed;
+  }
+  const houseLocation = resolveHouseLocation(tournament);
   // picked[0] = seat 1 (the player's quarterfinal opponent); picked[1..6] = seats 2-7.
-  const winner23 = simulateAIMatch(picked[1]!, picked[2]!, seedAfterDraw + 1);
-  const winner45 = simulateAIMatch(picked[3]!, picked[4]!, seedAfterDraw + 2);
-  const winner67 = simulateAIMatch(picked[5]!, picked[6]!, seedAfterDraw + 3);
+  const winner23 = simulateAIMatch(picked[1]!, picked[2]!, seedAfterDraw + 1, houseLocation);
+  const winner45 = simulateAIMatch(picked[3]!, picked[4]!, seedAfterDraw + 2, houseLocation);
+  const winner67 = simulateAIMatch(picked[5]!, picked[6]!, seedAfterDraw + 3, houseLocation);
   const opponentsById = new Map(picked.map((o) => [o.id, o]));
-  const finalOpponentId = simulateAIMatch(opponentsById.get(winner45)!, opponentsById.get(winner67)!, seedAfterDraw + 4);
+  const finalOpponentId = simulateAIMatch(opponentsById.get(winner45)!, opponentsById.get(winner67)!, seedAfterDraw + 4, houseLocation);
 
   return {
     tournamentId: tournament.id,

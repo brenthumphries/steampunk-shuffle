@@ -43,6 +43,14 @@ export interface Keywords {
   return?: boolean;
   /** Friend +N (design.md §5.4). Absent if the face has no Friend keyword. */
   friend?: number;
+  /**
+   * Undying (design.md §5.14): a face-down copy goes back to its owner's hand
+   * at end of round instead of the discard. The one keyword that does
+   * something while its card is face-down — the answer to Flip.
+   */
+  undying?: boolean;
+  /** Moonrise +N (design.md §5.15): worth N more in the final round. Absent if the face has no Moonrise keyword. */
+  moonrise?: number;
 }
 
 export const TRIGGERS = [

@@ -10,8 +10,13 @@ import type { OpponentTier } from "./opponents.ts";
 
 const STORAGE_KEY = "steampunk-shuffle:pub-state";
 
-/** design.md §11.1's earning table names exactly "Regular / Seasoned / Legend" — no "house" row. */
-export const WIN_CHECKS: Record<Exclude<OpponentTier, "house">, number> = { regular: 8, seasoned: 15, legend: 30 };
+const SEASONED_WIN_CHECKS = 15;
+
+/**
+ * design.md §11.1's earning table names exactly "Regular / Seasoned / Legend" — no "house" row.
+ * A seasonal visitor pays exactly what a Seasoned opponent does (design.md §17).
+ */
+export const WIN_CHECKS: Record<Exclude<OpponentTier, "house">, number> = { regular: 8, seasoned: SEASONED_WIN_CHECKS, legend: 30, visitor: SEASONED_WIN_CHECKS };
 export const LOSE_CHECKS = 2;
 export const DAILY_BONUS_CHECKS = 5;
 

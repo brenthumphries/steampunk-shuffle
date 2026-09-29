@@ -9,7 +9,7 @@
 import type { Card, Rarity } from "../cards/cardTypes.ts";
 import { stepRandom } from "../engine/rng.ts";
 import { localDayIndex } from "./opponents.ts";
-import { NON_LEGENDARY_ACQUIRABLE_CARDS } from "./acquirableCards.ts";
+import { acquirablePoolFor } from "./acquirableCards.ts";
 
 type RollableRarity = Extract<Rarity, "common" | "uncommon" | "rare">;
 
@@ -46,7 +46,7 @@ export function rollLostAndFound(collection: readonly string[], date: Date): Car
 
   const rarity = pickWeighted(RARITY_ORDER, RARITY_ORDER.map((r) => RARITY_WEIGHT[r]), daySeed);
 
-  const pool = NON_LEGENDARY_ACQUIRABLE_CARDS.filter((c) => c.rarity === rarity);
+  const pool = acquirablePoolFor(date).filter((c) => c.rarity === rarity);
   const weights = pool.map((c) => (ownedCount(collection, c.id) >= 2 ? OWNED_CAP_WEIGHT : 1));
   return pickWeighted(pool, weights, daySeed + 1);
 }

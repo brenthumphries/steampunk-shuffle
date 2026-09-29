@@ -47,6 +47,32 @@ export function markDedicationSeen(state: PlayerState): PlayerState {
   return { ...state, dedicationSeen: true };
 }
 
+/** Start of the stretch before her birthday in which the dedication is held back (option b below). A judgment call, not locked spec. */
+const DEDICATION_HOLD_FROM = { month: 9, day: 1 } as const;
+const BIRTHDAY = { month: 10, day: 30 } as const;
+
+/**
+ * ★ NOT WIRED IN — waiting on Brent's decision (seasonal-events-plan.md §1).
+ * `src/main.ts` still shows the dedication on the first launch, whenever
+ * that is. If she first opens the game in early October to get the
+ * Hallowe'en content, she'd read the birthday dedication weeks early.
+ *
+ * This is option (b): hold it back from Sep 1 until Oct 30, then show it on
+ * her first launch on or after her birthday. The hold has a start date on
+ * purpose: "before Oct 30 in the calendar year" alone would also hold a
+ * first launch in, say, February 2027 until October 2027.
+ *
+ * To adopt it, change `main.ts`'s `if (!loadPlayerState().dedicationSeen)` to
+ * `if (dedicationShouldShow(today(), loadPlayerState().dedicationSeen))`.
+ */
+export function dedicationShouldShow(date: Date, dedicationSeen: boolean): boolean {
+  if (dedicationSeen) return false;
+  const today = (date.getMonth() + 1) * 100 + date.getDate();
+  const holdFrom = DEDICATION_HOLD_FROM.month * 100 + DEDICATION_HOLD_FROM.day;
+  const birthday = BIRTHDAY.month * 100 + BIRTHDAY.day;
+  return !(today >= holdFrom && today < birthday);
+}
+
 /** Falls back to the default name if the edit is left blank (a settings field with no name isn't useful, and the licence has to say *something*). */
 export function setPlayerName(state: PlayerState, name: string): PlayerState {
   const trimmed = name.trim();

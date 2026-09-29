@@ -47,10 +47,34 @@ the full-art zoom fix (`b263dc7`). 386 unit tests at last count.
 
 ---
 
+As of 2026-09-28: the Hallowe'en seasonal-event layer is built (steps A-E
+of `seasonal-events-plan.md`; log `docs/logs/2026-09-28.md`) and unshipped
+until Brent runs `ss-ship`. 548 unit tests. Still open: the dedication-screen
+call, and art for the eight Nightfall cards (step F).
+
 ## Gotchas
 
 Standing knowledge that outlives any one step. Where a bullet says "above",
 the entry it means is now in `docs/logs/`.
+
+- **Seasonal events (2026-09-28): a few rules that are easy to trip over.**
+  Never call `new Date()` for anything that gates gameplay on the calendar;
+  use `today()` from `src/events/eventClock.ts`, or the `?now=YYYY-MM-DD`
+  dev clock (needs `&preview=1` in a deployed build) won't reach it. Event
+  cards (`src/cards/data/eventCards.ts`) are deliberately *not* in
+  `ALL_CARDS`: that stays the labeled 60, and the game finds event cards
+  through `ACQUIRABLE_CARDS_BY_ID`, with `src/decks/cardCatalog.ts` giving
+  an owned one a deck-builder tile (this also newly shows the four Seasoned
+  reward cards once owned). `Opponent.tournamentOnly` (Spring-Heeled Jack)
+  keeps a `legend`-tier opponent out of every other tournament's field and
+  out of Tonight's Patrons; without it his tier alone would have put him in
+  the Reichenbach Open. Bracket simulations cap the AI dial at `seasoned`
+  (`simulatedDifficulty` in `src/tournaments/bracket.ts`): at `legend` a
+  bracket took 8-18 seconds to build on a laptop, a frozen Enter tap.
+  Moonrise is live in round 3 and in round 2 once a player holds a round
+  win (`isFinalRound` in `src/engine/matchEngine.ts`, `docs/design.md`
+  §5.15). `dedicationShouldShow` in `src/player/playerState.ts` is written
+  but deliberately not wired in, pending Brent's call.
 
 - **PT-33/PT-34 (2026-09-26): "Leave Game" and the animation acknowledge-
   gate both route through the match screen's existing `onExit`/`proceed()`
@@ -550,7 +574,7 @@ brent-ops:
     file: steampunk-shuffle-plan.md
     ids: "<phase>.<step>[letter] from the plan (1.3, 4.0b); playtest items PT-n in PLAYTEST.md"
     sizes: none
-    also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md]
+    also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md, seasonal-events-plan.md]
   commit:
     tool: ss-ship (tools/ship.sh); Brent runs it
     branch: main

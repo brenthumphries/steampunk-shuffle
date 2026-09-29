@@ -5,9 +5,11 @@
 // bracket generation lives in bracket.ts, persistence in tournamentState.ts.
 
 import type { Deck, Family } from "../cards/cardTypes.ts";
+import { isWithinWindow, type MonthDay } from "../events/eventClock.ts";
+import { HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
 import type { Opponent } from "../pub/opponents.ts";
 
-export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational";
+export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational" | "all-hallows-wake";
 
 export interface EntryCheck {
   valid: boolean;
@@ -29,8 +31,33 @@ export interface Tournament {
   prizeCard: PrizeCard;
   /** Reichenbach Open only: paid instead of prizeChecks+card if every eligible legendary is already owned. */
   ownAllBonusChecks?: number;
-  isUnlocked: (totalWins: number, invitationalTriggered: boolean) => boolean;
+  /**
+   * A Location placed in the shared slot at the start of every match in this
+   * tournament (seasonal-events-plan.md §2 rule 4) — either player can still
+   * replace it. Resolved to a card by whoever starts the match.
+   */
+  houseLocationId?: string;
+  /**
+   * Whether the tournament can be entered. `date` is "today" from
+   * src/events/eventClock.ts; only a seasonal tournament reads it. A bracket
+   * already in progress isn't re-checked against this, so one started on the
+   * last day of an event can still be finished after the window closes.
+   */
+  isUnlocked: (totalWins: number, invitationalTriggered: boolean, date: Date) => boolean;
+  /**
+   * Set for a seasonal tournament: the event (src/events/seasonalEvents.ts)
+   * that must be live for it to be listed on the chalkboard at all. Its own
+   * `isUnlocked` may narrow that further to a sub-window.
+   */
+  eventId?: string;
   eligiblePool: (opponents: readonly Opponent[]) => Opponent[];
+  /**
+   * Opponents who are always seated (chosen from `eligiblePool`'s result)
+   * rather than drawn at random; the remaining seats are drawn from the rest
+   * of the pool as usual. The bracket shuffles the final seating, so the
+   * player's quarterfinal opponent isn't always one of these.
+   */
+  fixedSeats?: (eligiblePool: readonly Opponent[]) => Opponent[];
   /** Higher weight = more likely to be drawn into the 7 AI seats (design.md §10's "Yard opponents favoured"). Defaults to uniform. */
   seatWeight?: (opponent: Opponent) => number;
   checkEntryDeck: (deck: Deck) => EntryCheck;
@@ -54,6 +81,16 @@ function anyLegalDeck(): EntryCheck {
 }
 
 const REGULAR_OR_SEASONED = (opponents: readonly Opponent[]): Opponent[] => opponents.filter((o) => o.tier === "regular" || o.tier === "seasoned");
+
+/** Spring-Heeled Jack, and any other opponent who only ever sits inside one specific tournament, never joins another's field. */
+const EVERYDAY_OPPONENTS = (opponents: readonly Opponent[]): Opponent[] => opponents.filter((o) => !o.tournamentOnly);
+
+/** The All Hallows' Wake opens for its last ten days, inside Hallowe'en's own window (seasonal-events-plan.md §3.3). */
+const WAKE_START: MonthDay = { month: 10, day: 22 };
+const WAKE_END: MonthDay = { month: 10, day: 31 };
+
+/** The five Hallowe'en visitors, seated in the All Hallows' Wake. */
+const isWakeVisitor = (o: Opponent): boolean => HALLOWEEN.visitors.some((v) => v.opponentId === o.id);
 
 /** Mudd and Bucket are the Yard-affiliated Regular/Seasoned opponents (src/cards/data/decks/README.md's per-opponent family table). */
 const YARD_AFFILIATED_IDS = new Set(["mudd", "bucket"]);
@@ -103,7 +140,7 @@ export const TOURNAMENTS: Tournament[] = [
     prizeCard: { kind: "randomRarity", rarity: "legendary" },
     ownAllBonusChecks: 300,
     isUnlocked: (totalWins) => totalWins >= 20,
-    eligiblePool: (opponents) => opponents.filter((o) => o.tier === "seasoned" || o.tier === "legend"),
+    eligiblePool: (opponents) => EVERYDAY_OPPONENTS(opponents).filter((o) => o.tier === "seasoned" || o.tier === "legend"),
     checkEntryDeck: (deck) => {
       const count = deckMaxSingleFamilyCount(deck);
       return count >= 12 ? { valid: true } : { valid: false, reason: `Deck's largest single family is ${count} cards — the Reichenbach Open needs at least 12.` };
@@ -120,9 +157,45 @@ export const TOURNAMENTS: Tournament[] = [
     prizeChecks: 500,
     prizeCard: { kind: "fixed", cardId: "the-landlady" },
     isUnlocked: (_totalWins, invitationalTriggered) => invitationalTriggered,
-    eligiblePool: (opponents) => opponents.filter((o) => o.tier === "legend" || o.id === "sir-charles"),
+    eligiblePool: (opponents) => EVERYDAY_OPPONENTS(opponents).filter((o) => o.tier === "legend" || o.id === "sir-charles"),
+    checkEntryDeck: anyLegalDeck,
+  },
+  // Seasonal (seasonal-events-plan.md §3.3). The Witching Hour is placed in
+  // the shared slot at the start of every match; either player can still
+  // replace it. Spring-Heeled Jack's card is the prize, so he pays no
+  // separate first-win reward (`Opponent.tournamentOnly`).
+  {
+    id: "all-hallows-wake",
+    name: "The All Hallows' Wake",
+    eventId: HALLOWEEN.id,
+    whenLabel: "Oct 22 – Oct 31, after 3 wins",
+    fieldLabel: "The five Hallowe'en visitors, Spring-Heeled Jack + one Seasoned",
+    entryRuleLabel: "Any legal deck",
+    entryChecks: 13,
+    consolationChecks: 13,
+    prizeChecks: 150,
+    prizeCard: { kind: "fixed", cardId: "spring-heeled-jack" },
+    houseLocationId: "the-witching-hour",
+    isUnlocked: (totalWins, _invitationalTriggered, date) =>
+      totalWins >= (SEASONAL_EVENTS_BY_ID.get(HALLOWEEN.id)?.minWins ?? 0) && isEventLive(HALLOWEEN.id, date) && isWithinWindow(date, WAKE_START, WAKE_END),
+    eligiblePool: (opponents) => opponents.filter((o) => isWakeVisitor(o) || o.id === "spring-heeled-jack" || o.tier === "seasoned"),
+    fixedSeats: (pool) => pool.filter((o) => isWakeVisitor(o) || o.id === "spring-heeled-jack"),
     checkEntryDeck: anyLegalDeck,
   },
 ];
 
 export const TOURNAMENTS_BY_ID = new Map<TournamentId, Tournament>(TOURNAMENTS.map((t) => [t.id, t]));
+
+/**
+ * Whether the chalkboard and the House Rules table list `tournament` at
+ * all. The Birthday Invitational stays invisible until its date trigger
+ * fires (PT-5, design.md §14.6 — a surprise); a seasonal tournament isn't
+ * listed outside its event's window. A tournament with a bracket already in
+ * progress is always listed, so it can be resumed after its window closes.
+ */
+export function isTournamentListed(tournament: Tournament, invitationalTriggered: boolean, date: Date, hasActiveBracket: boolean): boolean {
+  if (hasActiveBracket) return true;
+  if (tournament.id === "birthday-invitational" && !invitationalTriggered) return false;
+  if (tournament.eventId !== undefined && !isEventLive(tournament.eventId, date)) return false;
+  return true;
+}

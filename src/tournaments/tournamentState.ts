@@ -45,7 +45,7 @@ export function clearActiveBracket(state: TournamentState): TournamentState {
 }
 
 export function isValidTournamentId(value: unknown): value is TournamentId {
-  return value === "tuesday-knockout" || value === "peelers-cup" || value === "reichenbach-open" || value === "birthday-invitational";
+  return value === "tuesday-knockout" || value === "peelers-cup" || value === "reichenbach-open" || value === "birthday-invitational" || value === "all-hallows-wake";
 }
 
 function isValidBracket(value: unknown): value is TournamentBracket {

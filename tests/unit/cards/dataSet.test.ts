@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { validateCard } from "../../../src/cards/cardValidator.ts";
 import { validateDeck } from "../../../src/cards/deckValidator.ts";
 import { ALL_CARDS } from "../../../src/cards/data/index.ts";
+import { EVENT_CARDS } from "../../../src/cards/data/eventCards.ts";
 import { KNOWN_DECKS } from "../../../src/cards/data/decks/index.ts";
 
 describe("v1 card set (design.md §8.1)", () => {
@@ -42,5 +43,28 @@ describe("authored decks (plan step 1.5)", () => {
     const result = validateDeck(deck);
     expect(result.errors).toEqual([]);
     expect(result.valid).toBe(true);
+  });
+});
+
+// Seasonal-event cards (seasonal-events-plan.md §3) live outside the labeled
+// 60, so the count and composition assertions above never see them — they
+// still have to be structurally valid, uniquely identified, and legal to
+// build a deck around.
+describe("seasonal-event cards", () => {
+  it.each(EVENT_CARDS.map((card) => [card.faces[0]!.name, card] as const))("%s passes validateCard", (_name, card) => {
+    const result = validateCard(card);
+    expect(result.errors).toEqual([]);
+    expect(result.valid).toBe(true);
+  });
+
+  it("never reuses an id from the labeled 60", () => {
+    const base = new Set(ALL_CARDS.map((c) => c.id));
+    for (const card of EVENT_CARDS) expect(base.has(card.id), card.id).toBe(false);
+  });
+
+  it("makes every visitor's signature card a legendary", () => {
+    for (const id of ["mr-griffin", "clockwork-pharaoh"]) {
+      expect(EVENT_CARDS.find((c) => c.id === id)?.rarity, id).toBe("legendary");
+    }
   });
 });

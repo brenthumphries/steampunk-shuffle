@@ -7,7 +7,9 @@
 // src/pub/pubState.ts before remounting this screen.
 
 import { abilityLines, keywordChips } from "./cardText.ts";
-import { tonightsPatrons, type Opponent, type OpponentTier } from "../pub/opponents.ts";
+import { patronLine, tonightsPatrons, type Opponent, type OpponentTier } from "../pub/opponents.ts";
+import { today } from "../events/eventClock.ts";
+import { eventTaproomArtId, lockedVisitorHint } from "../events/seasonalEvents.ts";
 import { loadPubState } from "../pub/pubState.ts";
 import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
@@ -48,6 +50,7 @@ const TIER_LABEL: Record<OpponentTier, string> = {
   regular: "Regular",
   seasoned: "Seasoned",
   legend: "Legend",
+  visitor: "Visitor",
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -59,6 +62,34 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
 
 function artUrl(assetId: string): string {
   return `${import.meta.env.BASE_URL}art/${assetId}.webp`;
+}
+
+const TAPROOM_ART_ID = "background-the-taproom";
+
+/** Event art ids already confirmed to load, so a re-render doesn't flash the everyday taproom while re-probing. */
+const loadedEventArt = new Set<string>();
+
+/**
+ * The taproom background, redressed while a seasonal event is live
+ * (seasonal-events-plan.md §2 rule 5). Falls back to the everyday taproom if
+ * the event art can't be loaded — a browser can't ask "does this asset
+ * exist" any other way than trying to load it — so a missing file never
+ * leaves the hub without a background.
+ */
+function applyTaproomBackground(screen: HTMLElement): void {
+  const eventArtId = eventTaproomArtId(today());
+  if (eventArtId && loadedEventArt.has(eventArtId)) {
+    screen.style.setProperty("--scene-bg", `url(${artUrl(eventArtId)})`);
+    return;
+  }
+  screen.style.setProperty("--scene-bg", `url(${artUrl(TAPROOM_ART_ID)})`);
+  if (!eventArtId) return;
+  const probe = new Image();
+  probe.onload = () => {
+    loadedEventArt.add(eventArtId);
+    screen.style.setProperty("--scene-bg", `url(${artUrl(eventArtId)})`);
+  };
+  probe.src = artUrl(eventArtId);
 }
 
 function joinWithOr(names: readonly string[]): string {
@@ -133,7 +164,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
 
     const info = el("div", "patron-info");
     info.appendChild(el("span", "patron-name", opponent.name));
-    info.appendChild(el("span", "patron-line", `"${opponent.line}"`));
+    info.appendChild(el("span", "patron-line", `"${patronLine(opponent, today())}"`));
 
     const meta = el("div", "patron-meta");
     meta.appendChild(el("span", `patron-tier patron-tier--${opponent.tier}`, TIER_LABEL[opponent.tier]));
@@ -286,7 +317,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     root.replaceChildren();
 
     const screen = el("div", "pub-hub");
-    screen.style.setProperty("--scene-bg", `url(${artUrl("background-the-taproom")})`);
+    applyTaproomBackground(screen);
 
     const header = el("div", "pub-hub-header");
     const titleWrap = el("div", "pub-hub-title-wrap");
@@ -318,8 +349,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     // PT-15: what to do next (play someone) comes before the pub-slang
     // button row, not buried under five of them.
     screen.appendChild(el("h2", "patron-section-title", "Tonight's patrons"));
+    const hint = lockedVisitorHint(pub.totalWins, today());
+    if (hint) screen.appendChild(el("p", "patron-notice", `Sir Charles: "${hint}"`));
     const list = el("div", "patron-list");
-    for (const opponent of tonightsPatrons(pub.totalWins, new Date())) {
+    for (const opponent of tonightsPatrons(pub.totalWins, today())) {
       list.appendChild(buildPatronRow(opponent));
     }
     screen.appendChild(list);

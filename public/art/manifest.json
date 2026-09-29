@@ -79,6 +79,14 @@
     "sourceFile": "art/inbox/background-the-taproom.jpeg",
     "width": 804
   },
+  "background-the-taproom-halloween": {
+    "category": "background",
+    "family": null,
+    "height": 1430,
+    "ingestedAt": "2026-09-29T01:37:39+00:00",
+    "sourceFile": "art/inbox/background-the-taproom-halloween.jpeg",
+    "width": 804
+  },
   "baker-street": {
     "category": "location",
     "family": "neutral",
@@ -181,6 +189,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T16:10:01+00:00",
     "sourceFile": "art/inbox/church-fete-stall.jpeg",
+    "width": 600
+  },
+  "clockwork-pharaoh": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/clockwork-pharaoh.jpeg",
     "width": 600
   },
   "constable-on-the-beat": {
@@ -311,6 +327,14 @@
     "sourceFile": "art/manual Gemini generations/prompt-sheet-6/furnace-stoker.jpeg",
     "width": 600
   },
+  "gentleman-of-the-heath": {
+    "category": "character",
+    "family": "yard",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/gentleman-of-the-heath.jpeg",
+    "width": 600
+  },
   "good-news-everybody": {
     "category": "headline",
     "family": "irregulars",
@@ -373,6 +397,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T13:58:59+00:00",
     "sourceFile": "art/inbox/mr-edward-hyde.jpeg",
+    "width": 600
+  },
+  "mr-griffin": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:39+00:00",
+    "sourceFile": "art/inbox/mr-griffin.jpeg",
     "width": 600
   },
   "nells-basket": {
@@ -455,12 +487,28 @@
     "sourceFile": "art/inbox/portrait-agatha-christie.jpeg",
     "width": 640
   },
+  "portrait-carpathian-count": {
+    "category": "portrait",
+    "family": "rookery",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/portrait-carpathian-count.jpeg",
+    "width": 640
+  },
   "portrait-charles-dickens": {
     "category": "portrait",
     "family": "salon",
     "height": 640,
     "ingestedAt": "2026-09-11T20:24:37+00:00",
     "sourceFile": "art/inbox/portrait-charles-dickens.jpeg",
+    "width": 640
+  },
+  "portrait-clockwork-pharaoh": {
+    "category": "portrait",
+    "family": "salon",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/portrait-clockwork-pharaoh.jpeg",
     "width": 640
   },
   "portrait-constable-tobias-mudd": {
@@ -485,6 +533,22 @@
     "height": 640,
     "ingestedAt": "2026-09-12T00:37:34+00:00",
     "sourceFile": "art/inbox/portrait-dr-jekyll-mr-hyde.jpeg",
+    "width": 640
+  },
+  "portrait-galvanic-creature": {
+    "category": "portrait",
+    "family": "foundry",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/portrait-galvanic-creature.jpeg",
+    "width": 640
+  },
+  "portrait-hampstead-wolf": {
+    "category": "portrait",
+    "family": "yard",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/portrait-hampstead-wolf.jpeg",
     "width": 640
   },
   "portrait-hercule-poirot": {
@@ -527,6 +591,14 @@
     "sourceFile": "art/inbox/portrait-miss-prudence-hollis.jpeg",
     "width": 640
   },
+  "portrait-mr-griffin": {
+    "category": "portrait",
+    "family": "irregulars",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:39+00:00",
+    "sourceFile": "art/inbox/portrait-mr-griffin.jpeg",
+    "width": 640
+  },
   "portrait-old-nell-ashby": {
     "category": "portrait",
     "family": "irregulars",
@@ -557,6 +629,14 @@
     "height": 640,
     "ingestedAt": "2026-09-12T00:37:34+00:00",
     "sourceFile": "art/inbox/portrait-sir-charles-wheatstone.jpeg",
+    "width": 640
+  },
+  "portrait-spring-heeled-jack": {
+    "category": "portrait",
+    "family": "rookery",
+    "height": 640,
+    "ingestedAt": "2026-09-29T01:37:41+00:00",
+    "sourceFile": "art/inbox/portrait-spring-heeled-jack.jpeg",
     "width": 640
   },
   "professor-moriarty": {
@@ -663,6 +743,14 @@
     "sourceFile": "art/manual Gemini generations/prompt-sheet-6/society-patron.jpeg",
     "width": 600
   },
+  "spring-heeled-jack": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:41+00:00",
+    "sourceFile": "art/inbox/spring-heeled-jack.jpeg",
+    "width": 600
+  },
   "steam-hammer": {
     "category": "character",
     "family": "foundry",
@@ -725,6 +813,22 @@
     "height": 800,
     "ingestedAt": "2026-09-12T13:58:58+00:00",
     "sourceFile": "art/inbox/the-concertina-works.jpeg",
+    "width": 600
+  },
+  "the-count": {
+    "category": "character",
+    "family": "rookery",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/the-count.jpeg",
+    "width": 600
+  },
+  "the-creature": {
+    "category": "character",
+    "family": "foundry",
+    "height": 800,
+    "ingestedAt": "2026-09-29T01:37:40+00:00",
+    "sourceFile": "art/inbox/the-creature.jpeg",
     "width": 600
   },
   "the-gasworks": {

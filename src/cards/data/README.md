@@ -34,6 +34,25 @@ The Photograph, Next Instalment) are authored too, but as extras living in
 their opponent's own deck file rather than a labeled-60 slot — see
 `decks/README.md`.
 
+## Seasonal-event cards (outside the labeled 60)
+
+Hallowe'en's cards (seasonal-events-plan.md §3) live in `halloween.ts`
+(six legendary signature cards, one per visitor plus Spring-Heeled Jack)
+and `nightfall.ts` (the eight-card Nightfall set), re-exported together by
+`eventCards.ts` as `EVENT_CARDS`. They are deliberately **not** in
+`ALL_CARDS`: that array is the labeled 60, which tests, `tools/sim.ts`'s
+family-curve check and the "random legendary" tournament prize all assume.
+The game finds them through `ACQUIRABLE_CARDS_BY_ID`
+(`src/pub/acquirableCards.ts`), and the deck builder gives an owned one a
+tile through `src/decks/cardCatalog.ts`. The eight Nightfall cards have no
+art yet (plan step F): each `artId` is the card's own id, so the image
+appears once the WebP is ingested.
+
+`The Witching Hour` (`nightfall.ts`) is engine-schema gap #3 below in
+practice: its printed intent is "each player returns their own lowest
+card," which a Location can't say, so it returns the two lowest-point
+face-up cards on the whole table instead.
+
 ## Known engine-schema gaps (found while authoring v1)
 
 Discovered writing cards against `docs/design.md`'s literal text; each is

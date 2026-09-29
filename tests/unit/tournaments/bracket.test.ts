@@ -5,7 +5,17 @@ import { describe, expect, it } from "vitest";
 
 import { OPPONENTS } from "../../../src/pub/opponents.ts";
 import { TOURNAMENTS_BY_ID } from "../../../src/tournaments/tournaments.ts";
-import { advanceBracket, breakTournamentDraw, createBracket, currentMatchIndex, weightedDraw, type TournamentBracket } from "../../../src/tournaments/bracket.ts";
+import { createMatch } from "../../../src/engine/matchEngine.ts";
+import { starterDeck } from "../../../src/cards/data/decks/starterDeck.ts";
+import {
+  advanceBracket,
+  breakTournamentDraw,
+  createBracket,
+  currentMatchIndex,
+  simulatedDifficulty,
+  weightedDraw,
+  type TournamentBracket,
+} from "../../../src/tournaments/bracket.ts";
 
 const knockout = TOURNAMENTS_BY_ID.get("tuesday-knockout")!;
 const peelers = TOURNAMENTS_BY_ID.get("peelers-cup")!;
@@ -122,5 +132,27 @@ describe("breakTournamentDraw", () => {
     const b = breakTournamentDraw(123);
     expect(a).toBe(b);
     expect(["win", "loss"]).toContain(a);
+  });
+});
+
+// A bracket's unseen matches are simulated AI-vs-AI while the player waits
+// on a frozen "Enter" tap, so the dial they use is capped (legend-dial
+// lookahead made a bracket with a Legend in it take 8-18 seconds to build).
+describe("simulatedDifficulty", () => {
+  const state = createMatch(starterDeck, starterDeck, { seed: 1 });
+
+  it("plays a Legend's simulated matches on the seasoned dial", () => {
+    expect(simulatedDifficulty("legend", state)).toBe("seasoned");
+  });
+
+  it("leaves the cheaper dials alone", () => {
+    expect(simulatedDifficulty("regular", state)).toBe("regular");
+    expect(simulatedDifficulty("seasoned", state)).toBe("seasoned");
+  });
+
+  it("caps a per-round dial too (Dr Jekyll / Mr Hyde), resolving it against the match state first", () => {
+    const jekyllHyde = (s: typeof state) => (s.round <= 1 ? ("seasoned" as const) : ("legend" as const));
+    expect(simulatedDifficulty(jekyllHyde, state)).toBe("seasoned");
+    expect(simulatedDifficulty(jekyllHyde, { ...state, round: 2 })).toBe("seasoned");
   });
 });

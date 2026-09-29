@@ -6,7 +6,7 @@
 //   - face-down cards contribute 0 to score
 //   - Persist cards never survive face-down (in fact: no board card is ever
 //     face-down once a round's cleanup has run, since cleanup discards every
-//     face-down card outright)
+//     face-down card outright, or — for Undying — returns it to hand)
 //   - a match never exceeds three rounds
 //   - leader alternation is checked separately (roundsAndMatch.test.ts) —
 //     this test only needs "never throws" plus the invariants above.
@@ -29,6 +29,10 @@ function buildCardPool(): Card[] {
     makeCard({ name: "Friend Two", points: 2, keywords: { friend: 2 } }),
     makeCard({ name: "Elusive One", points: 2, keywords: { elusive: true } }),
     makeCard({ name: "Return One", points: 2, keywords: { return: true } }),
+    makeCard({ name: "Undying One", points: 2, keywords: { undying: true } }),
+    makeCard({ name: "Undying Persist", points: 2, keywords: { undying: true, persist: true } }),
+    makeCard({ name: "Moonrise Four", points: 2, keywords: { moonrise: 4 } }),
+    makeCard({ name: "Moonrise Elusive", points: 1, keywords: { elusive: true, moonrise: 2 } }),
     makeCard({
       name: "Flipper",
       type: "scheme",

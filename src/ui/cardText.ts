@@ -19,8 +19,19 @@ export function keywordChips(face: CardFace): string[] {
   if (kw?.elusive) chips.push("Elusive");
   if (kw?.return) chips.push("Return");
   if (kw?.friend !== undefined) chips.push(`Friend +${kw.friend}`);
+  if (kw?.undying) chips.push("Undying");
+  if (kw?.moonrise !== undefined) chips.push(`Moonrise +${kw.moonrise}`);
   return chips;
 }
+
+const KEYWORD_LABEL: Record<keyof NonNullable<CardFace["keywords"]>, string> = {
+  persist: "Persist",
+  elusive: "Elusive",
+  return: "Return",
+  friend: "Friend",
+  undying: "Undying",
+  moonrise: "Moonrise",
+};
 
 function describeSide(side: Target["side"]): string {
   if (side === "self") return "your";
@@ -35,6 +46,7 @@ function describeFilter(filter: TargetFilter | undefined): string {
   if (filter.lowestPoints) bits.push("lowest-point");
   if (filter.family) bits.push(filter.family);
   if (filter.cardType) bits.push(filter.cardType);
+  if (filter.hasKeyword) bits.push(KEYWORD_LABEL[filter.hasKeyword]);
   const worth =
     filter.maxPoints !== undefined
       ? ` worth ${filter.maxPoints} or less`
@@ -58,8 +70,13 @@ function describeEffect(effect: Effect): string {
   switch (effect.effect) {
     case "flip":
       return `Flip ${describeTarget(effect.target)}.`;
-    case "unflip":
+    case "unflip": {
+      // "Up to N": `Target.count` is a ceiling (the engine takes as many as
+      // exist), which the generic "your 2 cards" phrasing would misstate.
+      const count = effect.target.count ?? 1;
+      if (count > 1 && effect.target.side === "self") return `Turn up to ${count} of your face-down${describeFilter(effect.target.filter)} cards face-up.`;
       return `Turn ${describeTarget(effect.target)} face-up.`;
+    }
     case "return":
       return `Return ${describeTarget(effect.target)} to hand.`;
     case "buff":
@@ -100,15 +117,18 @@ export function abilityLines(face: CardFace): string[] {
  * the printed card text quoted verbatim from docs/design.md.
  */
 export function effectPromptLabel(effect: Effect): string {
+  // A card that can take several targets says "up to N" instead of "one".
+  const count = "target" in effect ? (effect.target.count ?? 1) : 1;
+  const cards = count > 1 ? `up to ${count} cards` : "one card";
   switch (effect.effect) {
     case "flip":
-      return "Choose one card to Flip";
+      return `Choose ${cards} to Flip`;
     case "unflip":
-      return "Choose one card to turn face-up";
+      return `Choose ${cards} to turn face-up`;
     case "return":
-      return "Choose one card to Return";
+      return `Choose ${cards} to Return`;
     case "buff":
-      return "Choose one card to boost";
+      return `Choose ${cards} to boost`;
     default:
       return "Choose a target";
   }

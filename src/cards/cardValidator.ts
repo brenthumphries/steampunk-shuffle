@@ -175,6 +175,12 @@ function validateKeywords(keywords: unknown, path: string, errors: string[]): vo
   if (k.friend !== undefined && (!isInteger(k.friend) || k.friend < 1)) {
     errors.push(`${path}.friend: expected a positive integer`);
   }
+  if (k.undying !== undefined && typeof k.undying !== "boolean") {
+    errors.push(`${path}.undying: expected a boolean`);
+  }
+  if (k.moonrise !== undefined && (!isInteger(k.moonrise) || k.moonrise < 1)) {
+    errors.push(`${path}.moonrise: expected a positive integer`);
+  }
 }
 
 function pointRangeFor(type: CardType, rarity: Rarity): readonly [number, number] {
