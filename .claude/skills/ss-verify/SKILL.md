@@ -1,5 +1,5 @@
 ---
-name: verify
+name: ss-verify
 description: Cold-start recipe for runtime-verifying a Steampunk Shuffle change in the browser (not tests/typecheck). Use when driving the app to confirm a change works, not when running CI.
 ---
 

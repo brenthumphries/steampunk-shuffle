@@ -10,7 +10,7 @@ verbatim, one `## Also this session` block per plan step); entries from
 A session that adds to an existing day's note appends under a horizontal rule
 and `## Also this session: <topic>`. Nothing prior is reordered or deleted.
 
-Written by the brent-ops `/log` skill and read by `/next`, `/daily` and
+Written by the bops `/log` skill and read by `/next`, `/daily` and
 `/weekly`. Voice rules are the plugin's `references/voice.md`: no em-dashes,
 no exclamation points, brevity, real paths and real counts, nothing invented.
 

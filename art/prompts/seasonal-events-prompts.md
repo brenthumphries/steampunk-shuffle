@@ -20,7 +20,7 @@ Scope:
 4. Lost & Found and Pawnbroker rolls include an event's cardPool only while that event is live. Ownership is permanent, with no year-round legality check on event cards.
 5. Event dressing: while an event is live, the pub hub uses dressing.taproomArtId (falling back to the normal taproom art if that asset is missing from the manifest) and adds dressing.sirCharlesLines to his line pool.
 6. ★ Dedication screen: do NOT change it yet. Add a clearly named, unused helper `dedicationShouldShow(date, firstLaunchDone)` implementing option (b) from plan §1, and flag in the log that it needs Brent's call.
-7. Add docs/design.md §17 "Seasonal events", condensed from plan §2 rules 1-6. Add seasonal-events-plan.md to the brent-ops `plan.also` list in CLAUDE.md.
+7. Add docs/design.md §17 "Seasonal events", condensed from plan §2 rules 1-6. Add seasonal-events-plan.md to the bops `plan.also` list in CLAUDE.md.
 
 Tests: Vitest for the window edges (Sep 30 / Oct 1 / Oct 31 / Nov 1, local time) and for visitor gating by arrival date and minWins. Include pool inclusion/exclusion and ownership surviving past the window. Add one Playwright smoke test using ?now= to check the hub shows the Hallowe'en dressing fallback.
 

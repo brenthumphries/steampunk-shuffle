@@ -554,15 +554,15 @@ steampunk-shuffle/
 
 ---
 
-## brent-ops
+## bops
 
-Process conventions read by the brent-ops plugin (`/next`, `/route`, `/daily`,
+Process conventions read by the bops plugin (`/next`, `/route`, `/daily`,
 `/log`, `/verify`, `/weekly`). Reviews are off: this repo takes commits only
 from Brent, straight to `main`, so there is no review cycle, no `week.json`,
 and no dispatch. The running log is `docs/logs/`, one entry per session.
 
 ```yaml
-brent-ops:
+bops:
   project: steampunk-shuffle
   logs:
     dir: docs/logs
