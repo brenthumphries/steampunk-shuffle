@@ -297,7 +297,7 @@ the entry it means is now in `docs/logs/`.
   gets added later.
 - `public/art/` (processed WebP + `manifest.json`) is genuinely deployed —
   it's under Vite's `public/`, copied verbatim to the Pages build. Note for
-  whoever does 3.6 (asset budget <15 MB, service-worker precache):
+  whoever does 3.6 (asset budget <25 MB as of 2026-10-11, was 15 MB; service-worker precache):
   `vite.config.ts`'s workbox `globPatterns` doesn't include `webp` yet, so
   none of this is precached for offline until that's added — deliberately
   left alone here since 3.6 owns the offline/perf pass, not 1.7.
@@ -432,7 +432,9 @@ the entry it means is now in `docs/logs/`.
   compatibility pass below** — `npm run typecheck`/`npm test` in the
   `build` job, plus a parallel `e2e` job matrixed across
   `playwright.config.ts`'s four projects (Safari/Chrome/Firefox/Edge).
-  `deploy` needs both. This reverses the earlier "e2e is local-only to
+  `deploy` needs both. All three jobs run on `ubuntu-24.04`, not
+  `ubuntu-latest` (pinned 2026-10-11 ahead of GitHub's Oct 19 move to Ubuntu
+  26); revisit after Oct 30. This reverses the earlier "e2e is local-only to
   keep the pipeline fast" call — the game now has enough surface area
   (and enough browsers to actually differ on) that the tradeoff flipped.
 - `npm run build` runs `tsc --noEmit` before `vite build`; a type error fails

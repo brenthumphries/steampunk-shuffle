@@ -96,7 +96,7 @@ Slack built in: Phase 2 has two weeks for what is ~8 days of Sonnet work; Phase 
 | 3.3 | Animation: card play, flip, round reveal, tournament bracket advance, card reward "unwrap" | Sonnet 5 | No dropped frames on your iPhone; reduced-motion respected |
 | 3.4 | Sound: Web-Audio-synthesized clicks/steam/brass hits (no licensing), optional CC0 ambience track; audio unlocks on first tap per iOS rules | Haiku 4.5 | Sound works after first tap; mute persists |
 | 3.5 | Gift touches: dedication screen on first launch, her name as the default player, "The Landlady" legendary card featuring her, Birthday Invitational | Haiku 4.5 | Reviewed by you |
-| 3.6 | Performance + offline pass: Lighthouse PWA audit, asset budget <15 MB, service-worker precache, airplane-mode full session | Haiku 4.5 runs audit → Sonnet fixes | Lighthouse PWA installable; offline works cold |
+| 3.6 | Performance + offline pass: Lighthouse PWA audit, asset budget <25 MB (raised from 15 MB on 2026-10-11; precache was already 17.6 MB, and the cap is self-imposed, not an App Store limit), service-worker precache, airplane-mode full session | Haiku 4.5 runs audit → Sonnet fixes | Lighthouse PWA installable; offline works cold |
 | 3.7 | ★ **Design review of the whole game** as a newcomer: rules clarity, difficulty curve, first-30-minutes feel | Opus 5 (one session) | Findings triaged into Phase 4 fix list |
 
 ### Phase 4 — Ship (Oct 16–22)

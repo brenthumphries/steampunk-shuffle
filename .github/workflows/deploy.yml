@@ -22,10 +22,13 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+# Pinned, not ubuntu-latest: GitHub moves that label to Ubuntu 26 on
+# 2026-10-19, which would change the runner (and Playwright's browser
+# dependencies) in the middle of the birthday build. Revisit after Oct 30.
 jobs:
   build:
     name: Typecheck, test, build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +48,7 @@ jobs:
 
   e2e:
     name: E2E (${{ matrix.project }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +82,7 @@ jobs:
     name: Publish to GitHub Pages
     needs: [build, e2e]
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
