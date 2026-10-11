@@ -23,6 +23,7 @@ import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
 import { abilityLines, describeAutoTarget, effectPromptLabel, keywordChips } from "./cardText.ts";
 import { buildCardZoomEl } from "./cardZoom.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
+import { hapticTap } from "../native/haptics.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
 import { buildBeerMat } from "./beerMat.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
@@ -682,6 +683,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   }
 
   function commitHumanPlay(instanceId: string | undefined, chooser?: TargetChooser): void {
+    hapticTap();
     const prevRoundCount = state.roundHistory.length;
     const hintSnapshot = captureHintSnapshot();
     state = playTurn(state, HUMAN, instanceId, chooser ? { chooseTargets: chooser } : undefined);
