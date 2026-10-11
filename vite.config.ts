@@ -7,11 +7,13 @@ import { VitePWA } from "vite-plugin-pwa";
 const pagesBase = "/steampunk-shuffle/";
 
 // `vite build --mode native` is the Capacitor/iOS bundle (plan step 4.2): the
-// app is served from capacitor://localhost with every file already inside the
-// binary, so it needs relative asset paths and no service worker.
+// app is served from the root of capacitor://localhost with every file already
+// inside the binary, so it needs root-relative paths ("/", not "./": art URLs
+// live in CSS custom properties, which resolve against the stylesheet in
+// assets/) and no service worker.
 export default defineConfig(({ mode }) => {
   const native = mode === "native";
-  const base = native ? "./" : pagesBase;
+  const base = native ? "/" : pagesBase;
   return {
     base,
     plugins: native ? [] : [pwa(base)],
@@ -29,7 +31,7 @@ function pwa(base: string) {
     manifest: {
       id: base,
       name: "Steampunk Shuffle",
-      short_name: "Shuffle",
+      short_name: "Wheatstone",
       description: "A steampunk deck-building card game set in The Wheatstone Bridge.",
       start_url: base,
       scope: base,

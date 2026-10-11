@@ -59,15 +59,22 @@ the entry it means is now in `docs/logs/`.
 
 - **iOS wrap (plan 4.2, 2026-10-11): the app has two builds.** `npm run build`
   is the Pages/PWA bundle (base `/steampunk-shuffle/`, service worker).
-  `npm run cap:sync` runs `vite build --mode native` (base `./`, no service
-  worker, no manifest) and copies it into `ios/` via `cap sync ios`; the
+  `npm run cap:sync` runs `vite build --mode native` (base `/`, not `./`: art
+  URLs sit in CSS custom properties, which resolve against the stylesheet; no
+  service worker, no manifest) and copies it into `ios/` via `cap sync ios`; the
   Pages workflow never touches that mode. The entry is `src/boot.ts`, not
   `main.ts`: it awaits `initNative()` so `src/native/storageMirror.ts` can
   restore the save from Capacitor Preferences before any module reads
   localStorage (`soundEngine.ts` reads it at import time), then imports
   `main.ts`. In a browser all of that is a no-op. The iOS project uses Swift
   Package Manager (no CocoaPods); `ios/App/App/public` and the generated
-  `capacitor.config.json` are gitignored and rebuilt by `cap sync`. Bundle id
+  `capacitor.config.json` are gitignored and rebuilt by `cap sync`. Home-screen name
+  is "Wheatstone" (iOS `CFBundleDisplayName`, PWA `short_name` and
+  apple-mobile-web-app-title), and the intended App Store Connect name is
+  "Wheatstone" too (a US App Store search on 2026-10-11 found no live app
+  with that name, but only App Store Connect confirms uniqueness when the
+  record is created; fallback "Wheatstone Bridge"). The manifest `name` and
+  page title stay "Steampunk Shuffle". Bundle id
   `com.brenthumphries.steampunkshuffle`, iPhone only, portrait only, deployment
   target iOS 15. Icons and splash come from `assets/` through
   `npx @capacitor/assets generate --ios` (run via npx, not installed, because

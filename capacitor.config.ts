@@ -4,12 +4,11 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // the app record exists means creating a new record.
 const config: CapacitorConfig = {
   appId: "com.brenthumphries.steampunkshuffle",
-  appName: "Steampunk Shuffle",
+  appName: "Wheatstone",
   webDir: "dist",
   backgroundColor: "#1a120b",
   ios: {
     contentInset: "never",
-    scrollEnabled: false,
   },
   plugins: {
     SplashScreen: {
