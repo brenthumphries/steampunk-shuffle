@@ -15,7 +15,27 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 
 ## P2 — Bug
 
+### PT-36: Hiawatha and Hercule Poirot "didn't flip" anything (notes 21, 22)
+- **Seen:** 2026-10-11 (x1, two notes)
+- **Note:** "Opponent's 2 point card did not flip when I played Hiawatha. However, when opponent played Hiawatha, my card was flipped." / "Expected Hercule Poirot card to flip opponent's highest card. No cards were flipped" (tournament game)
+- **Repro:** not enough detail in the note — ask Brent: which opponent, which round, and what the opponent's board looked like (was the 2-point card face-up, Elusive, or buffed above 2 by a Friend/Location?). The confirm bar's line before tapping Play ("Flips X." or "No legal target — it does nothing.") is the quickest tell.
+- **Checked 2026-10-11:** `tests/unit/match/humanTurnRealCards.test.ts` drives the real Hiawatha and Poirot through the same stage, choose, `playTurn` path the match screen uses; both flip correctly against an ordinary face-up card. The engine skips Elusive cards for Flip (design.md §5.5), uses effective points for the "2 or less" filter, and skips cards already face-down, so a no-op is expected in those three cases. Left open until a repro shows which (or whether it is something else).
+- **Likely location:** `src/engine/matchEngine.ts` flip resolution (guess; unconfirmed)
+
+
 ## P3 — Balance / polish / idea
+
+### PT-37: Desk Sergeant has no illustration (note 18)
+- **Seen:** 2026-10-11 (x1)
+- **Note:** "There was no illustration on card. The card is Desk Sergeant."
+- **Repro:** Pick a Bar Bet or Pawnbroker card from Mudd's pool, or view Mudd's deck in a match; the card shows no art.
+- **Context:** Desk Sergeant is Mudd's deck-local filler added in the 2026-09 balance pass (CLAUDE.md gotcha "draw mechanic ... Mudd"); it was left out of the art sheets, and is the only card whose `artId` has no file in `public/art/` after the 2026-10-11 Nightfall ingest.
+- **Likely location:** `src/cards/data/decks/mudd.ts` (artId `desk-sergeant`); needs a prompt from `ss-art-prompts` and an ingest.
+
+### PT-38: Idea: more seasonal characters (note 19)
+- **Seen:** 2026-10-11 (x1)
+- **Note:** "Seasonal Characters: Headless Horseman, Ichabod Crane, The Great Pumpkin, Krampus, St. Nick, etc."
+- **Design call for Brent**, not a bug. The seasonal layer (`seasonal-events-plan.md`) already supports more events as data. Flag for the call: Headless Horseman and Ichabod Crane (Irving, 1820) are public domain; The Great Pumpkin is a Peanuts character and not safe to use, which `seasonal-events-plan.md` §3 already avoids for the film-protected monsters.
 
 ## Known / already flagged (not filed as new)
 
@@ -25,9 +45,19 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 ### Opponent hand shown as "Hand: N", not a fanned stack
 - **Seen:** 2026-09-12 — matches CLAUDE.md's 2.1 note; reads fine.
 
+### Auto-save as an app, and skip the tutorial on re-plays (note 8)
+- **Seen:** 2026-10-11 — a feature request, not a bug; `wheatstone-bridge-bugfix-plan.md` scope line already excludes both, deferring them to plan 4.2's Capacitor wrap (Preferences storage) and the tutorial work. A fresh PWA install starts with an empty `localStorage`, which is why the tutorial plays again.
+
 ## Resolved
 
 (moved here by whoever fixes an item — not touched by this skill)
+
+### PT-35: Séance (and Spirit Photograph, Resurrection Man) can't be played when there's a choice of face-down cards (notes 15, 23)
+- **Fixed:** 2026-10-11. `buildCardEl` (`src/ui/matchScreen.ts`) returned early for a face-down card, before attaching the highlight, selection and tap handler, so a face-down Unflip candidate was neither highlighted nor tappable, and Play never appeared (the player's own phone note: "tapping on a flipped card resulted in no action and the play command did not appear"). The engine side was fine. Moved the highlight, selection, disabled and tap wiring into `applyTargetState` and call it from both the face-down and face-up paths. Only bites with two or more face-down cards (a single candidate auto-selects), which is why the starter-deck tutorial never hit it. Verified by a new `tests/e2e/unflipTarget.spec.ts` (fails without the fix: no highlighted face-down cards; passes with it) and `tests/unit/match/humanTurnRealCards.test.ts` for the staging path.
+- **Note:** note 15's "(1 or more)" wording was already corrected on 2026-09-15 (`effectPromptLabel` now says "Choose one card to turn face-up"; a multi-target card says "up to N").
+
+### Notes 20, 24: Turnip Lantern and "some newer cards" had no illustration
+- **Fixed:** 2026-10-11, plan step F. The eleven Nightfall and deck-local images were generated and ingested (`public/art/`, 600x800 WebP each); every `artId` except Desk Sergeant's now resolves. Desk Sergeant is PT-37.
 
 ### PT-33: No way to leave a match in progress
 - **Fixed:** 2026-09-26. Added a "Leave Game" button to the match screen's topbar, shown whenever `MatchScreenOptions.leaveGame` is set (`src/ui/matchScreen.ts`) — `mountMatch` in `src/main.ts` passes it for both pickup and tournament matches (`{ matchKind: params.context.kind }`); the tutorial mounts the screen directly with no such option, so it never appears there. Tapping it opens a confirm overlay naming the specific consequence ("Leaving now pays out the same as a loss." / "Leaving now counts as a loss and eliminates you from this tournament."), with Cancel returning to the match untouched. "Leave anyway" calls the screen's existing `onExit` with a synthetic `{ winner: otherPlayer(HUMAN), reason: "conceded" }` result (new `MatchResult.reason` member, `src/engine/matchTypes.ts`) — since `finishPickupMatch`/`finishTournamentMatch` in `main.ts` only ever branch on `result.winner`, not `reason`, this flows through the exact same win/loss payout path a real loss already uses (`recordPickupResult`, `recordTournamentMatchResult` + `advanceBracket`), with no new payout logic needed. Verified via a new `tests/e2e/leaveGame.spec.ts` (tutorial has no button; pickup Cancel/Leave-anyway with the exact Checks/loss-record payout asserted from localStorage; tournament Cancel/Leave-anyway with the bracket ending up eliminated) and manually in the browser.

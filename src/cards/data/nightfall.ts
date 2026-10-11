@@ -2,9 +2,7 @@
 // obtainable only while the event is live (Lost & Found, Pawnbroker, Bar
 // Bet, visitor decks) but owned and playable all year once earned.
 //
-// No art exists for these yet (plan step F / `ss-art-prompts`): each artId is
-// the card's own id, and the UI simply shows no illustration until the WebP
-// is ingested — same handling as the deck-local fillers (e.g. Desk Sergeant).
+// Each artId is the card's own id; the art landed with plan step F.
 //
 // Wave 1 was the four cards that need no new engine keyword; Wave 2 added
 // the four that use Undying and Moonrise (design.md §5.14-§5.15).

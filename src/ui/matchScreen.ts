@@ -517,6 +517,21 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     resolveDelayMs?: number;
   }
 
+  function applyTargetState(wrap: HTMLElement, opts: CardBuildOpts): void {
+    if (opts.highlight) wrap.classList.add("card--highlight");
+    if (opts.selected) wrap.classList.add("card--selected");
+    if (opts.disabled) wrap.classList.add("card--disabled");
+    if (opts.onPrimary) {
+      wrap.classList.add("card--tappable");
+      wrap.tabIndex = 0;
+      wrap.setAttribute("role", "button");
+      wrap.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (!opts.disabled) opts.onPrimary!();
+      });
+    }
+  }
+
   function buildCardEl(card: Card, faceIndex: 0 | 1, opts: CardBuildOpts): HTMLElement {
     const face = activeFaceOf(card, faceIndex);
     const wrap = el("div", `card card--${opts.size}`);
@@ -542,12 +557,14 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       label.appendChild(el("span", "card-facedown-points", String(face.points)));
       label.appendChild(el("span", "card-facedown-name", face.name));
       wrap.appendChild(label);
+      // PT-35: a face-down card is a legitimate Unflip target (Séance, Spirit
+      // Photograph, Resurrection Man), so it has to take highlight/selection
+      // and a tap like any other candidate.
+      applyTargetState(wrap, opts);
       return wrap;
     }
 
-    if (opts.highlight) wrap.classList.add("card--highlight");
-    if (opts.selected) wrap.classList.add("card--selected");
-    if (opts.disabled) wrap.classList.add("card--disabled");
+    applyTargetState(wrap, opts);
     wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
 
     const shownPoints = opts.pointsOverride ?? face.points;
@@ -586,15 +603,6 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       wrap.appendChild(el("span", "card-chip-mini", chips.join(" · ")));
     }
 
-    if (opts.onPrimary) {
-      wrap.classList.add("card--tappable");
-      wrap.tabIndex = 0;
-      wrap.setAttribute("role", "button");
-      wrap.addEventListener("click", (event) => {
-        event.stopPropagation();
-        if (!opts.disabled) opts.onPrimary!();
-      });
-    }
     if (opts.onZoom) {
       const zoomBtn = el("button", "card-zoom-btn", "i");
       zoomBtn.type = "button";
