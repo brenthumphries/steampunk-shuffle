@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a120b" />
+    <meta name="color-scheme" content="dark" />
+    <title>Privacy · Steampunk Shuffle</title>
+    <link rel="icon" href="icons/icon-192.png" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f2e6d0;
+        --ground: #1a120b;
+        --amber: #c8862c;
+        --panel: #251a11;
+        --rule: rgba(242, 230, 208, 0.22);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--ground);
+      }
+      body {
+        margin: 0;
+        padding: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+        background: var(--ground);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 1.0625rem;
+        line-height: 1.55;
+      }
+      main {
+        max-width: 38rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        color: var(--amber);
+        font-size: 1.9rem;
+        line-height: 1.15;
+      }
+      h2 {
+        margin: 2rem 0 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--rule);
+        color: var(--amber);
+        font-size: 1.2rem;
+      }
+      p,
+      ul {
+        margin: 0.5rem 0;
+      }
+      ul {
+        padding-left: 1.25rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      a {
+        color: var(--amber);
+      }
+      code {
+        font-size: 0.9em;
+        word-break: break-word;
+      }
+      .sub {
+        margin: 0;
+        opacity: 0.7;
+      }
+      .short {
+        margin: 1.25rem 0 0;
+        padding: 1rem 1.1rem;
+        background: var(--panel);
+        border: 1px solid var(--amber);
+        border-radius: 0.6rem;
+      }
+      .short p:first-child {
+        margin-top: 0;
+        font-weight: 700;
+      }
+      .short p:last-child {
+        margin-bottom: 0;
+      }
+      .back {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.7rem 1.4rem;
+        color: var(--ground);
+        background: var(--amber);
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Privacy</h1>
+      <p class="sub">Steampunk Shuffle (the app is called Wheatstone on your home screen) · last updated 13 October 2026</p>
+
+      <div class="short">
+        <p>The short version: this game collects nothing about you.</p>
+        <p>There are no accounts, no ads, no analytics and no tracking. The game never sends anything anywhere. Everything it remembers stays on your own device.</p>
+      </div>
+
+      <h2>What the game keeps on your device</h2>
+      <p>So that you can pick up where you left off, the game saves these things on your device only:</p>
+      <ul>
+        <li>The name you give yourself at the bar (it starts as a default and you can change it).</li>
+        <li>Your progress: tutorial and hints seen, wins and losses against each patron, and your Checks.</li>
+        <li>The cards you own, your saved decks, and the deck you have chosen.</li>
+        <li>A tournament or a match you are partway through.</li>
+        <li>Whether sound is muted, and whether the opening screen has been shown.</li>
+      </ul>
+      <p>
+        In the iPhone app, the game keeps this in the app's own storage and keeps a second copy in the app's settings storage, in case iOS clears the first one to free up space. Both copies stay on your phone. In the web version it is kept in your browser's storage for this site.
+      </p>
+
+      <h2>What the game never does</h2>
+      <ul>
+        <li>It does not collect, send, sell or share any data, with me or with anyone else.</li>
+        <li>It contains no analytics, advertising, tracking or crash-reporting tools, and no code from other companies that talks to the internet.</li>
+        <li>It does not ask for your location, contacts, photos, camera, microphone or notifications.</li>
+        <li>It does not use cookies, and it does not follow you across other apps or websites.</li>
+        <li>It does not need an internet connection to play. The pictures, sounds and rules are all inside the app.</li>
+      </ul>
+
+      <h2>Saving a copy of your game</h2>
+      <p>
+        The "Save &amp; data" screen can export your save as a file. If you use it, you choose where the file goes, and the game does not receive it. Importing one reads a file you pick from your own device.
+      </p>
+
+      <h2>Backups and the web version</h2>
+      <p>
+        iOS may include an app's saved data in your device or iCloud backup. That is Apple's feature, run under your Apple account, and I do not see it.
+      </p>
+      <p>
+        The web version is hosted on GitHub Pages. When you open that page, GitHub's servers receive the request, as they do for any website, and may log it under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's own privacy statement</a>. The iPhone app does not make those requests.
+      </p>
+
+      <h2>Keeping it, removing it, and your choices</h2>
+      <p>
+        Because nothing is sent to me, I hold no data about you and there is nothing for me to delete or hand back. Your game lives on your device and you control it. To remove it, delete the app (iPhone), or clear this site's data in your browser settings (web). There is no consent to withdraw, because nothing is collected.
+      </p>
+
+      <h2>Children</h2>
+      <p>The game collects no information from anyone, including children.</p>
+
+      <h2>If this ever changes</h2>
+      <p>
+        If a future version ever collected or sent anything, I would update this page and the app's App Store privacy details before that version was released.
+      </p>
+
+      <h2>Who to ask</h2>
+      <p>
+        Steampunk Shuffle is made by Brent Humphries. Questions about this page are welcome as an issue at <a href="https://github.com/brenthumphries/steampunk-shuffle/issues">github.com/brenthumphries/steampunk-shuffle/issues</a>.
+      </p>
+
+      <a class="back" href="./">Back to the game</a>
+    </main>
+  </body>
+</html>
