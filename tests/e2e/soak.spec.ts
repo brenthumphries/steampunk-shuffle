@@ -385,4 +385,34 @@ test.describe("soak", () => {
     }
     expectNoErrors(log);
   });
+
+  for (const [index, reloadEvery] of [3, 2, 1].entries()) {
+    test(`a pickup match survives being relaunched after every ${reloadEvery === 1 ? "" : reloadEvery + " "}move${reloadEvery === 1 ? "" : "s"}`, async ({ page }) => {
+      const log = watchErrors(page);
+      await openWithSave(page, { tutorialDone: true });
+      await page.getByRole("button", { name: /Play Miss Prudence Hollis/ }).click();
+      await expect(page.locator(".overlay--coin-toss")).toBeVisible();
+      const result = await playMatchToEnd(page, { seed: 40 + index, reloadEvery });
+      await leaveTable(page);
+      await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+      const pub = await readPub(page);
+      if (result.outcome === "draw") expect(pub.checks).toBe(0);
+      else expect(pub.opponents["prudence-hollis"]?.wins! + pub.opponents["prudence-hollis"]!.losses).toBe(1);
+      expect(await readKey(page, "active-match")).toBeNull();
+      expectNoErrors(log);
+    });
+  }
+
+  test("a tournament match survives being relaunched after every other move, and the bracket still resolves", async ({ page }) => {
+    const log = watchErrors(page);
+    await enterKnockout(page);
+    await page.getByRole("button", { name: /Play Quarterfinal/ }).click();
+    await expect(page.locator(".overlay--coin-toss")).toBeVisible();
+    const result = await playMatchToEnd(page, { seed: 66, reloadEvery: 2 });
+    await leaveTable(page);
+    if (result.outcome === "loss") await expect(page.getByText("Out of The Tuesday Knockout")).toBeVisible();
+    else await expect(page.locator(".bracket-stage").first()).toBeVisible();
+    expect(await readKey(page, "active-match")).toBeNull();
+    expectNoErrors(log);
+  });
 });

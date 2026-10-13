@@ -161,12 +161,13 @@ async function tap(page: Page, locator: ReturnType<Page["locator"]>): Promise<bo
  * it, so the caller can assert on it) and fails if the screen stops
  * changing for `stallMs`.
  */
-export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: number; stallMs?: number; stopAfterTaps?: number } = {}): Promise<MatchOutcome> {
+export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: number; stallMs?: number; stopAfterTaps?: number; /** Reload the page after every Nth committing tap (Play or Continue). */ reloadEvery?: number } = {}): Promise<MatchOutcome> {
   const random = seededRandom(opts.seed ?? 1);
   const maxMs = opts.maxMs ?? 240_000;
   const stallMs = opts.stallMs ?? 30_000;
   const started = Date.now();
   let taps = 0;
+  let commits = 0;
   let lastSignature = "";
   let lastChange = Date.now();
 
@@ -192,12 +193,15 @@ export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: 
 
     const has = (name: string): boolean => snap.buttons.includes(name);
     let acted = false;
+    let committed = false;
     if (await page.locator(".beer-mat-dismiss").isVisible().catch(() => false)) {
       acted = await tap(page, page.locator(".beer-mat-dismiss"));
     } else if (has("Continue")) {
       acted = await tap(page, page.getByRole("button", { name: "Continue", exact: true }).first());
+      committed = acted;
     } else if (has("Play")) {
       acted = await tap(page, page.getByRole("button", { name: "Play", exact: true }));
+      committed = acted;
     } else if (has("Cancel")) {
       // Staging a card that wants a target.
       if (snap.targetCandidates > 0) {
@@ -211,6 +215,13 @@ export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: 
     }
     if (acted) taps += 1;
     else await page.waitForTimeout(120);
+    if (committed) commits += 1;
+    if (committed && opts.reloadEvery && commits % opts.reloadEvery === 0) {
+      // The app was killed and relaunched right after a committed move: the match must resume from its autosave.
+      // (A staged card is deliberately not saved, so reloading on a card tap would only undo it.)
+      await page.reload();
+      lastChange = Date.now();
+    }
   }
 }
 
