@@ -67,6 +67,58 @@ Do this before uploading, in a browser at appstoreconnect.apple.com.
 
 Target: build visible and processed by **Oct 20**.
 
+## Before you press Submit
+
+Checked against Apple's own pages on **2026-10-13**. Nothing below is legal advice, and Apple's pages show no "last updated" date, so check the links if something looks different on your screen. Apple's pages: [TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/), [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers), [Add internal testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers), [Provide test information](https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-test-information), [Glossary](https://developer.apple.com/help/glossary/), [Review Guidelines](https://developer.apple.com/app-store/review/guidelines/).
+
+**1. Does Beta App Review apply to how she gets the invite?** ATT-23 has no answer yet, so here are both.
+
+- **She is an internal tester: no review.** Apple's glossary: "If you invite internal testers only, additional testing information is not required." But an internal tester has to be a user on *your* App Store Connect team (Admin, App Manager, Developer or Marketing role, up to 100). That means giving her access to your developer account, which you probably don't want. So plan on her being external.
+- **She is an external tester, by email or by public link: yes, review applies.** Apple: "If you invite any external testers, the first build is submitted to TestFlight App Review. Later builds for the same version may not require full review." Your first build has to be approved before anyone outside your team can test it, and builds are sent for review automatically when they are added to an external group. Only one build per version can be in review at a time, and Apple allows six submissions in 24 hours. Apple's pages give no review time; "24 to 48 hours" below is a typical figure, not a promise.
+- **To keep the surprise:** Apple says "When you invite testers, they will receive an invitation email", so **don't put her email in any group until the day you want it sent** (on or after Oct 27). A public link needs no email address from you and joiners show as anonymous, but Apple's page does not say whether anything is emailed when someone joins, so try it with your own phone first, and note that "anyone can share this link". If you add her to a group that is already approved, untick **Automatically notify testers** and use **Notify Testers** yourself when you are ready.
+
+**2. What has to be filled in.**
+
+- **Test information:** the Beta App Description (required), a Feedback Email, and the beta app review information (Apple's glossary: "contact information, demo account credentials, and any notes specific for TestFlight App Review"). Apple: "your beta app description and beta app review information are required in order to share your beta with external testers." Sign-in is off (no accounts). The review notes text is in section E.
+- **Privacy policy URL:** Apple's TestFlight pages do not list it as a beta field, but guideline 5.1.1(i) says all apps need one and 2.2 says beta builds "should comply with the App Review Guidelines". It costs nothing, so add it under **App Privacy**: `https://brenthumphries.github.io/steampunk-shuffle/privacy.html`. **That page exists only after the PR that adds it is merged and GitHub Pages has deployed**, so open the link in a browser before you paste it (guideline 2.1: URLs must work).
+- **App Privacy answers:** Apple says these are "required to submit new apps and app updates to the App Store" and does not mention TestFlight. Fill them in anyway: **No, we do not collect data from this app**. Field by field, with the proof, in `docs/app-privacy-answers.md`.
+- **Export compliance:** `ITSAppUsesNonExemptEncryption` is already `false` in `ios/App/App/Info.plist` (checked), which stops App Store Connect asking on every upload. The app makes no network connections and has no encryption code of its own, which is the reason for `false`. Apple's page on this is a script-only page that could not be read here, so read [Complying with encryption export regulations](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations) once and confirm you agree with the answer.
+- **Check your email after each upload for "ITMS-91053" (missing API declaration).** Apple's [Feb 2024 notice](https://developer.apple.com/news/?id=3d8a9yyh): from May 1, 2024 you "need to include approved reasons for the listed APIs used by your app's code to upload a new or updated app". `@capacitor/preferences` uses `UserDefaults`, one of those APIs; the plugin ships no privacy manifest (checked in `node_modules`), Capacitor's own manifest is empty, and `ios/App/App/` has none. Build 1.0 (1) processed, so Apple accepted it, but a warning email may have come. If one did, before the next upload add a file `ios/App/App/PrivacyInfo.xcprivacy` in Xcode (File, New, File, App Privacy), tick the **App** target, and paste:
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+  <dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+      <dict>
+        <key>NSPrivacyAccessedAPIType</key>
+        <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+        <key>NSPrivacyAccessedAPITypeReasons</key>
+        <array>
+          <string>CA92.1</string>
+        </array>
+      </dict>
+    </array>
+  </dict>
+  </plist>
+  ```
+
+  `CA92.1` ("read and write only this app's own settings") is the code Capacitor's documentation uses for this plugin; that page could not be opened from here, so confirm the code in Apple's required-reason list inside Xcode's documentation. Raise **Build** by one and upload again. Then tell Claude, so the repo gets the same file.
+
+**3. Which guidelines a wrapped web game trips, and does beta review apply them?** Yes: Apple says beta builds "should comply with the App Review Guidelines" (2.2) and the first external build is reviewed "to make sure it follows" them.
+
+- **4.2 Minimum functionality** ("beyond a repackaged website"): the usual risk for a wrapped site. Low here: it is a complete offline game with its own engine, art, sound and save, and no website is shown. The native touches it already has, and what else could be added, are in `docs/app-store-readiness.md` section 5.
+- **5.2 Intellectual property** ("only includes content that you created or that you have a license to use"): the real risk for this cast. Ratings for every named character are in `docs/app-store-readiness.md`. The two to know about are **Agatha Christie / Hercule Poirot** (a living rights holder with registered marks) and four film and TV jokes used as card names (*Good News, Everybody!*, *Party Time. Excellent.*, *Abby Normal*, *Eye-gor*). Original stand-ins are listed there. If Apple rejects the beta on 5.2, that list is the fix; none of it touches the gift.
+- **2.1 Completeness and 5.1.1(i) privacy:** every URL you enter must work, and a privacy policy link must also be *inside* the app. The app does not have that link yet. It matters for a public listing, and Apple's beta pages do not list it as a beta requirement (see `docs/app-privacy-answers.md`).
+
 ## E. TestFlight setup and Beta App Review
 
 External testers (her) need the build to pass Beta App Review once. Internal testers (members of your own App Store Connect team) do not.

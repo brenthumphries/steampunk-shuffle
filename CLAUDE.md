@@ -54,6 +54,15 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
+- **Privacy and review (2026-10-13, ATT-33/34): the privacy answer is "Data Not Collected", and a test holds it
+  up.** `tests/e2e/privacy.spec.ts` fails on any cross-origin or non-GET request, WebSocket, cookie, or
+  `localStorage` key outside the seven documented in `public/privacy.html` and `docs/app-privacy-answers.md`; if you add
+  a network call, an SDK, or a storage key, change those two files in the same commit. `public/privacy.html` is served
+  by both builds and is the URL for App Store Connect. `docs/app-store-readiness.md` rates every named character for
+  store IP risk (High: Christie, Poirot, and four film jokes used as card names) and lists the gift-only touches for a
+  future "gift edition" flag; no card data was changed. Open: no privacy link inside the app (guideline 5.1.1(i)), and
+  the app target may need a `PrivacyInfo.xcprivacy` for `@capacitor/preferences` (see `docs/testflight-checklist.md`).
+
 - **QA sweep (2026-10-13, ATT-26): the e2e suite now has a "Native" project.** It
   serves `vite build --mode native --outDir dist-native` (base `/`) through
   `tools/serveNative.ts`, which redirects the specs' `/steampunk-shuffle/`
