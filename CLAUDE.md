@@ -58,7 +58,8 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
   serves `vite build --mode native --outDir dist-native` (base `/`) through
   `tools/serveNative.ts`, which redirects the specs' `/steampunk-shuffle/`
   entry URL to `/`, so every spec runs unmodified against the iOS bundle on
-  WebKit (CI matrix entry `Native`). `playwright.chromium.config.ts` runs the
+  WebKit (not yet in the `deploy.yml` e2e matrix: the session that built it
+  had no `workflow` token scope; add `- project: Native` / `install: webkit`). `playwright.chromium.config.ts` runs the
   Pages and Native projects on the image's Chromium at the iPhone 17 profile
   for sandboxes that can't download WebKit or Firefox (`npx playwright test
   -c playwright.chromium.config.ts`); with `reuseExistingServer`, a server left
