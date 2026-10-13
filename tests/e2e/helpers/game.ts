@@ -100,7 +100,7 @@ function seededRandom(seed: number): () => number {
 }
 
 export interface MatchOutcome {
-  outcome: "win" | "loss" | "draw";
+  outcome: "win" | "loss" | "draw" | "unfinished";
   title: string;
   /** The "+N Checks" line on the match-over overlay, if any. */
   reward: string | null;
@@ -161,7 +161,7 @@ async function tap(page: Page, locator: ReturnType<Page["locator"]>): Promise<bo
  * it, so the caller can assert on it) and fails if the screen stops
  * changing for `stallMs`.
  */
-export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: number; stallMs?: number } = {}): Promise<MatchOutcome> {
+export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: number; stallMs?: number; stopAfterTaps?: number } = {}): Promise<MatchOutcome> {
   const random = seededRandom(opts.seed ?? 1);
   const maxMs = opts.maxMs ?? 240_000;
   const stallMs = opts.stallMs ?? 30_000;
@@ -172,6 +172,11 @@ export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: 
 
   for (;;) {
     if (Date.now() - started > maxMs) throw new Error(`match did not finish within ${maxMs}ms`);
+    if (opts.stopAfterTaps !== undefined && taps >= opts.stopAfterTaps) {
+      // Settle on a screen the player could leave from: no hold or staged card open.
+      const settled = await snapshot(page);
+      if (!settled.buttons.includes("Continue") && !settled.buttons.includes("Cancel") && settled.handTappable > 0) return { outcome: "unfinished", title: "", reward: null, taps };
+    }
     const snap = await snapshot(page);
     if (snap.matchOver) {
       const outcome = /draw/i.test(snap.matchOverTitle) ? "draw" : /You took the table/.test(snap.matchOverTitle) ? "win" : "loss";
@@ -229,4 +234,62 @@ export async function collectReveals(page: Page): Promise<number> {
 export async function dismissHubHint(page: Page): Promise<void> {
   const mat = page.locator(".beer-mat-dismiss");
   if (await mat.isVisible().catch(() => false)) await mat.click();
+}
+
+// ---------------------------------------------------------------------------
+// Finished matches for the tournament soaks
+// ---------------------------------------------------------------------------
+// Real matches are random and AI-paced, so a tournament "to a win" or "to
+// elimination" can't be scripted by tapping alone. These build a genuinely
+// finished match with the real engine and AI in Node and seed it as the
+// player's resumable match: the app resumes into the match-over overlay and
+// the real UI does the rest (payout, bracket advance, the champion screen).
+
+import { chooseAIMove } from "../../../src/ai/aiOpponent";
+import type { Deck } from "../../../src/cards/cardTypes";
+import { starterDeck } from "../../../src/cards/data/decks/starterDeck";
+import { createMatch, currentPlayer, playTurn, type MatchState } from "../../../src/engine/matchEngine";
+import { OPPONENTS_BY_ID } from "../../../src/pub/opponents";
+
+export function finishedMatch(opponentId: string, winner: "A" | "B", humanDeck: Deck = starterDeck): MatchState {
+  const opponent = OPPONENTS_BY_ID.get(opponentId);
+  if (!opponent) throw new Error(`unknown opponent ${opponentId}`);
+  for (let matchSeed = 1; matchSeed < 500; matchSeed += 1) {
+    let state = createMatch(humanDeck, opponent.deck, { seed: matchSeed });
+    let aiSeed = matchSeed * 7919;
+    while (state.status === "in-progress") {
+      const mover = currentPlayer(state);
+      const move = chooseAIMove(state, mover, mover === "A" ? opponent.deck : humanDeck, "regular", aiSeed);
+      aiSeed = move.nextSeed;
+      state = playTurn(state, mover, move.instanceId);
+    }
+    if (state.result?.winner === winner) return state;
+  }
+  throw new Error(`no seed produced a ${winner} win against ${opponentId}`);
+}
+
+export interface BracketSnapshot {
+  tournamentId: string;
+  status: "in-progress" | "eliminated" | "champion";
+  playerMatches: { opponentId: string; outcome: "pending" | "won" | "lost" }[];
+}
+
+export async function readBracket(page: Page): Promise<BracketSnapshot | null> {
+  const state = await readKey<{ active: BracketSnapshot | null }>(page, "tournament-state");
+  return state?.active ?? null;
+}
+
+/** Seeds a finished tournament match against the bracket's current opponent and reloads into its match-over overlay. */
+export async function resumeFinishedTournamentMatch(page: Page, winner: "A" | "B"): Promise<string> {
+  const bracket = await readBracket(page);
+  if (!bracket) throw new Error("no active bracket");
+  const slot = bracket.playerMatches.find((m) => m.outcome === "pending");
+  if (!slot) throw new Error("bracket has no pending match");
+  const matchState = finishedMatch(slot.opponentId, winner);
+  await page.evaluate(
+    ({ save }) => localStorage.setItem("steampunk-shuffle:active-match", JSON.stringify(save)),
+    { save: { matchState, aiSeed: 1, humanDeck: starterDeck, humanDeckName: "The Village Constable", context: { kind: "tournament", tournamentId: bracket.tournamentId } } },
+  );
+  await page.reload();
+  return slot.opponentId;
 }
