@@ -293,4 +293,96 @@ test.describe("soak", () => {
     expect(await readKey(page, "active-match")).toBeNull();
     expectNoErrors(log);
   });
+
+  const BASE_PUB = { checks: 0, totalWins: 0, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] as string[], pawnbrokerPurchasedToday: [] as string[], pawnbrokerPurchaseDate: null };
+
+  test("the back room across two days: Lost & Found, the Pawnbroker, and the Tinker's Bench", async ({ page }) => {
+    const log = watchErrors(page);
+    await openWithSave(page, { tutorialDone: true, pub: { ...BASE_PUB, checks: 300, totalWins: 3, collection: ["telegraph-boy", "telegraph-boy"] } });
+    await page.getByRole("button", { name: "The back room" }).click();
+
+    // Lost & Found: once a day, and the claim survives a reload.
+    await page.getByRole("button", { name: "Take it" }).click();
+    await page.getByRole("button", { name: "Collect" }).click();
+    await expect(page.getByRole("button", { name: "Claimed today" })).toBeDisabled();
+    expect((await readPub(page)).collection).toHaveLength(3);
+    await page.reload();
+    await page.getByRole("button", { name: "The back room" }).click();
+    await expect(page.getByRole("button", { name: "Claimed today" })).toBeDisabled();
+
+    // Pawnbroker: a purchase takes its price, adds the card, and removes that slot for the day.
+    const buttons = page.getByRole("button", { name: /Take my Checks/ });
+    await expect(buttons).toHaveCount(3);
+    const label = (await buttons.first().textContent()) ?? "";
+    const price = Number(/(\d+)\s*$/.exec(label)?.[1]);
+    expect([15, 35, 90]).toContain(price);
+    await buttons.first().click();
+    const afterBuy = await readPub(page);
+    expect(afterBuy.checks).toBe(300 - price);
+    expect(afterBuy.collection).toHaveLength(4);
+    await page.reload();
+    await page.getByRole("button", { name: "The back room" }).click();
+    await expect(page.getByRole("button", { name: /Take my Checks/ })).toHaveCount(3); // refilled from the rotation, not a faucet of the same card
+    expect(new Set(await page.locator(".backroom-section").filter({ hasText: "The Pawnbroker" }).locator(".backroom-tile-name").allTextContents()).size).toBe(3);
+
+    // Tinker's Bench: two Telegraph Boys and 10 Checks become a foil, which still counts as the card in the deck builder.
+    const tile = page.locator(".backroom-tile").filter({ hasText: "Telegraph Boy" }).filter({ hasText: "copies" });
+    await tile.getByRole("button", { name: /Fuse/ }).click();
+    await tile.getByRole("button", { name: "Make it a foil" }).click();
+    await expect(page.getByText("A foil!")).toBeVisible();
+    await page.getByRole("button", { name: "Collect" }).click();
+    const afterFuse = await readPub(page);
+    expect(afterFuse.checks).toBe(300 - price - 10);
+    expect(afterFuse.collection.filter((id) => id === "telegraph-boy")).toHaveLength(0);
+    expect(afterFuse.collection).toContain("foil:telegraph-boy");
+
+    // The next day: Lost & Found is open again and the Pawnbroker has turned over.
+    await page.clock.setFixedTime(noonOn(2026, 11, 6));
+    await page.reload();
+    await page.getByRole("button", { name: "The back room" }).click();
+    await expect(page.getByRole("button", { name: "Take it" })).toBeEnabled();
+    expectNoErrors(log);
+  });
+
+  test("a Bar Bet: stake a card, play the match, and the card moves exactly as the result says", async ({ page }) => {
+    const log = watchErrors(page);
+    await openWithSave(page, { tutorialDone: true, pub: { ...BASE_PUB, checks: 20, totalWins: 5, collection: ["telegraph-boy"] } });
+    const mudd = page.locator(".patron-row").filter({ hasText: "Constable Tobias Mudd" });
+    await mudd.getByRole("button", { name: /Stake a card in a bar bet/ }).click();
+    await expect(page.getByText("Stake a card against Constable Tobias Mudd?")).toBeVisible();
+    await page.locator(".stake-card-option", { hasText: "Telegraph Boy" }).click();
+    await expect(page.locator(".overlay--reveal .card-name", { hasText: "Telegraph Boy" })).toBeVisible();
+    await page.getByRole("button", { name: "Stake Telegraph Boy" }).click();
+    await expect(page.locator(".overlay--coin-toss")).toBeVisible();
+    expect((await readKey<{ context: { stakedCardId: string } }>(page, "active-match"))?.context.stakedCardId).toBe("telegraph-boy");
+
+    // A reload mid-match keeps the stake on the match.
+    await page.reload();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    expect((await readKey<{ context: { stakedCardId: string } }>(page, "active-match"))?.context.stakedCardId).toBe("telegraph-boy");
+    const result = await playMatchToEnd(page, { seed: 8 });
+    await leaveTable(page);
+    await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+
+    const pub = await readPub(page);
+    const betPool = ["charlotte", "telegraph-boy", "anonymous-tip"];
+    if (result.outcome === "win") {
+      await expect(page.getByText("Won the bet against Constable Tobias Mudd!")).toBeVisible();
+      expect(pub.collection.some((id) => betPool.includes(id))).toBe(true);
+      // The stake stays, and a win adds the bet-pool card plus Mudd's first-win reward.
+      expect(pub.collection).toContain("telegraph-boy");
+      expect(pub.collection).toContain("sergeant-pike");
+      expect(pub.collection).toHaveLength(3);
+    } else if (result.outcome === "loss") {
+      expect(pub.collection).not.toContain("telegraph-boy");
+      expect((await readKey<{ pawnedCards: string[] }>(page, "pub-state"))?.pawnedCards).toEqual(["telegraph-boy"]);
+      // Nothing is lost for good: the Pawnbroker offers it back first, marked pawned.
+      await page.getByRole("button", { name: "The back room" }).click();
+      await expect(page.locator(".backroom-tile").first()).toContainText("Telegraph Boy");
+      await expect(page.locator(".backroom-tile").first()).toContainText("pawned");
+    } else {
+      expect(pub.collection).toContain("telegraph-boy"); // a drawn match leaves the stake with the player
+    }
+    expectNoErrors(log);
+  });
 });
