@@ -16,12 +16,23 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:4173",
   },
-  webServer: {
-    command: "npm run build && npm run preview -- --port 4173",
-    url: "http://localhost:4173/steampunk-shuffle/",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "npm run build && npm run preview -- --port 4173",
+      url: "http://localhost:4173/steampunk-shuffle/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    // The iOS bundle (CLAUDE.md, "iOS wrap"): same app, base "/", no service
+    // worker. Built into its own folder so it never clobbers dist/, which is
+    // what the Pages deploy and `cap sync` read.
+    {
+      command: "npx vite build --mode native --outDir dist-native --emptyOutDir && npx tsx tools/serveNative.ts 4174 dist-native",
+      url: "http://localhost:4174/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
   // Four named browsers, not four devices. Safari and Firefox are genuinely
   // their own engines (WebKit/Gecko) — Playwright bundles real builds of
   // both, so this is real cross-engine coverage even on Linux CI, which is
@@ -48,6 +59,13 @@ export default defineConfig({
     {
       name: "Edge",
       use: { ...devices["Desktop Edge"], channel: "msedge", viewport },
+    },
+    // The native bundle on WebKit, the engine closest to the iOS app's
+    // WKWebView. The full suite runs against it; `tools/serveNative.ts`
+    // redirects the specs' `/steampunk-shuffle/` entry URL to its root.
+    {
+      name: "Native",
+      use: { ...devices["iPhone 17"], viewport, baseURL: "http://localhost:4174" },
     },
   ],
 });
