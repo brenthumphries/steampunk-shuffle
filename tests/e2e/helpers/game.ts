@@ -23,6 +23,20 @@ export interface ErrorLog {
 /** Assets known to be missing, with the PLAYTEST.md item that tracks each. */
 const KNOWN_MISSING = [/\/art\/desk-sergeant\.webp$/, /\/favicon\.ico$/];
 
+/**
+ * Firefox logs these itself, as `[JavaScript Error: "..."]` console lines, when
+ * the page navigates while the Pages build's service worker or IndexedDB work
+ * is in flight (the soaks reload constantly), and when a reload interrupts the
+ * worker serving the ambience track. They are not thrown by the app, the native
+ * bundle has no service worker, and the same runs are clean on Chromium. Only
+ * these exact messages are ignored; uncaught exceptions still fail the test.
+ */
+const FIREFOX_NAVIGATION_NOISE = [
+  /^\[JavaScript Error: "InvalidStateError: Navigated away from page"/,
+  /^\[JavaScript Error: "InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable"/,
+  /^\[JavaScript Error: "Failed to load .*\/audio\/ambience\.mp3.\. A ServiceWorker intercepted the request and encountered an unexpected error/,
+];
+
 export function watchErrors(page: Page): ErrorLog {
   const log: ErrorLog = { errors: [], failedRequests: [] };
   page.on("pageerror", (error) => log.errors.push(`pageerror: ${error.message}`));
@@ -30,6 +44,7 @@ export function watchErrors(page: Page): ErrorLog {
     if (message.type() !== "error") return;
     // The browser logs its own line for every 4xx; failedRequests records those with the URL.
     if (/Failed to load resource/.test(message.text())) return;
+    if (FIREFOX_NAVIGATION_NOISE.some((pattern) => pattern.test(message.text()))) return;
     log.errors.push(`console.error: ${message.text()}`);
   });
   page.on("response", (response) => {
