@@ -10,6 +10,10 @@ import type { TournamentId } from "./tournaments.ts";
 
 const STORAGE_KEY = "steampunk-shuffle:tournament-state";
 
+/** design.md §14.6: the Birthday Invitational unlocks on October 30 (`Date#getMonth()` is zero-based, so October is 9). */
+const INVITATIONAL_TRIGGER_MONTH_INDEX = 9;
+const INVITATIONAL_TRIGGER_DAY = 30;
+
 export interface TournamentState {
   invitationalTriggered: boolean;
   active: TournamentBracket | null;
@@ -25,11 +29,17 @@ export function defaultTournamentState(): TournamentState {
  * player's October 30, not a UTC-shifted one, and takes `now` as a
  * parameter precisely so 2.4's exit check can test it by faking the clock
  * rather than the real system date.
+ *
+ * It fires on October 30 or any later day of the same calendar year, not
+ * only on the 30th itself: a player who doesn't open the app that one day
+ * (the 31st, the week after) would otherwise never see it until the next
+ * October. The flag stays set once triggered, so January to October 29
+ * (when nothing has triggered yet) is the only stretch where it stays off.
  */
 export function checkInvitationalTrigger(state: TournamentState, now: Date): TournamentState {
   if (state.invitationalTriggered) return state;
-  const isOct30 = now.getMonth() === 9 && now.getDate() === 30;
-  return isOct30 ? { ...state, invitationalTriggered: true } : state;
+  const reached = now.getMonth() * 100 + now.getDate() >= INVITATIONAL_TRIGGER_MONTH_INDEX * 100 + INVITATIONAL_TRIGGER_DAY;
+  return reached ? { ...state, invitationalTriggered: true } : state;
 }
 
 export function startBracket(state: TournamentState, bracket: TournamentBracket): TournamentState {
