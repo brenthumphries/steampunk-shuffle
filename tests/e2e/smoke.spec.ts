@@ -13,7 +13,8 @@ test("taproom placeholder loads", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
 });
 
-test("manifest is linked and installable metadata is present", async ({ page }) => {
+test("manifest is linked and installable metadata is present", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("Native"), "the native bundle ships no manifest or service worker (CLAUDE.md, iOS wrap)");
   await page.goto("/steampunk-shuffle/");
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
   expect(manifestHref).toBeTruthy();

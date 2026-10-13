@@ -65,7 +65,8 @@ test.describe("seasonal events: Hallowe'en at the Bridge", () => {
   });
 
   test("the dev clock is ignored in a production build without preview=1", async ({ page }) => {
-    test.skip(new Date().getMonth() === 9, "the real date is inside the Hallowe'en window, so this can't tell the override apart from real time");
+    // Real time is pinned outside the window (it used to skip itself whenever the real date was in October), so the override is the only thing that could show a visitor.
+    await page.clock.setFixedTime(new Date(2026, 10, 5, 12, 0, 0));
     await page.goto(START);
     await page.evaluate(() => {
       localStorage.clear();

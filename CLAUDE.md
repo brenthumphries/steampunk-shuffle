@@ -54,6 +54,25 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
+- **QA sweep (2026-10-13, ATT-26): the e2e suite now has a "Native" project.** It
+  serves `vite build --mode native --outDir dist-native` (base `/`) through
+  `tools/serveNative.ts`, which redirects the specs' `/steampunk-shuffle/`
+  entry URL to `/`, so every spec runs unmodified against the iOS bundle on
+  WebKit (not yet in the `deploy.yml` e2e matrix: the session that built it
+  had no `workflow` token scope; add `- project: Native` / `install: webkit`). `playwright.chromium.config.ts` runs the
+  Pages and Native projects on the image's Chromium at the iPhone 17 profile
+  for sandboxes that can't download WebKit or Firefox (`npx playwright test
+  -c playwright.chromium.config.ts`); with `reuseExistingServer`, a server left
+  over from an earlier run serves a stale build, so rebuild before trusting a
+  result. Long real-UI runs live in `tests/e2e/soak.spec.ts` and
+  `birthday.spec.ts` (Playwright's clock via `page.clock.setFixedTime`, never
+  `?now=`); `SOAK_ALL=1` adds `soakAll.spec.ts` (one match per opponent,
+  `SOAK_REPEAT=n` for volume). `tests/e2e/helpers/game.ts` has the autopilot
+  and `finishedMatch`, which builds a genuinely finished match with the real
+  engine so a tournament can be won or lost deterministically through the
+  resume path. The game needs **iOS 15.4**, not the 15.0 Xcode target
+  (`structuredClone`, `100dvh`).
+
 Standing knowledge that outlives any one step. Where a bullet says "above",
 the entry it means is now in `docs/logs/`.
 

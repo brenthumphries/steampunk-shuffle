@@ -162,3 +162,6 @@ dev-dist/
 # art/inbox/. Never consumed by tooling directly, never archived.
 /art/manual Gemini generations/
 
+
+# Native bundle built for the Playwright "Native" project
+/dist-native/
