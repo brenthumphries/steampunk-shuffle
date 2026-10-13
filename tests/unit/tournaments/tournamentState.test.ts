@@ -46,6 +46,18 @@ describe("checkInvitationalTrigger", () => {
     expect(state2031.invitationalTriggered).toBe(true);
   });
 
+  it("triggers for a player who first opens the game after October 30, through the end of that year", () => {
+    for (const date of [new Date(2026, 9, 31), new Date(2026, 10, 1), new Date(2026, 10, 2), new Date(2026, 11, 25), new Date(2026, 11, 31)]) {
+      expect(checkInvitationalTrigger(defaultTournamentState(), date).invitationalTriggered, date.toDateString()).toBe(true);
+    }
+  });
+
+  it("does not trigger from January to October 29, so a new year starts without it", () => {
+    for (const date of [new Date(2027, 0, 1), new Date(2027, 5, 1), new Date(2027, 9, 29)]) {
+      expect(checkInvitationalTrigger(defaultTournamentState(), date).invitationalTriggered, date.toDateString()).toBe(false);
+    }
+  });
+
   it("stays triggered on later dates once it has fired", () => {
     let state = checkInvitationalTrigger(defaultTournamentState(), new Date(2026, 9, 30));
     expect(state.invitationalTriggered).toBe(true);
