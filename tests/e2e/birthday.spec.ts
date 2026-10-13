@@ -12,6 +12,14 @@ const NOVEMBER_FIRST = noonOn(2026, 11, 1);
 
 test.describe.configure({ timeout: 300_000 });
 
+// These specs test the game, not the PWA, and reload the page constantly. The
+// Pages build's service worker (the existing specs cover it) then logs errors
+// of its own when a navigation interrupts it: "sw.js load failed" in WebKit,
+// "A ServiceWorker intercepted the request and encountered an unexpected error"
+// and "Navigated away from page" in Firefox. The native bundle has none.
+test.use({ serviceWorkers: "block" });
+
+
 const PUB = { checks: 100, totalWins: 12, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null };
 
 const sceneBackground = (page: Page): Promise<string> => page.locator(".pub-hub").evaluate((el) => (el as HTMLElement).style.getPropertyValue("--scene-bg"));
