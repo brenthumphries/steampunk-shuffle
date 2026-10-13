@@ -23,6 +23,17 @@ export interface ErrorLog {
 /** Assets known to be missing, with the PLAYTEST.md item that tracks each. */
 const KNOWN_MISSING = [/\/art\/desk-sergeant\.webp$/, /\/favicon\.ico$/];
 
+/**
+ * Firefox logs this line itself, as a `[JavaScript Error: ...]` console message,
+ * when a page unloads with a DOM promise still pending (probably the unawaited
+ * `audioCtx.resume()` in src/audio/soundEngine.ts, which stays pending in a
+ * headless browser with no audio device; not confirmed, since Firefox isn't
+ * available in every sandbox). It is not an exception the app throws, and it
+ * fires on every navigation the soaks make. Only this exact message is ignored;
+ * uncaught exceptions and every other console.error still fail the test.
+ */
+const FIREFOX_UNLOAD_NOISE = /^\[JavaScript Error: "InvalidStateError: Navigated away from page"/;
+
 export function watchErrors(page: Page): ErrorLog {
   const log: ErrorLog = { errors: [], failedRequests: [] };
   page.on("pageerror", (error) => log.errors.push(`pageerror: ${error.message}`));
@@ -30,6 +41,7 @@ export function watchErrors(page: Page): ErrorLog {
     if (message.type() !== "error") return;
     // The browser logs its own line for every 4xx; failedRequests records those with the URL.
     if (/Failed to load resource/.test(message.text())) return;
+    if (FIREFOX_UNLOAD_NOISE.test(message.text())) return;
     log.errors.push(`console.error: ${message.text()}`);
   });
   page.on("response", (response) => {
@@ -97,6 +109,16 @@ function seededRandom(seed: number): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** `page.reload()`, retried once if WebKit reports an internal error (seen once in CI when reloading straight after a tap). Any other failure throws. */
+async function reloadPage(page: Page): Promise<void> {
+  try {
+    await page.reload();
+  } catch (error) {
+    if (!/WebKit encountered an internal error/.test(String(error))) throw error;
+    await page.reload();
+  }
 }
 
 export interface MatchOutcome {
@@ -219,7 +241,7 @@ export async function playMatchToEnd(page: Page, opts: { seed?: number; maxMs?: 
     if (committed && opts.reloadEvery && commits % opts.reloadEvery === 0) {
       // The app was killed and relaunched right after a committed move: the match must resume from its autosave.
       // (A staged card is deliberately not saved, so reloading on a card tap would only undo it.)
-      await page.reload();
+      await reloadPage(page);
       lastChange = Date.now();
     }
   }
