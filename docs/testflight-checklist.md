@@ -21,7 +21,7 @@ Menu names below are from memory of Xcode 26 and App Store Connect. If a label d
 ## Before you start
 
 - [ ] Apple Developer Program membership is active for your Apple ID. If not, enrolling can take a day or two, so do it first.
-- [ ] Confirm her iPhone runs **iOS 15 or later**. Settings, General, About, iOS Version. If it is older, tell Claude; the deployment target can drop, but not below what the Capacitor version supports.
+- [ ] Confirm her iPhone runs **iOS 15.4 or later**. Settings, General, About, iOS Version. The Xcode target says 15.0, but the game needs 15.4: the rules engine calls `structuredClone` and the layout sizes the screen with `100dvh`, and Safari added both in 15.4 (checked 2026-10-13, ATT-26; a phone on 15.0 to 15.3 would not be able to play a card). If it is older, update iOS first; every iPhone that can run 15 can update to at least 15.8.
 - [ ] Everything is shipped to `main`: `git status` is clean and the latest `ss-ship` run is green.
 - [ ] Content freeze is called and `v1.0-rc1` is tagged (ATT-24). Only bug fixes from here.
 
