@@ -2,7 +2,9 @@
 
 For Brent to run on the Mac. Goal: a build showing "Ready to Submit" in App Store Connect by **Oct 20**, approved by Beta App Review, installed on your iPhone first, then on hers by Oct 29.
 
-Menu names below are from memory of Xcode 26 and App Store Connect. If a label differs, the intent is the same; tell Claude what you see and it will adjust this file.
+Menu names below were written from memory of Xcode 26 and App Store Connect. They were checked step by step against Apple's own pages on **2026-10-14**. Each correction is marked *(corrected 2026-10-14)* and names the Apple page it comes from. If a label on your screen still differs, the intent is the same; tell Claude what you see and it will adjust this file.
+
+Confirmed unchanged on 2026-10-14: the New App route and its fields, Product, Archive and Window, Organizer, Distribute App, the status names **Missing Compliance** and **Ready to Submit**, the 90-day build life, and Xcode 26 or later to build an iOS app ([Upload builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds)). Not stated on any Apple page I could read, so left as written: the **Any iOS Device (arm64)** label, the **Upload Successful** message, the **Processing** label and its 10 to 30 minutes, that automatic signing registers the bundle id at step B3 (Apple says Xcode creates signing assets "when you upload or export your build"), the Xcode, Settings, Accounts path, and the US$99 fee. Apple's pages call the step **TestFlight App Review** (build statuses **Waiting for Review** and **In Beta Review**); "Beta App Review" in this file means the same step.
 
 ## Facts to have on hand
 
@@ -44,7 +46,7 @@ This builds the native bundle and copies it into `ios/`. It must say `Sync finis
 2. In the left sidebar select the **App** project, then the **App** target, then **Signing & Capabilities**.
 3. Tick **Automatically manage signing** and pick your **Team**. Xcode registers the bundle id with your account for you. If it complains that the id is unavailable, someone else holds it; tell Claude and pick another (it would need to change in `capacitor.config.ts` and the Xcode project together).
 4. Still on the App target, open **General** and confirm Display Name **Wheatstone**, Version **1.0**, Build **1**, and that only iPhone is listed under supported destinations.
-5. In the top bar set the run destination to **Any iOS Device (arm64)**. Not a simulator.
+5. In the Scheme toolbar menu choose the **App** scheme and set the run destination to **Any iOS Device (arm64)**. A simulator destination also archives in Xcode 15 and later, but a device destination is the safe default. *(corrected 2026-10-14: Apple, [Distributing your app for beta testing and releases](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases).)*
 6. Menu **Product, Archive**. Wait for the Organizer window to open on the new archive. A first archive can take a few minutes.
 7. If the archive fails, copy the red error text to Claude. The common causes are listed under "If something goes wrong" below.
 
@@ -60,7 +62,7 @@ Do this before uploading, in a browser at appstoreconnect.apple.com.
 ## D. Upload the build
 
 1. In Xcode's Organizer, select the archive, then **Distribute App**.
-2. Choose **App Store Connect**, then **Upload**. Accept the defaults (automatic signing, upload symbols on).
+2. On the **Select a method for distribution** sheet choose **TestFlight & App Store** (the recommended default: it updates the build number, signs automatically and uploads symbols), then click **Distribute**. Do **not** choose **TestFlight Internal Only**: it restricts the build to your team, so it could never go to an external tester. If you take the **Custom** route instead, choose **App Store Connect**, then **Upload**, keep **Upload your app's symbols** and **Manage version and build number** ticked, and select **Automatically manage signing**. *(corrected 2026-10-14: Apple, [Distributing your app for beta testing and releases](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases). Apple's older Xcode Help page, "Upload an app to App Store Connect", describes only the Custom route.)*
 3. Wait for "Upload Successful".
 4. In App Store Connect, open the app, then the **TestFlight** tab. The build appears as "Processing" and usually finishes in 10 to 30 minutes. You get an email when it is done.
 5. If the build shows **Missing Compliance**, tell Claude before answering. The `Info.plist` key should already have answered it, so the question appearing means the key did not make it into the archive.
@@ -123,22 +125,22 @@ Checked against Apple's own pages on **2026-10-13**. Nothing below is legal advi
 
 External testers (her) need the build to pass Beta App Review once. Internal testers (members of your own App Store Connect team) do not.
 
-1. TestFlight tab, left sidebar, **Test Information** (or the app's Test Information section). Fill in:
+1. **Apps**, your app, **TestFlight** tab, then in the left sidebar under **Additional** click **Test Information**, choose a language, and fill in (this needs the Account Holder, Admin or App Manager role). *(corrected 2026-10-14: Apple, [Provide test information](https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-test-information).)*
    - **Beta App Description:** "An offline steampunk card game set in a Victorian pub. A birthday gift."
    - **Feedback Email:** your email.
    - **Contact info:** your name, phone, and email for the reviewer.
    - **Sign-in required:** off. The game has no accounts.
    - **Review notes:** "No account, no network, no purchases, no ads, and no real-money play. The in-game currency (Checks) has no cash value. The first launch plays a guided tutorial against a barkeep. Content is gated by the device date."
-2. Under **External Testing**, create a group (for example "Family").
-3. Add the build to the group. Apple asks the export-compliance and content questions once; use "No" for third-party content and encryption beyond exempt.
-4. Press **Submit for Review**. Typical wait is 24 to 48 hours. Later builds of the same version are usually approved much faster.
+2. Create the groups. Apple requires an internal group before an external one: click the add button (**+**) next to **Internal Testing**, name it (for example "Me"), click **Create**; then click the add button (**+**) next to **External Testing**, name the group (for example "Family"), click **Create**. *(corrected 2026-10-14: Apple, [Add internal testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers) and [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers).)*
+3. Select the external group, click **Add Builds**, choose the platform and version, select the build, click **Add**, and enter what testers should focus on in the **What to Test** dialog. Leave **Automatically notify testers** unticked while she is in any group; if it is unticked you press **Notify Testers** yourself after approval (see G). Export compliance is not asked at this step. If the build shows **Missing Compliance**, open TestFlight, click the platform under **Builds**, click the build, then **Manage** or **Provide Export Compliance Information**, and answer; the answers are in `docs/testflight-copy.md`. *(corrected 2026-10-14: Apple, [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers) and [Provide export compliance information for beta builds](https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-export-compliance-information-for-beta-builds).)*
+4. Press **Submit Review** (or **Start Testing**, whichever your build's status offers). *(corrected 2026-10-14: Apple, [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers).)* Typical wait is 24 to 48 hours. Later builds of the same version are usually approved much faster.
 
 Target: submitted by **Oct 21**, approved by **Oct 23**.
 
 ## F. Plan step 4.5: your own phone first
 
 1. Install **TestFlight** from the App Store on your iPhone, signed in with the Apple ID you used for App Store Connect.
-2. Add yourself as an **internal tester** (App Store Connect, Users and Access, make sure your own account has TestFlight access). Internal builds install without waiting for Beta App Review.
+2. Add yourself as an **internal tester**: in the internal group from E2 click **Invite Testers**, tick your name, click **Add**; if you are not listed, check your role under Users and Access (Apple allows Account Holder, Admin, App Manager, Developer and Marketing). Then click **Add Builds**, choose the build, click **Next**, enter **What to Test** and click **Add**. Internal builds install without waiting for Beta App Review. *(corrected 2026-10-14: Apple, [Add internal testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers).)*
 3. Install Wheatstone from TestFlight and play: the whole tutorial, then one tournament.
 4. Send playtest notes to Claude as usual (`ss-playtest`). The gate for her build is **no P1 bugs**.
 5. Check that the home screen name and icon look right and that the splash screen shows.
@@ -147,7 +149,7 @@ Target: submitted by **Oct 21**, approved by **Oct 23**.
 
 Do this once the build is approved and your own playthrough is clean, no later than **Oct 27**.
 
-1. TestFlight, your external group, **Add Testers**, enter her email address. Or use a **public link** if you would rather hand her a link or QR code than rely on email.
+1. TestFlight, under **External Testing** select your group, click the add button (**+**) next to **Testers**, choose **Email**, click **Next** and enter her address. Or click **Create Public Link** (choose **Open to Anyone**; **Set Limit** is optional) if you would rather hand her a link or QR code than rely on email. If **Automatically notify testers** was not ticked when the build was added, press **Notify Testers**: TestFlight, under **Builds** click the platform, choose the version, then under **Status** click **Notify Testers**. *(corrected 2026-10-14: Apple, [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers).)*
 2. She installs the TestFlight app, accepts the invite, and installs Wheatstone.
 3. Dry run: do the whole flow on a spare device or a family member's phone if you can, so you know exactly what she will see.
 4. The dedication screen is held until Oct 30. If she opens the game before then she goes straight to the tutorial, and the dedication appears on her first launch on or after Oct 30 (design option b). If she plays it before Oct 30 and you want her to see it on the day, tell Claude: the held launch leaves the dedication unseen, so it still appears later.
@@ -171,9 +173,9 @@ TestFlight builds expire **90 days after upload**. A build uploaded Oct 20 stops
 |---|---|
 | "No account for team" or no Team in the dropdown | Add your Apple ID under Xcode, Settings, Accounts. Membership must be active. |
 | Bundle id unavailable | Another account holds it. Pick a new one and change it in `capacitor.config.ts` and the Xcode project together. |
-| Archive is greyed out | The destination is a simulator. Choose Any iOS Device (arm64). |
+| Archive is greyed out | Not usually a simulator: Xcode 15 and later can archive with one selected. Choose Any iOS Device (arm64) anyway and tell Claude if it stays greyed out. *(corrected 2026-10-14: Apple, [Distributing your app for beta testing and releases](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases).)* |
 | Archive succeeds but the app shows no art on a device | `npm run cap:sync` was not run after the last change, or the native build was made in the wrong mode. Run it again and re-archive. |
 | Upload rejected: icon problems | The 1024 icon must have no transparency. Ours has none (checked), so tell Claude the exact message. |
 | Upload rejected: build number already used | Raise Build and archive again. |
 | Build stuck on Processing for hours | Wait up to a day; then check the Apple System Status page and contact Apple Developer Support. |
-| Beta App Review rejects it | Read the reviewer's message, paste it to Claude, fix, raise Build, re-upload. |
+| Beta App Review rejects it | The build status shows **Rejected**. Read the reviewer's message (TestFlight, sidebar **General**, **App Review**), paste it to Claude, fix, raise Build, re-upload. *(corrected 2026-10-14: Apple, [Invite external testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers).)* |

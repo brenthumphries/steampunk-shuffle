@@ -1,0 +1,29 @@
+{
+  "seed": {
+    "alwaysAttach": [
+      "art/reference/The_Wheatstone_Bridge_taproom.jpeg"
+    ],
+    "byFamily": {
+      "yard": "public/art/portrait-constable-tobias-mudd.webp",
+      "irregulars": "public/art/portrait-old-nell-ashby.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp",
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "desk-sergeant",
+      "category": "character",
+      "family": "yard",
+      "prompt": "Bust-to-waist, three-quarter portrait of a heavyset, middle-aged police desk sergeant standing behind the front desk of a Victorian station house, sleeves rolled to the elbow over a gunmetal-blue wool tunic with brass buttons and sergeant's stripes on the upper sleeve, no helmet, one thumb keeping his place in a thick ledger, an enamel tea mug steaming at his elbow, the unflappable, faintly weary air of a man who has found every lost umbrella in London. Warm gaslight-amber key light from a desk lamp on one side, cool gunmetal-blue dominant in the uniform and ambient fill, real cast shadows. Confident inked contours softened under paint, faint paper-grain texture, directional gaslight. Background a soft blur of a wall of pigeonholes and a lost-property cupboard, a single boot and a bowler hat on its top shelf.",
+      "extraNegatives": [
+        "no red or oxblood dominant",
+        "no outdoor street scene",
+        "no folded arms",
+        "no legible lettering on the ledger, tags or cupboard"
+      ],
+      "notes": "PT-37. Constable Mudd's deck filler (src/cards/data/decks/mudd.ts), Yard, common, 1 pt: \"Minds the front desk, the lost-property cupboard, and the tea.\" Attach the taproom reference and portrait-constable-tobias-mudd.webp (the Yard reference, as for beat-partner and night-constable). Do not attach sergeant-pike: the two sergeants should stay distinct (Pike is outdoors with folded arms; this one is indoors at a desk). After Gemini: save the download as art/inbox/desk-sergeant.jpeg (png, jpg or webp also work), run npm run ingest-art -- art/prompts/sheet-8-manifest.json, and expect public/art/desk-sergeant.webp at 600x800. Then do the after-ingest steps in docs/logs/2026-10-14.md."
+    }
+  ]
+}

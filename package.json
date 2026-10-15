@@ -15,6 +15,7 @@
     "curve": "tsx tools/curve.ts",
     "art-prompts": "tsx tools/artPrompts.ts",
     "ingest-art": "python3 tools/ingest-art.py",
+    "store-screenshots": "tsx tools/store-screenshots.ts",
     "build:native": "tsc --noEmit && vite build --mode native",
     "cap:sync": "npm run build:native && cap sync ios"
   },

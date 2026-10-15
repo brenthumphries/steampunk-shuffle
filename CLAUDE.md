@@ -63,6 +63,15 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
   future "gift edition" flag; no card data was changed. Open: no privacy link inside the app (guideline 5.1.1(i)), and
   the app target may need a `PrivacyInfo.xcprivacy` for `@capacitor/preferences` (see `docs/testflight-checklist.md`).
 
+- **Store listing (2026-10-14, ATT-35): `docs/store-listing.md` holds every App Store field with its count, and `npm run
+  store-screenshots` (`tools/store-screenshots.ts`) writes six shots at 1206x2622 and 1320x2868 to `art/store-screenshots/`.**
+  Nothing is submitted. The shots run from a seeded save on a fixed clock of 22 September: the Birthday Invitational's
+  trigger fires on 30 October *and every later day*, so a November date puts it and the Landlady on the chalkboard. The
+  tool scans each screen for the High-risk names in `docs/app-store-readiness.md`, the gift touches and the pub cats, and
+  fails rather than write the picture. Playwright writes RGBA PNGs and Apple rejects alpha, so the tool re-encodes to RGB.
+  Bucket's and Lovelace's decks hold two High-risk cards, so no shot plays against them. The age-rating answers hinge on
+  the Bar Bet counting as simulated gambling (13+, R 18+ in Australia); that is Brent's call (ATT-32).
+
 - **QA sweep (2026-10-13, ATT-26): the e2e suite now has a "Native" project.** It
   serves `vite build --mode native --outDir dist-native` (base `/`) through
   `tools/serveNative.ts`, which redirects the specs' `/steampunk-shuffle/`
