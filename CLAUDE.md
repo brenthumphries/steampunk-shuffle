@@ -91,6 +91,8 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
   resume path. The game needs **iOS 15.4**, not the 15.0 Xcode target
   (`structuredClone`, `100dvh`).
 
+- **PT-36/PT-40 (2026-10-16, branch `fix/pt-36-pt-40`, ATT-21, pending Brent for the upload build):** `stakeableCards` (`src/pub/barBet.ts`) now offers no legendary and no `foil:` entry, because the Pawnbroker can't list either; design.md §11.5 is untouched (one-line edit proposed in the PR). PT-36 stays open: `tests/unit/match/flipPreviewSweep.test.ts` shows the confirm bar's Hiawatha/Poirot line always matches what flips, so the likely cause is a no-op the bar already announced (Elusive Hypnofrog, or nothing worth 2 or less).
+
 Standing knowledge that outlives any one step. Where a bullet says "above",
 the entry it means is now in `docs/logs/`.
 

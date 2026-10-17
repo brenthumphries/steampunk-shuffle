@@ -29,6 +29,7 @@
 // must enforce.
 
 import { stepRandom } from "../engine/rng.ts";
+import { ACQUIRABLE_CARDS_BY_ID } from "./acquirableCards.ts";
 import type { Opponent } from "./opponents.ts";
 import { addCopyToCollection, addToPawnedCards, removeOneFromCollection, type PubState } from "./pubState.ts";
 
@@ -40,9 +41,16 @@ export function canOfferBarBet(opponent: Opponent, totalWins: number): boolean {
   return opponent.tier !== "house" && opponent.betPool.length > 0 && totalWins >= BAR_BET_UNLOCK_WINS;
 }
 
-/** Distinct card ids the player could stake right now — one offer per id, even if they hold several copies. */
+/**
+ * Distinct card ids the player could stake right now — one offer per id, even if they hold several copies.
+ * PT-40: a legendary or a `foil:` entry is never offered, because the Pawnbroker's window can't list either
+ * (design.md §11.4), so a lost one would be gone for good.
+ */
 export function stakeableCards(collection: readonly string[]): string[] {
-  return [...new Set(collection)];
+  return [...new Set(collection)].filter((id) => {
+    const card = ACQUIRABLE_CARDS_BY_ID.get(id);
+    return card !== undefined && card.rarity !== "legendary";
+  });
 }
 
 /** Picks which of the opponent's bet-pool cards a won bet pays out. */
