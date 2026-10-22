@@ -53,7 +53,10 @@ function pwa(base: string) {
       // track (plan step 3.4, sourced and wired same day as this
       // comment) — at ~4 MB it exceeds Workbox's default 2 MB
       // per-file precache cap, hence maximumFileSizeToCacheInBytes below.
-      globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,webp,json,mp3}"],
+      // mp4: the launch intro film (public/video/intro.mp4, ~4.9 MB), cached
+      // so the intro plays offline; it sits just under the 5 MB cap, so a
+      // re-encode that grows past it needs the cap raised too.
+      globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,webp,json,mp3,mp4}"],
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     },
     devOptions: {

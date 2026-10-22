@@ -14,6 +14,7 @@ import { mountSaveScreen } from "./ui/saveScreen.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
+import { currentIntroEnvironment, introShouldPlay, mountIntroScreen } from "./ui/introScreen.ts";
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { deckCardsById } from "./decks/cardCatalog.ts";
 import { today } from "./events/eventClock.ts";
@@ -499,17 +500,34 @@ function bootAfterDedication(): void {
   }
 }
 
+function bootGame(): void {
+  if (dedicationShouldShow(today(), loadPlayerState().dedicationSeen)) {
+    teardownScreen = mountDedicationScreen(app!, {
+      onContinue: () => {
+        savePlayerState(markDedicationSeen(loadPlayerState()));
+        teardownScreen?.();
+        teardownScreen = undefined;
+        app!.replaceChildren();
+        bootAfterDedication();
+      },
+    });
+  } else {
+    bootAfterDedication();
+  }
+}
+
 refreshSelectedDeck();
-if (dedicationShouldShow(today(), loadPlayerState().dedicationSeen)) {
-  teardownScreen = mountDedicationScreen(app!, {
-    onContinue: () => {
-      savePlayerState(markDedicationSeen(loadPlayerState()));
+// The launch intro film (src/ui/introScreen.ts) plays on every launch, ahead of
+// the dedication and everything else; it is skippable and never blocks the boot.
+if (introShouldPlay(currentIntroEnvironment())) {
+  teardownScreen = mountIntroScreen(app!, {
+    onDone: () => {
       teardownScreen?.();
       teardownScreen = undefined;
       app!.replaceChildren();
-      bootAfterDedication();
+      bootGame();
     },
   });
 } else {
-  bootAfterDedication();
+  bootGame();
 }

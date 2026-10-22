@@ -4,6 +4,8 @@ describe("app shell", () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="app"></div>';
     localStorage.clear();
+    // The launch intro film plays by default (src/ui/introScreen.ts); these tests are about what follows it.
+    window.history.replaceState(null, "", "/?intro=0");
     vi.resetModules();
     // The dedication is held from Sep 1 to Oct 29 (dedicationShouldShow), so
     // pin "today" outside that window; only Date is faked, timers stay real.
@@ -13,6 +15,22 @@ describe("app shell", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("plays the launch intro first, and the game follows once it ends", async () => {
+    window.history.replaceState(null, "", "/?intro=1");
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+    vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
+    await import("../../src/main.ts");
+    const app = document.querySelector("#app");
+    const video = app?.querySelector("video");
+    expect(video).not.toBeNull();
+    expect(app?.textContent).not.toContain("Licensed to");
+    video?.dispatchEvent(new Event("ended"));
+    expect(app?.querySelector("video")).toBeNull();
+    expect(app?.textContent).toContain("Licensed to");
   });
 
   it("a first launch during the hold (Oct 15) skips the dedication and lands in the tutorial", async () => {
