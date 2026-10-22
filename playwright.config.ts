@@ -12,6 +12,11 @@ const viewport = { width: 402, height: 874 };
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  // CI only: WebKit and Firefox each drop one test per run now and then (a WebKit
+  // "internal error" on reload, a Firefox "Image corrupt or truncated" on a
+  // navigation), a different test each time, which blocked the Pages deploy on
+  // 22 Oct. A retried pass is reported as flaky, not hidden; a real bug fails all three.
+  retries: process.env.CI ? 2 : 0,
   reporter: "list",
   use: {
     baseURL: "http://localhost:4173",
