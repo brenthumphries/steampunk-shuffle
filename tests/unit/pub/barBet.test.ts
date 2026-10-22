@@ -31,6 +31,18 @@ describe("stakeableCards", () => {
   it("is empty with an empty collection", () => {
     expect(stakeableCards([])).toEqual([]);
   });
+
+  it("never offers a legendary (PT-40)", () => {
+    expect(stakeableCards(["sherlock-holmes", "mr-griffin", "charlotte"])).toEqual(["charlotte"]);
+  });
+
+  it("never offers a foil entry (PT-40)", () => {
+    expect(stakeableCards(["foil:telegraph-boy", "banshee"])).toEqual(["banshee"]);
+  });
+
+  it("offers nothing when the collection holds only legendaries and foils", () => {
+    expect(stakeableCards(["sherlock-holmes", "mr-griffin", "foil:telegraph-boy"])).toEqual([]);
+  });
 });
 
 describe("pickBetPoolCard", () => {
