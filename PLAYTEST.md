@@ -25,15 +25,6 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Next:** ask Brent which opponent and board it was (the Hypnofrog is the first suspect). No rule or copy changed.
 - **Likely location:** `src/engine/matchEngine.ts` flip resolution (guess; unconfirmed)
 
-
-### PT-40: A Bar Bet loss can lose a legendary or a foil for good
-- **Seen:** 2026-10-13 (found by the ATT-26 pre-upload sweep, not a phone note)
-- **Status 2026-10-16:** option (a) built on branch `fix/pt-36-pt-40`, pending Brent (take it into the upload build or not). `stakeableCards` now offers no legendary and no `foil:` entry, so the overlay can no longer show a raw foil id; unit tests for `sherlock-holmes`, `mr-griffin` and `foil:telegraph-boy` in `tests/unit/pub/barBet.test.ts`. design.md §11.5 is unchanged: proposed one-line edit is in the pull request.
-- **Design call for Brent.** design.md §11 says "Nothing is ever *lost* permanently: cards you gamble away go to the Pawnbroker's window" and §11.5 has a lost stake go to the window "at its rarity price", but §11.4 says "Legendaries never appear" there, and `pawnbrokerWindow` (`src/pub/pawnbroker.ts`) also skips any `foil:<id>` entry because it isn't a card id. `stakeableCards` (`src/pub/barBet.ts`) offers every distinct `collection` entry, legendaries and foils included.
-- **Repro:** own a legendary reward (for example Sherlock Holmes, Mr Griffin) or a Tinker's Bench foil, tap "Bar bet" on a patron, stake it, lose or leave the match. The card is gone from the collection, `pawnedCards` holds its id, and the Pawnbroker never lists it. Verified with a scratch unit test for `sherlock-holmes`, `mr-griffin` and `foil:telegraph-boy`. The stake overlay also lists a foil by its raw id ("foil:telegraph-boy") with no card preview.
-- **Options:** (a) don't offer legendaries or foils as stakes (smallest change, but narrows §11.5); (b) let the Pawnbroker list a lost legendary or foil, at its base rarity price for a foil and a price for legendaries that §11.4 doesn't give; (c) leave as is and say so in House Rules. Recommend (a): she has nothing to lose from not being able to gamble the Landlady.
-- **Likely location:** `src/pub/barBet.ts` (`stakeableCards`), `src/pub/pawnbroker.ts`, `src/ui/pubHubScreen.ts` (stake overlay naming)
-
 ## P3 — Balance / polish / idea
 
 ### PT-37: Desk Sergeant has no illustration (note 18)
@@ -62,6 +53,9 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 ## Resolved
 
 (moved here by whoever fixes an item — not touched by this skill)
+
+### PT-40: A Bar Bet loss could lose a legendary or a foil for good
+- **Fixed:** 2026-10-21, option (a), merged via PR #3 (ATT-21) and taken into the upload build. `stakeableCards` (`src/pub/barBet.ts`) offers no legendary and no `foil:` entry, because the Pawnbroker can't list either (design.md §11.4); the stake overlay can no longer show a raw `foil:` id. Unit tests for `sherlock-holmes`, `mr-griffin` and `foil:telegraph-boy` in `tests/unit/pub/barBet.test.ts`. design.md §11.5 still reads "a card from your collection"; the one-line edit proposed in the PR (non-legendary, non-foil) is for Brent to apply.
 
 ### PT-39: The Birthday Invitational never unlocked for a player who missed Oct 30 itself
 - **Fixed:** 2026-10-13, ATT-26 pre-upload sweep. `checkInvitationalTrigger` (`src/tournaments/tournamentState.ts`) only set the flag when the app was opened on exactly Oct 30, so someone who first opened the game on Oct 31, or any day after, would not see the Invitational until the next October. It now triggers on Oct 30 or any later day of the same year (January to Oct 29 still keeps it hidden, and the flag stays set once triggered). Failing tests first: `tests/unit/tournaments/tournamentState.test.ts` and `tests/e2e/birthday.spec.ts` ("a player who misses Oct 30 itself", Oct 31, Nov 2 and Dec 25 against Playwright's clock). design.md §14.6 says "unlocks October 30 (any year), stays unlocked once triggered" and doesn't say "only on the day"; Brent to confirm this reading.

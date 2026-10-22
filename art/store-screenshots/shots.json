@@ -1,0 +1,50 @@
+{
+  "date": "2026-09-22T17:00:00.000Z",
+  "sizes": [
+    {
+      "dir": "iphone-6.3in-1206x2622",
+      "width": 1206,
+      "height": 2622,
+      "viewport": {
+        "width": 402,
+        "height": 874
+      }
+    },
+    {
+      "dir": "iphone-6.9in-1320x2868",
+      "width": 1320,
+      "height": 2868,
+      "viewport": {
+        "width": 440,
+        "height": 956
+      }
+    }
+  ],
+  "shots": [
+    {
+      "file": "01-pub-hub.png",
+      "shows": "The pub hub on a Tuesday evening: Tonight's patrons (Sir Charles, four Regulars, four Seasoned), 87 Checks, the selected deck and the hub's buttons."
+    },
+    {
+      "file": "02-match.png",
+      "shows": "Round 2 of a match against Old Nell Ashby, the player ahead one round to none, cards on both boards (Sergeant Pike and Steam Hammer on the player's side) and a hand of four to play."
+    },
+    {
+      "file": "03-card-zoom.png",
+      "shows": "The full-card zoom for a card on the player's board mid-match (Sergeant Pike when he is out): art, points, family, rarity, keyword, flavour text."
+    },
+    {
+      "file": "04-deck-builder.png",
+      "shows": "The deck builder open on \"Heavy Industry\" (20/20 cards, 45/60 points, legal), filtered to the Foundry and the cards the player owns."
+    },
+    {
+      "file": "05-chalkboard.png",
+      "shows": "The chalkboard: the Tuesday Knockout and the Peelers' Cup open to enter, the Reichenbach Open locked, each with its entry rule, cost and prize. No Birthday Invitational."
+    },
+    {
+      "file": "06-tournament-bracket.png",
+      "shows": "The Tuesday Knockout bracket: the quarterfinal won against Dodgy Reg Farrow, the semifinal against Ada Lovelace next, the final against Charles Dickens."
+    }
+  ],
+  "matchSeed": 4
+}

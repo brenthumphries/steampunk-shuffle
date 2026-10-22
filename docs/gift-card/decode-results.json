@@ -1,0 +1,125 @@
+{
+  "tf_url": "PLACEHOLDER",
+  "rows": [
+    {
+      "page": "back-web",
+      "expected": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "back-web.png"
+    },
+    {
+      "page": "sheet-back-web",
+      "expected": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "sheet-back-web.png"
+    },
+    {
+      "page": "back-testflight",
+      "expected": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "back-testflight.png"
+    },
+    {
+      "page": "sheet-back-testflight",
+      "expected": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "sheet-back-testflight.png"
+    },
+    {
+      "page": "front-proposal",
+      "expected": [],
+      "tool": "zxing-cpp",
+      "decoded": [],
+      "status": "PASS",
+      "png": "front-proposal.png"
+    },
+    {
+      "page": "sheet-front-proposal",
+      "expected": [],
+      "tool": "zxing-cpp",
+      "decoded": [],
+      "status": "PASS",
+      "png": "sheet-front-proposal.png"
+    },
+    {
+      "page": "back-web (PDF raster)",
+      "expected": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "back-web.pdf"
+    },
+    {
+      "page": "sheet-back-web (PDF raster)",
+      "expected": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "sheet-back-web.pdf"
+    },
+    {
+      "page": "back-testflight (PDF raster)",
+      "expected": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "back-testflight.pdf"
+    },
+    {
+      "page": "sheet-back-testflight (PDF raster)",
+      "expected": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "tool": "zxing-cpp",
+      "decoded": [
+        "PLACEHOLDER - TestFlight public link not created yet. Do not print.",
+        "https://brenthumphries.github.io/steampunk-shuffle/"
+      ],
+      "status": "PASS",
+      "png": "sheet-back-testflight.pdf"
+    }
+  ]
+}

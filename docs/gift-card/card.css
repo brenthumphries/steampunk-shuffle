@@ -1,0 +1,109 @@
+/* Shared look for the Steampunk Shuffle gift card (ATT-29).
+   Card = 5 x 7 in trim + 0.125 in bleed on every side = 5.25 x 7.25 in page.
+   Palette from docs/style-bible.md section 2. Type: Playfair Display (headings)
+   and Lora (body), both SIL OFL, files in fonts/. */
+
+@font-face { font-family: "Lora"; font-weight: 400; font-style: normal; src: url("fonts/lora-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Lora"; font-weight: 400; font-style: italic; src: url("fonts/lora-latin-400-italic.woff2") format("woff2"); }
+@font-face { font-family: "Lora"; font-weight: 600; font-style: normal; src: url("fonts/lora-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Lora"; font-weight: 700; font-style: normal; src: url("fonts/lora-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Playfair Display"; font-weight: 700; font-style: normal; src: url("fonts/playfair-display-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Playfair Display"; font-weight: 700; font-style: italic; src: url("fonts/playfair-display-latin-700-italic.woff2") format("woff2"); }
+@font-face { font-family: "Playfair Display"; font-weight: 900; font-style: normal; src: url("fonts/playfair-display-latin-900-normal.woff2") format("woff2"); }
+
+:root {
+  --ink: #1d1610;            /* ink black, never #000 (style bible) */
+  --parchment: #f3e8d2;      /* parchment cream */
+  --parchment-edge: #e4d1a9;
+  --brass: #a9772a;          /* brass & copper */
+  --gold: #c9a24a;           /* sovereign gold, sparingly */
+  --oxblood: #6b1f1a;        /* oxblood leather */
+  --gunmetal: #2b3645;       /* gunmetal blue */
+  --verdigris: #3d7567;
+  --bleed: 0.125in;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.card {
+  position: relative;
+  width: 5.25in;
+  height: 7.25in;
+  overflow: hidden;
+  background: var(--gunmetal);
+  color: var(--ink);
+  font-family: "Lora", Georgia, serif;
+}
+.card .bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+/* Card-back art is scaled up so its own rounded card edge falls out in the bleed, not inside the trim. */
+.card.back .bg { background-size: auto 114% !important; background-position: 50% 50% !important; background-color: #0e1420; }
+/* Trim box: everything the person sees sits inside it. */
+.card .trim { position: absolute; inset: var(--bleed); }
+
+/* ---------- back: parchment panel on the card-back art ---------- */
+.panel {
+  position: absolute;
+  inset: 0.3in;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    var(--parchment);
+  border-radius: 0.14in;
+  box-shadow: 0 0 0 0.03in var(--gold), 0 0 0 0.06in var(--ink), inset 0 0 0 0.03in var(--brass);
+  padding: 0.2in 0.22in 0.18in;
+  display: flex; flex-direction: column;
+}
+.head { display: flex; align-items: center; justify-content: center; gap: 0.16in; }
+.head .icon {
+  width: 0.78in; height: 0.78in; border-radius: 0.17in; flex: none;
+  background: url("art/app-icon.jpg") center/cover;
+  box-shadow: 0 0 0 0.02in var(--ink);
+}
+.head .word {
+  font-family: "Playfair Display", Georgia, serif; font-weight: 900;
+  font-size: 31pt; line-height: 1; letter-spacing: 0.01em; color: var(--ink);
+}
+.rule { height: 0.03in; margin: 0.13in 0 0.12in; background: linear-gradient(90deg, transparent, var(--brass) 15%, var(--brass) 85%, transparent); }
+
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li {
+  counter-increment: s;
+  display: flex; align-items: center; gap: 0.15in;
+  margin-bottom: 0.13in;
+  font-weight: 600; font-size: 17pt; line-height: 1.22; color: var(--ink);
+}
+.steps li::before {
+  content: counter(s);
+  flex: none; width: 0.46in; height: 0.46in; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--oxblood); color: var(--parchment);
+  font-family: "Playfair Display", Georgia, serif; font-weight: 900; font-size: 22pt; line-height: 1;
+  box-shadow: 0 0 0 0.02in var(--gold);
+}
+
+/* ---------- QR ---------- */
+.qr { display: block; width: max-content; background: #fff; line-height: 0; }
+.qr svg { display: block; }
+.qrbox { text-align: center; }
+.qrbox .cap {
+  font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-style: italic;
+  font-size: 19pt; line-height: 1.1; color: var(--ink); margin: 0 0 0.07in;
+}
+.qrbox .cap.small { font-size: 14pt; margin-bottom: 0.05in; }
+.qrbox .qr { margin: 0 auto; box-shadow: 0 0 0 0.02in var(--ink); border-radius: 0.04in; overflow: hidden; }
+.qrbox .note { font-size: 12pt; line-height: 1.2; margin: 0.06in 0 0; color: var(--ink); }
+.qrbox .qr.ph { box-shadow: 0 0 0 0.04in #b00020; }
+.ph-tag {
+  display: inline-block; margin-top: 0.06in; padding: 0.02in 0.08in;
+  font-family: "Lora", serif; font-weight: 700; font-size: 12pt; line-height: 1.2;
+  color: #fff; background: #b00020; border-radius: 0.04in;
+}
+
+.slug {   /* proof-only strip in the bleed; trimmed off at print */
+  position: absolute; left: 0; right: 0; top: 0; height: var(--bleed);
+  background: #fff; color: #b00020;
+  font: 700 6pt/var(--bleed) "Lora", serif; text-align: center; letter-spacing: .04em;
+}
