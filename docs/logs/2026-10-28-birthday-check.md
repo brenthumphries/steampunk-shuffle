@@ -67,7 +67,7 @@ I used a temporary Playwright spec kept outside the repo, driving `https://brent
 - Console: one 404, for `https://brenthumphries.github.io/favicon.ico`. That is Chromium asking at the domain root. The page declares only an apple-touch-icon, which returns 200. It is harmless on iOS.
 - The launch intro film (`video/intro.mp4`, 4.95 MB, and its poster) is served 200 and is in the service worker precache, so it works offline.
 - Playwright reports `navigator.webdriver`, which skips the intro. Automation therefore never played it. See the phone checks below.
-- The screenshots are in the session scratchpad: `/tmp/claude-0/-home-user-steampunk-shuffle/022deabb-1147-5217-a7da-85dee560b919/scratchpad/live-e2e/shots/`. They are not committed, because the brief allows only the report as a new file. The scratchpad is lost when the container is reclaimed.
+- The screenshots are committed in `docs/logs/2026-10-28-birthday-check-shots/` (PNG, half the captured size, 603x1311).
 
 ### 4. Birthday dates, test browser only
 
