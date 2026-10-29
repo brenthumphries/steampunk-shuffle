@@ -527,6 +527,8 @@ Written 2026-10-29 for a session that opens after the 30 Oct handoff.
 - **Re-upload (version stays 1.0, Build goes to 5):** steps A, B, D, E and H of
   `docs/testflight-checklist.md`, in short:
   1. `git pull`, then `npm run typecheck && npm test`, then `npm run cap:sync`.
+     One e2e test, `birthday.spec.ts:163`, can fail on an image-load timing race in the test itself
+     (not an app bug); the fix is Linear ATT-80. Until it lands, a failure of only that test is not a reason to hold the build.
   2. `npx cap open ios`; in Xcode raise **Build** by one on the General tab. Xcode edits
      `project.pbxproj`; nobody edits it by hand.
   3. Product, Archive; Distribute App, **TestFlight & App Store**. Wait for Processing.
