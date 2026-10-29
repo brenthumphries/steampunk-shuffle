@@ -518,10 +518,9 @@ Written 2026-10-29 for a session that opens after the 30 Oct handoff.
 - **The build she has:** Wheatstone 1.0 (4), uploaded to TestFlight on **Fri 23 Oct 2026**.
   Source: Brent's comment on ATT-26, 2026-10-23 23:19 UTC (6:19 pm Central); build 4 matches
   `CURRENT_PROJECT_VERSION = 4` in the Xcode project. It was the final build (ATT-28 Done).
-- **It stops opening on Thu 21 Jan 2027** (23 Oct + 90 days). Apple: "Your build becomes unavailable
-  for testers after 90 days" ([TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/)).
-  Confirm the date in App Store Connect, TestFlight, Builds. The 18 Jan and 25 Jan dates in older
-  docs assumed other upload dates; this one replaces them.
+- **It stops opening on Thu 21 Jan 2027** (23 Oct + 90 days; Apple: "Your build becomes unavailable
+  for testers after 90 days", [TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/)).
+  Confirm in App Store Connect, TestFlight, Builds; the 18 and 25 Jan dates in older docs assumed other upload dates.
 - **Reminder: Thu 7 Jan 2027**, 14 days before expiry: Linear ATT-79 ("Re-upload Wheatstone to
   TestFlight before the build expires", due that date).
 - **Re-upload (version stays 1.0, Build goes to 5):** steps A, B, D, E and H of
@@ -538,11 +537,9 @@ Written 2026-10-29 for a session that opens after the 30 Oct handoff.
   6. Tell her to update from the TestFlight app. Ask Brent to check her save is still there
      (same bundle id; not verified here). Log the new upload date and rewrite this section's dates.
 - **Privacy manifest (ITMS-91053):** `ios/App/App/PrivacyInfo.xcprivacy` is in
-  [PR #7](https://github.com/brenthumphries/steampunk-shuffle/pull/7) (merge after 31 Oct; it replaced PR #4).
-  Add it to the App target per `docs/privacy-manifest.md` in the ATT-79 re-upload (recommended: Build goes up
-  anyway; needed for any public release), and at once if Apple emails ITMS-91053. Apple requires an uploaded
-  app to declare reasons for the listed APIs
-  ([Upcoming requirements](https://developer.apple.com/news/upcoming-requirements/)).
+  [PR #7](https://github.com/brenthumphries/steampunk-shuffle/pull/7) (merge after 31 Oct; replaced PR #4). Add it to the
+  App target per `docs/privacy-manifest.md` in the ATT-79 re-upload (recommended; needed for a public release), and at
+  once if Apple emails ITMS-91053 ([Upcoming requirements](https://developer.apple.com/news/upcoming-requirements/)).
 - **Apple's SDK floor:** uploads need Xcode 26 or later now; from April 2027 the iOS 27 SDK
   ([Submitting](https://developer.apple.com/app-store/submitting/)).
 - **Add a card:** `ss-card-author`, then `npm run typecheck && npm test`, `npm run sim`
