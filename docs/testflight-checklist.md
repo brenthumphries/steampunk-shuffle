@@ -85,35 +85,7 @@ Checked against Apple's own pages on **2026-10-13**. Nothing below is legal advi
 - **Privacy policy URL:** Apple's TestFlight pages do not list it as a beta field, but guideline 5.1.1(i) says all apps need one and 2.2 says beta builds "should comply with the App Review Guidelines". It costs nothing, so add it under **App Privacy**: `https://brenthumphries.github.io/steampunk-shuffle/privacy.html`. **That page exists only after the PR that adds it is merged and GitHub Pages has deployed**, so open the link in a browser before you paste it (guideline 2.1: URLs must work).
 - **App Privacy answers:** Apple says these are "required to submit new apps and app updates to the App Store" and does not mention TestFlight. Fill them in anyway: **No, we do not collect data from this app**. Field by field, with the proof, in `docs/app-privacy-answers.md`.
 - **Export compliance:** `ITSAppUsesNonExemptEncryption` is already `false` in `ios/App/App/Info.plist` (checked), which stops App Store Connect asking on every upload. The app makes no network connections and has no encryption code of its own, which is the reason for `false`. Apple's page on this is a script-only page that could not be read here, so read [Complying with encryption export regulations](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations) once and confirm you agree with the answer.
-- **Check your email after each upload for "ITMS-91053" (missing API declaration).** Apple's [Feb 2024 notice](https://developer.apple.com/news/?id=3d8a9yyh): from May 1, 2024 you "need to include approved reasons for the listed APIs used by your app's code to upload a new or updated app". `@capacitor/preferences` uses `UserDefaults`, one of those APIs; the plugin ships no privacy manifest (checked in `node_modules`), Capacitor's own manifest is empty, and `ios/App/App/` has none. Build 1.0 (1) processed, so Apple accepted it, but a warning email may have come. If one did, before the next upload add a file `ios/App/App/PrivacyInfo.xcprivacy` in Xcode (File, New, File, App Privacy), tick the **App** target, and paste:
-
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-  <dict>
-    <key>NSPrivacyTracking</key>
-    <false/>
-    <key>NSPrivacyTrackingDomains</key>
-    <array/>
-    <key>NSPrivacyCollectedDataTypes</key>
-    <array/>
-    <key>NSPrivacyAccessedAPITypes</key>
-    <array>
-      <dict>
-        <key>NSPrivacyAccessedAPIType</key>
-        <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
-        <key>NSPrivacyAccessedAPITypeReasons</key>
-        <array>
-          <string>CA92.1</string>
-        </array>
-      </dict>
-    </array>
-  </dict>
-  </plist>
-  ```
-
-  `CA92.1` ("read and write only this app's own settings") is the code Capacitor's documentation uses for this plugin; that page could not be opened from here, so confirm the code in Apple's required-reason list inside Xcode's documentation. Raise **Build** by one and upload again. Then tell Claude, so the repo gets the same file.
+- **Privacy manifest (ITMS-91053, "missing API declaration").** Apple's [Feb 2024 notice](https://developer.apple.com/news/?id=3d8a9yyh): from May 1, 2024 you "need to include approved reasons for the listed APIs used by your app's code to upload a new or updated app". `@capacitor/preferences` uses `UserDefaults`, one of those APIs, and ships no manifest. The ready file is `ios/App/App/PrivacyInfo.xcprivacy` (reason `CA92.1`, confirmed against Apple's reason list on 2026-10-29); the click-by-click steps are in section H step 2 and `docs/privacy-manifest.md`. Check your email after each upload for ITMS-91053; if one arrives, do that step before the next upload.
 
 **3. Which guidelines a wrapped web game trips, and does beta review apply them?** Yes: Apple says beta builds "should comply with the App Review Guidelines" (2.2) and the first external build is reviewed "to make sure it follows" them.
 
@@ -159,9 +131,10 @@ Fallback if TestFlight fails for any reason: the PWA at https://brenthumphries.g
 ## H. Updating the build (plan 5.1)
 
 1. Fix the bug, ship to `main`, run `npm run cap:sync`.
-2. In Xcode raise **Build** by one (General tab) and keep Version at 1.0.
-3. Archive, upload, wait for processing. Later builds of an approved version normally skip a full review.
-4. **Final build by Oct 27.**
+2. **Once, in the first re-upload after the manifest is merged (the ATT-79 re-upload, due Thu 7 Jan 2027; also needed for any public release, ATT-32, and straight away if Apple emails ITMS-91053): add the privacy manifest to the App target.** Do steps 1 to 7 of `docs/privacy-manifest.md` (`git pull`, `npx cap open ios`, right-click the yellow **App** folder, **Add Files to "App"...**, tick the **App** target, check **Target Membership** and **Copy Bundle Resources**). Skip this step when `PrivacyInfo.xcprivacy` is already listed under **Copy Bundle Resources**.
+3. In Xcode raise **Build** by one (General tab) and keep Version at 1.0.
+4. Archive, upload, wait for processing. Later builds of an approved version normally skip a full review. After the first archive with the manifest, Control-click the archive in the Organizer and choose **Generate Privacy Report** to see `UserDefaults` / `CA92.1` listed.
+5. **Final build by Oct 27.**
 
 ## After launch
 
