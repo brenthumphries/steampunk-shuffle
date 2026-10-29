@@ -511,6 +511,45 @@ the entry it means is now in `docs/logs/`.
 
 ---
 
+## Post-launch (plan 5.3, ATT-31)
+
+Written 2026-10-29 for a session that opens after the 30 Oct handoff.
+
+- **The build she has:** Wheatstone 1.0 (4), uploaded to TestFlight on **Fri 23 Oct 2026**.
+  Source: Brent's comment on ATT-26, 2026-10-23 23:19 UTC (6:19 pm Central); build 4 matches
+  `CURRENT_PROJECT_VERSION = 4` in the Xcode project. It was the final build (ATT-28 Done).
+- **It stops opening on Thu 21 Jan 2027** (23 Oct + 90 days). Apple: "Your build becomes unavailable
+  for testers after 90 days" ([TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/)).
+  Confirm the date in App Store Connect, TestFlight, Builds. The 18 Jan and 25 Jan dates in older
+  docs assumed other upload dates; this one replaces them.
+- **Reminder: Thu 7 Jan 2027**, 14 days before expiry. Brent: if no "Re-upload Wheatstone" issue
+  exists in Linear for that date, add one (Brent / deep work).
+- **Re-upload (version stays 1.0, Build goes to 5):** steps A, B, D, E and H of
+  `docs/testflight-checklist.md`, in short:
+  1. `git pull`, then `npm run typecheck && npm test`, then `npm run cap:sync`.
+  2. `npx cap open ios`; in Xcode raise **Build** by one on the General tab. Xcode edits
+     `project.pbxproj`; nobody edits it by hand.
+  3. Product, Archive; Distribute App, **TestFlight & App Store**. Wait for Processing.
+  4. Add the new build to the external group she is in and press **Notify Testers** if offered.
+     Later builds of the same version usually clear review quickly.
+  5. Pages must serve the same commit: `ss-ship`, Brent runs it.
+  6. Tell her to update from the TestFlight app. Ask Brent to check her save is still there
+     (same bundle id; not verified here). Log the new upload date and rewrite this section's dates.
+- **If Apple emails ITMS-91053** (missing privacy manifest): merge the parked PR #4
+  (`ios/privacy-manifest`), add `PrivacyInfo.xcprivacy` to the App target per `docs/privacy-manifest.md`
+  on that branch, then upload. Apple requires an uploaded app to declare reasons for the listed APIs
+  ([Upcoming requirements](https://developer.apple.com/news/upcoming-requirements/)).
+- **Apple's SDK floor:** uploads need Xcode 26 or later now; from April 2027 the iOS 27 SDK
+  ([Submitting](https://developer.apple.com/app-store/submitting/)).
+- **Add a card:** `ss-card-author`, then `npm run typecheck && npm test`, `npm run sim`
+  and `npm run curve -- regular seasoned 200`; the card data is in `src/cards/data/`. Content
+  changes need a new TestFlight build (above) to reach her; Pages updates on `ss-ship`.
+- **Ship:** `ss-ship` (typecheck, test, build, commit, push, Pages deploy). A push to main deploys.
+- **Public or Unlisted release** is Brent's open decision (ATT-32); the packet is
+  `docs/decisions/att-32-public-release.md`. If it goes ahead, the 90-day re-upload chore ends.
+
+---
+
 ## Repo structure
 
 ```
