@@ -134,6 +134,6 @@ Decision date: **7 Jan 2027** at the latest, so a fallback re-upload is still po
 - [EU Digital Services Act trader requirements](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements/)
 - [Set an app age rating](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating)
 - [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), as read 2026-10-13 in `docs/app-store-readiness.md`
-- Not readable on 2026-10-29, so unconfirmed: [Describing use of required reason API](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api) (page body would not load; the `CA92.1` text is second-hand), [App Review](https://developer.apple.com/app-store/review/) (no review-time figure found).
+- Not readable on 2026-10-29, so unconfirmed: [App Review](https://developer.apple.com/app-store/review/) (no review-time figure found).
 - Linear: ATT-26 (build 4 upload comment, 23 Oct), ATT-28, ATT-31, ATT-32 (20 Oct and 14 Oct comments), ATT-36, ATT-66 (25 Oct comments).
 - Repository: `docs/app-store-readiness.md`, `docs/store-listing.md`, `docs/app-privacy-answers.md`, `docs/testflight-checklist.md`, `docs/birthday-plan.md`.
