@@ -522,8 +522,8 @@ Written 2026-10-29 for a session that opens after the 30 Oct handoff.
   for testers after 90 days" ([TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/)).
   Confirm the date in App Store Connect, TestFlight, Builds. The 18 Jan and 25 Jan dates in older
   docs assumed other upload dates; this one replaces them.
-- **Reminder: Thu 7 Jan 2027**, 14 days before expiry. Brent: if no "Re-upload Wheatstone" issue
-  exists in Linear for that date, add one (Brent / deep work).
+- **Reminder: Thu 7 Jan 2027**, 14 days before expiry: Linear ATT-79 ("Re-upload Wheatstone to
+  TestFlight before the build expires", due that date).
 - **Re-upload (version stays 1.0, Build goes to 5):** steps A, B, D, E and H of
   `docs/testflight-checklist.md`, in short:
   1. `git pull`, then `npm run typecheck && npm test`, then `npm run cap:sync`.
