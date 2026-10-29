@@ -537,9 +537,11 @@ Written 2026-10-29 for a session that opens after the 30 Oct handoff.
   5. Pages must serve the same commit: `ss-ship`, Brent runs it.
   6. Tell her to update from the TestFlight app. Ask Brent to check her save is still there
      (same bundle id; not verified here). Log the new upload date and rewrite this section's dates.
-- **If Apple emails ITMS-91053** (missing privacy manifest): merge
-  [PR #7](https://github.com/brenthumphries/steampunk-shuffle/pull/7) (merge after 31 Oct; it replaced PR #4),
-  add `PrivacyInfo.xcprivacy` to the App target per `docs/privacy-manifest.md`, then upload. Apple requires an uploaded app to declare reasons for the listed APIs
+- **Privacy manifest (ITMS-91053):** `ios/App/App/PrivacyInfo.xcprivacy` is in
+  [PR #7](https://github.com/brenthumphries/steampunk-shuffle/pull/7) (merge after 31 Oct; it replaced PR #4).
+  Add it to the App target per `docs/privacy-manifest.md` in the ATT-79 re-upload (recommended: Build goes up
+  anyway; needed for any public release), and at once if Apple emails ITMS-91053. Apple requires an uploaded
+  app to declare reasons for the listed APIs
   ([Upcoming requirements](https://developer.apple.com/news/upcoming-requirements/)).
 - **Apple's SDK floor:** uploads need Xcode 26 or later now; from April 2027 the iOS 27 SDK
   ([Submitting](https://developer.apple.com/app-store/submitting/)).
