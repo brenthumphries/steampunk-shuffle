@@ -1,0 +1,93 @@
+name: Deploy to GitHub Pages
+
+# Builds the Vite app and publishes dist/ to GitHub Pages. Gated on
+# typecheck, unit tests, and cross-browser e2e (Safari/Chrome/Firefox/Edge —
+# playwright.config.ts's four projects) so a broken build, or a
+# browser-specific regression, never reaches the URL Brent's phone loads.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; don't cancel a run that is already publishing.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.head_ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Pinned, not ubuntu-latest: GitHub moves that label to Ubuntu 26 on
+# 2026-10-19, which would change the runner (and Playwright's browser
+# dependencies) in the middle of the birthday build. Revisit after Oct 30.
+jobs:
+  build:
+    name: Typecheck, test, build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  e2e:
+    name: E2E (${{ matrix.project }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each project maps to exactly the browser(s) it needs — Chrome and
+        # Edge are real branded Chromium builds Playwright downloads
+        # separately from its own bundled trio (see playwright.config.ts's
+        # own comment on why `channel: "chrome"/"msedge"` matters here, not
+        # just `devices["Desktop Chrome"/"Desktop Edge"]` alone).
+        include:
+          - project: Safari
+            install: webkit
+          - project: Chrome
+            install: chrome
+          - project: Firefox
+            install: firefox
+          - project: Edge
+            install: msedge
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.install }}
+      - run: npx playwright test --project="${{ matrix.project }}"
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: [build, e2e]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
