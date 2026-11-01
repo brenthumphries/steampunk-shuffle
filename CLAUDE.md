@@ -622,7 +622,7 @@ steampunk-shuffle/
 Process conventions read by the bops plugin (`/next`, `/route`, `/daily`,
 `/log`, `/verify`, `/weekly`). Reviews are off: there is no review cycle and
 no `week.json`. Commits arrive as PRs from Claude agents; the orchestrator (one
-Opus Cowork conversation) merges them, and release runs through CI. The running
+Claude Code session, the Code lane) merges them, and release runs through CI. The running
 log is `docs/logs/`, one entry per session.
 
 ```yaml
@@ -642,7 +642,7 @@ bops:
     also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md, seasonal-events-plan.md, docs/plans/monthly/]
   commit:
     tool: ss-ship (tools/ship.sh); Brent runs it
-    flow: "commits arrive as PRs from Claude agents; orchestrator (one Opus Cowork conversation) merges; release runs through CI"
+    flow: "commits arrive as PRs from Claude agents; Code-lane orchestrator (a Claude Code session) merges; release runs through CI"
     branch: main
     git_over_mount: never
   dispatch: orchestrator
