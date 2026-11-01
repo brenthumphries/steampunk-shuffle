@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Plan step 2.5's exit check: "each path yields cards." Lost & Found's
 // claim and the Pawnbroker's rotating window don't need a played match to
@@ -10,6 +11,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("the back room (plan step 2.5)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();

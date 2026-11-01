@@ -13,6 +13,9 @@ export function noonOn(year: number, month: number, day: number): Date {
   return new Date(year, month - 1, day, 12, 0, 0);
 }
 
+/** A quiet day before the Hallowe'en layer, the dedication hold and the Birthday Invitational (all calendar-driven); specs that don't test the calendar pin to it. */
+export const QUIET_PRE_BIRTHDAY = noonOn(2026, 9, 22);
+
 export interface ErrorLog {
   /** Uncaught exceptions and console.error output. */
   errors: string[];

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Plan step 2.4's exit check: "Play through a bracket; prizes awarded;
 // date trigger tested by faking the clock." Full AI-paced bracket play
@@ -11,6 +12,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("tournaments (plan step 2.4)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();

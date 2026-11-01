@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ALL_CARDS } from "../../src/cards/data/index.ts";
 import type { MatchState } from "../../src/engine/matchEngine.ts";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Bugfix cluster E (note #6), extended by PT-34: a Scheme/Headline
 // ("Instant") card resolves its On Play and discards in the same atomic
@@ -51,6 +52,7 @@ function buildForcedInstantMatchState(): MatchState {
 
 test.describe("match screen: instant-card announce (bugfix cluster E)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     const matchState = buildForcedInstantMatchState();
     await page.evaluate(

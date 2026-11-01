@@ -19,8 +19,8 @@ permissions:
 
 # One deploy at a time; don't cancel a run that is already publishing.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.head_ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Pinned, not ubuntu-latest: GitHub moves that label to Ubuntu 26 on
 # 2026-10-19, which would change the runner (and Playwright's browser

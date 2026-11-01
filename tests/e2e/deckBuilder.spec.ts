@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Plan step 2.2's exit check: "Can build, save, rename, and select a legal
 // deck; illegal decks blocked with a reason." Each test clears localStorage
@@ -9,6 +10,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("deck builder (plan step 2.2)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();

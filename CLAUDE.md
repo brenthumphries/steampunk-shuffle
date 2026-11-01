@@ -54,6 +54,8 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
+- **TestFlight from CI (S-5b): `.github/workflows/testflight.yml` is manual-only (`workflow_dispatch`, input `upload` default true; false is an archive-and-export dry run).** It runs `npm run cap:sync`, archives scheme `App` on `macos-15` with Xcode 26.0.1 and cloud-managed signing via the App Store Connect API key (secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID`; the .p8 lives in `$RUNNER_TEMP` and is deleted in an `always()` step). It overrides `CURRENT_PROJECT_VERSION` on the command line to 4 + run number rather than editing the pbxproj. Never run, so unverified until the first dispatch.
+
 - **Privacy and review (2026-10-13, ATT-33/34): the privacy answer is "Data Not Collected", and a test holds it
   up.** `tests/e2e/privacy.spec.ts` fails on any cross-origin or non-GET request, WebSocket, cookie, or
   `localStorage` key outside the seven documented in `public/privacy.html` and `docs/app-privacy-answers.md`; if you add
@@ -622,7 +624,7 @@ steampunk-shuffle/
 Process conventions read by the bops plugin (`/next`, `/route`, `/daily`,
 `/log`, `/verify`, `/weekly`). Reviews are off: there is no review cycle and
 no `week.json`. Commits arrive as PRs from Claude agents; the orchestrator (one
-Opus Cowork conversation) merges them, and release runs through CI. The running
+Claude Code session, the Code lane) merges them, and release runs through CI. The running
 log is `docs/logs/`, one entry per session.
 
 ```yaml
@@ -642,7 +644,7 @@ bops:
     also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md, seasonal-events-plan.md, docs/plans/monthly/]
   commit:
     tool: ss-ship (tools/ship.sh); Brent runs it
-    flow: "commits arrive as PRs from Claude agents; orchestrator (one Opus Cowork conversation) merges; release runs through CI"
+    flow: "commits arrive as PRs from Claude agents; Code-lane orchestrator (a Claude Code session) merges; release runs through CI"
     branch: main
     git_over_mount: never
   dispatch: orchestrator

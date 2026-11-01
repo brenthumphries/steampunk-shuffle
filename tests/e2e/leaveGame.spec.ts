@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // PT-33: a player had no way to exit a match in progress except finishing
 // it. Adds a "Leave Game" button while a match is in progress — omitted
@@ -39,6 +40,7 @@ test.describe("Leave Game (PT-33)", () => {
 
   test.describe("pickup match", () => {
     test.beforeEach(async ({ page }) => {
+      await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
       await page.goto("/steampunk-shuffle/");
       await page.evaluate(() => {
         localStorage.clear();
@@ -87,6 +89,7 @@ test.describe("Leave Game (PT-33)", () => {
 
   test.describe("tournament match", () => {
     test.beforeEach(async ({ page }) => {
+      await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
       await page.goto("/steampunk-shuffle/");
       await page.evaluate(() => {
         localStorage.clear();
