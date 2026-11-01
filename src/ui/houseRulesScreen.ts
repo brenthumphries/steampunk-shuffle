@@ -71,6 +71,7 @@ const KEYWORDS: KeywordEntry[] = [
   { name: "Reveal", reminder: "Shows your opponent's hand to you until end of turn." },
   { name: "Undying", reminder: "If this is face-down at the end of the round, it goes back to your hand instead of the discard." },
   { name: "Moonrise +N", reminder: "Worth N more in the final round: round three, or any round that could end the match." },
+  { name: "Scry N", reminder: "Look at the top N cards of your deck. Put any of them on the bottom and the rest back on top, in any order." },
   { name: "Legendary", reminder: "A deck may contain at most one copy of each legendary card." },
 ];
 

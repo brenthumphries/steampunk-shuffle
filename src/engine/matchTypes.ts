@@ -99,8 +99,23 @@ export interface OwnedBoardCard {
  */
 export type TargetChooser = (candidates: OwnedBoardCard[], effect: Effect, target: Target) => OwnedBoardCard[];
 
+/**
+ * The controller's answer to a Scry (design.md §5.16): `top` is what goes back
+ * on top of the deck, first card first; `bottom` goes under the deck in the
+ * order given, so its last card ends up on the very bottom. Together they must name every looked-at card exactly once.
+ */
+export interface ScryChoice {
+  top: string[];
+  bottom: string[];
+}
+
+/** Called with the top `min(N, deck size)` instances, top card first. Never called for an empty look. */
+export type ScryChooser = (cards: readonly CardInstance[], amount: number) => ScryChoice;
+
 export interface PlayOptions {
   chooseTargets?: TargetChooser;
+  /** Omit to leave the order alone (what Scry does inside AI lookahead and the simulators). */
+  chooseScry?: ScryChooser;
 }
 
 export type { Ability, Effect, Target };

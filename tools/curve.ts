@@ -11,7 +11,7 @@
 // Regulars, ~40-45% vs Seasoned, ~30% vs Legends; seasonal visitors are
 // Seasoned-tier intent (seasonal-events-plan.md §5: 40-50%).
 
-import { chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
+import { aiScryChooser, chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
 import { createMatch, currentPlayer, playTurn, type MatchResult } from "../src/engine/matchEngine.ts";
 import type { Deck } from "../src/cards/cardTypes.ts";
 import {
@@ -34,11 +34,11 @@ function playGame(deckA: Deck, deckB: Deck, difA: Difficulty, difB: Difficulty, 
   while (state.status === "in-progress" && guard++ < TURN_GUARD) {
     if (currentPlayer(state) === "A") {
       const move = chooseAIMove(state, "A", deckB, difA, seedA);
-      state = playTurn(state, "A", move.instanceId);
+      state = playTurn(state, "A", move.instanceId, { chooseScry: aiScryChooser(state, "A") });
       seedA = move.nextSeed;
     } else {
       const move = chooseAIMove(state, "B", deckA, difB, seedB);
-      state = playTurn(state, "B", move.instanceId);
+      state = playTurn(state, "B", move.instanceId, { chooseScry: aiScryChooser(state, "B") });
       seedB = move.nextSeed;
     }
   }

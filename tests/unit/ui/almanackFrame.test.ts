@@ -76,10 +76,10 @@ describe("Heather", () => {
     expect(contrast(HEATHER, "#f2e6d0")).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("matches the --family-coven token in style.css, and \"coven\" is not a family yet", () => {
+  it("matches the --family-coven token in style.css, and \"coven\" is a family", () => {
     const css = readFileSync("src/style.css", "utf8");
     expect(css).toMatch(/--family-coven:\s*#6e5a7e;/);
     expect(css).toContain('.card[data-family="coven"]');
-    expect((FAMILIES as readonly string[]).includes("coven")).toBe(false);
+    expect((FAMILIES as readonly string[]).includes("coven")).toBe(true);
   });
 });

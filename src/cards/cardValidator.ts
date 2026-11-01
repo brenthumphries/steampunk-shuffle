@@ -97,6 +97,7 @@ const EFFECT_KINDS = [
   "discardLocation",
   "buff",
   "steal",
+  "scry",
 ] as const;
 
 function validateEffect(effect: unknown, path: string, errors: string[]): void {
@@ -132,6 +133,11 @@ function validateEffect(effect: unknown, path: string, errors: string[]): void {
       validateTarget(e.target, `${path}.target`, errors);
       if (!isInteger(e.amount)) {
         errors.push(`${path}.amount: expected an integer`);
+      }
+      break;
+    case "scry":
+      if (!isInteger(e.amount) || (e.amount as number) < 1) {
+        errors.push(`${path}.amount: expected a positive integer`);
       }
       break;
     case "discardLocation":
@@ -248,6 +254,10 @@ function validateFace(
     } else {
       f.abilities.forEach((ability, index) => {
         validateAbility(ability, `${path}.abilities[${index}]`, errors);
+        const scries = isPlainObject(ability) && Array.isArray((ability as Partial<Ability>).effects) && (ability as Ability).effects.some((e) => isPlainObject(e) && e.effect === "scry");
+        if (scries && f.type === "location") {
+          errors.push(`${path}.abilities[${index}]: a location has no controller, so it cannot Scry`);
+        }
       });
     }
   }
