@@ -55,6 +55,8 @@ export interface CreateMatchOptions {
    * hidden-hand sampling never mistakes it for a card out of someone's deck.
    */
   initialLocation?: Card;
+  /** Extra opening-hand cards per player (the Booth's openingHandPlusOne omen gives the human one more). Default none. */
+  extraOpeningCards?: Partial<Record<PlayerId, number>>;
 }
 
 function expandDeck(deck: Deck, ownerTag: string): CardInstance[] {
@@ -112,8 +114,8 @@ export function createMatch(deckA: Deck, deckB: Deck, opts: CreateMatchOptions =
   // Opening hands (design.md §6.1). Every turn from here also draws a card
   // (§6.2 step 2, resolved in playTurn) — there is no separate round-start
   // draw any more.
-  drawCards(state, "A", OPENING_HAND_SIZE);
-  drawCards(state, "B", OPENING_HAND_SIZE);
+  drawCards(state, "A", OPENING_HAND_SIZE + (opts.extraOpeningCards?.A ?? 0));
+  drawCards(state, "B", OPENING_HAND_SIZE + (opts.extraOpeningCards?.B ?? 0));
 
   return state;
 }

@@ -20,6 +20,8 @@ const RARITY_WEIGHT: Record<RollableRarity, number> = { common: 0.7, uncommon: 0
 const OWNED_CAP_WEIGHT = 0.15;
 
 const LOST_AND_FOUND_SALT = 0x1274a1;
+const LOST_AND_FOUND_EXTRA_SALT = 0x3c91d7;
+const EXTRA_REROLL_LIMIT = 20;
 
 function ownedCount(collection: readonly string[], cardId: string): number {
   return collection.filter((id) => id === cardId).length;
@@ -41,10 +43,25 @@ function pickWeighted<T>(items: readonly T[], weights: readonly number[], seed: 
  * real-world day" via `PubState.lastLostAndFoundDate`
  * (src/pub/pubState.ts's `hasClaimedLostAndFoundToday`/`claimLostAndFound`).
  */
-export function rollLostAndFound(collection: readonly string[], date: Date): Card {
-  const daySeed = localDayIndex(date) ^ LOST_AND_FOUND_SALT;
+export function rollLostAndFound(collection: readonly string[], date: Date, options: { upgrade?: boolean } = {}): Card {
+  return rollFrom(collection, date, localDayIndex(date) ^ LOST_AND_FOUND_SALT, options.upgrade ?? false);
+}
 
-  const rarity = pickWeighted(RARITY_ORDER, RARITY_ORDER.map((r) => RARITY_WEIGHT[r]), daySeed);
+/** The second card of a `lostAndFoundExtra` day: its own seed, and never the same card as the first. */
+export function rollLostAndFoundExtra(collection: readonly string[], date: Date, firstCardId: string, options: { upgrade?: boolean } = {}): Card {
+  let seed = localDayIndex(date) ^ LOST_AND_FOUND_EXTRA_SALT;
+  let card = rollFrom(collection, date, seed, options.upgrade ?? false);
+  for (let tries = 0; card.id === firstCardId && tries < EXTRA_REROLL_LIMIT; tries++) {
+    seed += 2;
+    card = rollFrom(collection, date, seed, options.upgrade ?? false);
+  }
+  return card;
+}
+
+function rollFrom(collection: readonly string[], date: Date, daySeed: number, upgrade: boolean): Card {
+  const rolled = pickWeighted(RARITY_ORDER, RARITY_ORDER.map((r) => RARITY_WEIGHT[r]), daySeed);
+  // lostAndFoundUpgrade (the Booth's omen): one rarity better, a rare staying rare.
+  const rarity = upgrade ? RARITY_ORDER[Math.min(RARITY_ORDER.indexOf(rolled) + 1, RARITY_ORDER.length - 1)]! : rolled;
 
   const pool = acquirablePoolFor(date).filter((c) => c.rarity === rarity);
   const weights = pool.map((c) => (ownedCount(collection, c.id) >= 2 ? OWNED_CAP_WEIGHT : 1));

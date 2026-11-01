@@ -90,6 +90,8 @@ export interface MatchScreenOptions {
    * play.
    */
   houseLocation?: Card;
+  /** Extra cards in the human's opening hand for a fresh match (the Booth's openingHandPlusOne omen). Ignored on resume. */
+  humanExtraOpeningCards?: number;
   /** Resume a previously-saved mid-match state (design.md §12.4: "kill the app mid-match → resume") instead of dealing a fresh one. */
   initialState?: { state: MatchState; aiSeed: number };
   /** Called on mount and after every committed turn (human play, AI turn, forced pass) so the caller can autosave the match (design.md §12.4). */
@@ -189,7 +191,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     options.initialState?.state ??
     (options.tutorial
       ? createMatch(options.humanDeck, options.aiDeck, { seed: 1, shuffle: false, leader: AI }) // design.md §13.1: "the house always leads" in the tutorial
-      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now(), initialLocation: options.houseLocation }));
+      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now(), initialLocation: options.houseLocation, extraOpeningCards: { [HUMAN]: options.humanExtraOpeningCards ?? 0 } }));
   let aiSeed = options.initialState?.aiSeed ?? (Date.now() ^ 0x9e3779b9);
   // A resumed match may have finished (killed while the match-over overlay
   // was up, before "Leave the table" was tapped) — scheduleNext() no-ops

@@ -10,11 +10,12 @@
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { buildCardZoomOverlay } from "./cardZoom.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
-import { rollLostAndFound } from "../pub/lostAndFound.ts";
+import { rollLostAndFound, rollLostAndFoundExtra } from "../pub/lostAndFound.ts";
 import { pawnbrokerWindow, canAfford, buyFromPawnbroker, type PawnbrokerSlot } from "../pub/pawnbroker.ts";
 import { canFuse, fuseChoicesFor, fuse, TINKER_FEE_CHECKS, TINKERS_BENCH_UNLOCK_WINS, type FuseChoice } from "../pub/tinkersBench.ts";
 import { claimLostAndFound, countInCollection, hasClaimedLostAndFoundToday, loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
 import { playSound } from "../audio/soundEngine.ts";
+import { lostAndFoundExtraAvailable, lostAndFoundUpgradeActive, markOneShotUsed, tinkerFee } from "../booth/omens.ts";
 import { today } from "../events/eventClock.ts";
 
 export interface AcquisitionScreenOptions {
@@ -50,6 +51,7 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
   let revealCardId: string | null = null;
   let fuseSelection: string | null = null;
   let zoomedCardId: string | null = null;
+  let pendingExtraId: string | null = null;
   let torn = false;
 
   function persist(next: PubState): void {
@@ -59,9 +61,31 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
 
   function claimToday(): void {
     const now = today();
-    const card = rollLostAndFound(pub.collection, now);
+    const upgrade = lostAndFoundUpgradeActive(pub, now);
+    const card = rollLostAndFound(pub.collection, now, { upgrade });
     persist(claimLostAndFound(pub, card.id, now));
     revealCardId = card.id;
+    // The Booth's lostAndFoundExtra omen: a second card in the same box, once.
+    if (lostAndFoundExtraAvailable(pub, now)) takeExtra(card.id);
+    playSound("brassHit");
+    render();
+  }
+
+  /** The omen's second card. `firstCardId` keeps it from duplicating the day's first card. */
+  function takeExtra(firstCardId: string): void {
+    const now = today();
+    const extra = rollLostAndFoundExtra(pub.collection, now, firstCardId, { upgrade: lostAndFoundUpgradeActive(pub, now) });
+    persist(markOneShotUsed({ ...pub, collection: [...pub.collection, extra.id] }, now, "lostAndFoundExtra"));
+    pendingExtraId = extra.id;
+  }
+
+  /** The first card was claimed before the omen was drawn: the extra is still there. */
+  function claimExtraOnly(): void {
+    const now = today();
+    const base = rollLostAndFound(pub.collection, now, { upgrade: lostAndFoundUpgradeActive(pub, now) });
+    takeExtra(base.id);
+    revealCardId = pendingExtraId;
+    pendingExtraId = null;
     playSound("brassHit");
     render();
   }
@@ -73,8 +97,11 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
   }
 
   function doFuse(cardId: string, choice: FuseChoice): void {
-    const { next, resultCardId } = fuse(pub, cardId, choice, Date.now());
-    persist(next);
+    const now = today();
+    const fee = tinkerFee(pub, now, TINKER_FEE_CHECKS);
+    const { next, resultCardId } = fuse(pub, cardId, choice, Date.now(), fee);
+    // The Booth's tinkerFree omen waives one fusing's fee.
+    persist(fee < TINKER_FEE_CHECKS ? markOneShotUsed(next, now, "tinkerFree") : next);
     fuseSelection = null;
     revealCardId = resultCardId;
     playSound("brassHit");
@@ -91,6 +118,12 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     btn.disabled = claimedToday;
     btn.addEventListener("click", claimToday);
     section.appendChild(btn);
+    if (claimedToday && lostAndFoundExtraAvailable(pub, today())) {
+      const extraBtn = el("button", "action-button", "A second thing in the box");
+      extraBtn.type = "button";
+      extraBtn.addEventListener("click", claimExtraOnly);
+      section.appendChild(extraBtn);
+    }
     return section;
   }
 
@@ -154,14 +187,15 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
         for (const choice of fuseChoicesFor(cardId)) {
           const choiceBtn = el("button", "action-button action-button--secondary", choice === "foil" ? "Make it a foil" : "Upgrade a rarity");
           choiceBtn.type = "button";
-          choiceBtn.disabled = pub.checks < TINKER_FEE_CHECKS;
+          choiceBtn.disabled = pub.checks < tinkerFee(pub, today(), TINKER_FEE_CHECKS);
           choiceBtn.addEventListener("click", () => doFuse(cardId, choice));
           tile.appendChild(choiceBtn);
         }
       } else {
-        const btn = el("button", "action-button", `Fuse (${TINKER_FEE_CHECKS} Checks)`);
+        const fee = tinkerFee(pub, today(), TINKER_FEE_CHECKS);
+        const btn = el("button", "action-button", fee === 0 ? "Fuse (free today)" : `Fuse (${fee} Checks)`);
         btn.type = "button";
-        btn.disabled = pub.checks < TINKER_FEE_CHECKS;
+        btn.disabled = pub.checks < fee;
         btn.addEventListener("click", () => {
           fuseSelection = cardId;
           render();
@@ -205,7 +239,8 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     const btn = el("button", "action-button", "Collect");
     btn.type = "button";
     btn.addEventListener("click", () => {
-      revealCardId = null;
+      revealCardId = pendingExtraId;
+      pendingExtraId = null;
       render();
     });
     box.appendChild(btn);

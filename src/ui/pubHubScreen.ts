@@ -15,6 +15,7 @@ import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
 import { clearStakeSelection, selectStakeCard, type StakeSelectionState } from "../pub/barBetSelection.ts";
+import { omenChipText, todaysOmen } from "../booth/omens.ts";
 import { buildBeerMat } from "./beerMat.ts";
 import { buildCardZoomEl } from "./cardZoom.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
@@ -38,6 +39,8 @@ export interface PubHubOptions {
   onOpenBackRoom: () => void;
   onOpenSaveData: () => void;
   onOpenHouseRules: () => void;
+  /** Set once the Booth host has arrived (hostMet); absent before that, and the hub shows nothing of the Booth. */
+  onOpenBooth?: () => void;
   pendingReveals?: PendingReveal[];
   /** design.md §13.3's hub hint ("You've enough Checks for the Pawnbroker…"), shown once. */
   hint?: { text: string; onShown: () => void };
@@ -358,6 +361,10 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     header.appendChild(headerActions);
     screen.appendChild(header);
 
+    // The Booth's omen of the day, until local midnight (src/booth/omens.ts).
+    const omenToday = options.onOpenBooth ? todaysOmen(pub, today()) : null;
+    if (omenToday) screen.appendChild(el("div", "omen-chip", omenChipText(omenToday)));
+
     // PT-15: what to do next (play someone) comes before the pub-slang
     // button row, not buried under five of them.
     screen.appendChild(el("h2", "patron-section-title", "Tonight's patrons"));
@@ -382,6 +389,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     const actionTiles = el("div", "pub-hub-actions");
     actionTiles.appendChild(buildActionTile("The chalkboard", "Tournaments", options.onOpenTournaments));
     actionTiles.appendChild(buildActionTile("The back room", "Lost & Found, Pawnbroker, Tinker's Bench", options.onOpenBackRoom));
+    if (options.onOpenBooth) actionTiles.appendChild(buildActionTile("The Fortune-teller's Booth", "One tarot reading a day", options.onOpenBooth));
     screen.appendChild(actionTiles);
 
     // PT-15: House Rules stays a real button; "Save & data" sinks to a
