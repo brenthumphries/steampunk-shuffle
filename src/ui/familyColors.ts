@@ -16,6 +16,7 @@ export const FAMILY_COLOR: Record<Family, string> = {
   rookery: "#6e2a2a",
   foundry: "#a8712f",
   salon: "#3e6b5a",
+  coven: "#6e5a7e",
   neutral: "#7c6a4d",
 };
 
@@ -30,7 +31,6 @@ export const ALL_FAMILY_COLORS: ReadonlyArray<{ family: Family; color: string }>
 
 /**
  * Heather, the Coven's colour (style-bible.md §2): dusky violet, 4.96:1 against
- * the parchment text colour. Kept outside FAMILY_COLOR because "coven" isn't in
- * FAMILIES yet (N-B adds it); `--family-coven` in src/style.css must match.
+ * the parchment text colour. `--family-coven` in src/style.css must match.
  */
 export const HEATHER = "#6e5a7e";

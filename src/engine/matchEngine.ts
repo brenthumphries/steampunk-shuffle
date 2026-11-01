@@ -19,6 +19,7 @@ import {
   type PlayerId,
   type PlayOptions,
   type RoundResult,
+  type ScryChooser,
   type TargetChooser,
 } from "./matchTypes.ts";
 
@@ -195,7 +196,7 @@ function resolvePlay(state: MatchState, playerId: PlayerId, instance: CardInstan
   for (const ability of face.abilities ?? []) {
     if (ability.trigger !== "onPlay") continue;
     for (const effect of ability.effects) {
-      resolveEffect(state, effect, playerId, opts?.chooseTargets, instance.instanceId);
+      resolveEffect(state, effect, playerId, opts?.chooseTargets, instance.instanceId, opts?.chooseScry);
     }
   }
 
@@ -213,6 +214,20 @@ function resolvePlay(state: MatchState, playerId: PlayerId, instance: CardInstan
 // ---------------------------------------------------------------------------
 // Round lifecycle (design.md §6.2, §6.3)
 // ---------------------------------------------------------------------------
+
+/** Scry N (design.md §5.16). Without a chooser, or with an answer that isn't a permutation of the cards looked at, the order is left alone. */
+function scryDeck(state: MatchState, playerId: PlayerId, amount: number, chooseScry: ScryChooser | undefined): void {
+  const p = state.players[playerId];
+  const n = Math.min(amount, p.deck.length);
+  if (n <= 0 || !chooseScry) return;
+  const looked = p.deck.slice(0, n);
+  const choice = chooseScry(looked.slice(), amount);
+  const byId = new Map(looked.map((c) => [c.instanceId, c] as const));
+  const named = [...choice.top, ...choice.bottom];
+  if (named.length !== n || new Set(named).size !== n || named.some((id) => !byId.has(id))) return;
+  const rest = p.deck.slice(n);
+  p.deck = [...choice.top.map((id) => byId.get(id)!), ...rest, ...choice.bottom.map((id) => byId.get(id)!)];
+}
 
 function drawCards(state: MatchState, playerId: PlayerId, amount: number): void {
   // "If the deck has fewer than N, draw what's there. There is no hand limit." (§5.9)
@@ -580,6 +595,7 @@ function resolveEffect(
   controllerId: PlayerId | undefined,
   chooseTargets: TargetChooser | undefined,
   sourceInstanceId?: string,
+  chooseScry?: ScryChooser,
 ): void {
   switch (effect.effect) {
     case "flip": {
@@ -627,6 +643,10 @@ function resolveEffect(
       // No target field — a Location (controllerId undefined) has no deck of
       // its own to draw from; not exercised by any v1 card.
       if (controllerId) drawCards(state, controllerId, effect.amount);
+      break;
+    case "scry":
+      // A Location (controllerId undefined) has no deck; the validator rejects it there too.
+      if (controllerId) scryDeck(state, controllerId, effect.amount, chooseScry);
       break;
     case "discardRandom": {
       for (const owner of sideToOwners(effect.target.side, controllerId)) {

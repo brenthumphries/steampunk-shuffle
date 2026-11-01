@@ -83,7 +83,7 @@ Family affiliation on Gadgets/Schemes matters only for **Friend** counting (§5.
 
 ---
 
-## 4. The five families
+## 4. The six families
 
 Each family is a playstyle first and a theme second. Newcomers should be able to say "I play the Yard" and know what that means in one sentence. Frame colours are for step 3.1; palette names match the style bible (0.3).
 
@@ -94,10 +94,11 @@ Each family is a playstyle first and a theme second. Newcomers should be able to
 | **The Rookery** | Cracksmen, forgers, fences, Moriarty's web | **Trickery / aggro.** Low-to-mid points, Flips that steal tempo, cards that leave before they can be arrested. Wins round one fast and bluffs round two. | Flip, Return, Elusive | Oxblood leather |
 | **The Foundry** | Engineers, inventors, automatons, the works | **Points-fast / ramp.** The highest printed points in the game and the fewest abilities. Machines that Persist and stack up. Wins by weight. | Persist, high points | Brass and copper |
 | **The Salon** | Authors, aristocrats, vicars' daughters, mediums, the village green — the cozy-mystery cast | **Friend synergy.** Individually weak, collectively strong; un-flips, protections, the pub cats. Wins when the drawing room is full. | Friend, un-flip | Verdigris |
+| **The Coven** *(added with the Cunning Folk, November)* | Hedge witches, cunning folk, tea-leaf readers, herbwives, almanack-makers | **Foresight.** Set up your draws with Scry (§5.16), soften threats with hexes, and always know what's coming. | Scry, hexes | Heather |
 
-**Points curves** (average printed points across the family's Characters; 1.5 authors to these, 1.4 verifies): Foundry 3.8 · Yard 3.0 · Salon 2.4 · Rookery 2.4 · Irregulars 2.0. Total printed points across a family's nine cards should land between 18 (Irregulars) and 30 (Foundry).
+**Points curves** (average printed points across the family's Characters; 1.5 authors to these, 1.4 verifies): Foundry 3.8 · Yard 3.0 · Coven 2.6 · Salon 2.4 · Rookery 2.4 · Irregulars 2.0. Total printed points across a family's nine cards should land between 18 (Irregulars) and 30 (Foundry).
 
-**Archetypes players discover** (for opponent decks and the House Rules page): *Yard + Salon* "the Village Constable" (starter deck) · *Foundry + Yard* "Heavy Industry" · *Rookery + Irregulars* "The Long Con" · *Salon + Irregulars* "The Parlour Game" · *Foundry + Rookery* "Sabotage".
+**Archetypes players discover** (for opponent decks and the House Rules page): *Yard + Salon* "the Village Constable" (starter deck) · *Foundry + Yard* "Heavy Industry" · *Rookery + Irregulars* "The Long Con" · *Salon + Irregulars* "The Parlour Game" · *Foundry + Rookery* "Sabotage" · *Coven + Salon* "The Reading Room" · *Coven + Foundry* "Natural Philosophy".
 
 ---
 
@@ -163,6 +164,10 @@ Rules text: At end of round, a **face-down** card with Undying goes to its owner
 ### 5.15 Moonrise +N (seasonal — Hallowe'en, §17)
 *(Worth N more in the final round.)*
 Rules text: While it is the final round, a face-up card with Moonrise gets +N effective points. Continuous, like Friend (§5.4): recomputed whenever the board changes, and it stacks with Friend and Location modifiers. A face-down card has no Moonrise. **The final round** is round 3, which always ends the match (§6.3), and also round 2 when one player already holds a round win, since that round can end the match too (2–0). Round 2 after a tied round 1 is not final: no one can take the table yet. The check reads only rounds *before* the current one, so a round's score means the same before and after its result is recorded.
+
+### 5.16 Scry N (the Coven, November)
+*(Look at the top N cards of your deck. Put any of them on the bottom and the rest back on top, in any order.)*
+Rules text: `Scry N` looks at the top N cards of the controller's deck (as many as are there, if the deck has fewer than N). The controller chooses any of them to put on the bottom of the deck, in an order they choose, and puts the rest back on top, in an order they choose. If the deck is empty, nothing happens and nothing is asked. Scry changes the order of cards and never their number: no card is drawn, discarded or revealed to the opponent. It resolves wherever it is printed, in order with the card's other effects, so "draw 1, then Scry 2" Scrys the deck as it stands after the draw. A Location has no controller and no deck, so it cannot Scry. Engine: the `scry` effect, with an optional `chooseScry` callback on `playTurn`, the way targeted effects take `chooseTargets`; with no callback the order is left alone, which is what the AI's lookahead does, so Scry adds nothing to the legend dial's search cost. Human: a Scry overlay shows the looked-at cards in a Top row and a Bottom row; tap a card to send it to the other row, use the arrows to reorder within a row, and tap Done. AI: it keeps a card on top when its value (printed points, with the Persist, Friend and Moonrise nudges the hand evaluator already uses) is at least the average of its own deck, best card first, and bottoms the rest.
 
 ---
 
@@ -514,6 +519,7 @@ The Invitational is date-triggered so it arrives while she's already playing. If
 
 ## 16. Notes for downstream steps
 
+- **Hexes (Coven, §4):** a hex is a one-shot negative buff (`{ effect: "buff", target: { side: "opponent", ... }, amount: -1 }`) and needs no new effect.
 - **1.1 (schema):** needs `faces[]` for two-faced cards (§5.10), `reveal` and `unflip` in the ability DSL, `steal` reserved for Robin Hood, a `neutral` family value, a `foil` flag on collection entries (not on cards), and `tutorialLocked: true` on the §8.3 cards.
 - **1.2 (engine):** the rules spec is §5 + §6 verbatim; each `Rules text:` block becomes at least one test. Property test invariants: scores never negative; ≤1 Location; face-down cards contribute 0; Persist cards never survive face-down; a match never exceeds three rounds; leader alternation per §6.2.4.
 - **1.3 (AI):** dials per §9.4; Jekyll's per-round dial override; hand sampling from public deck lists (§6.5).

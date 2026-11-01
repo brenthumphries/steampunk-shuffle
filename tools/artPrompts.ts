@@ -34,6 +34,7 @@ export const FAMILY_PALETTE: Record<Family, string> = {
   rookery: "Oxblood leather — deep aged red-brown. Worn leather, pawnshop counters, lock-picks.",
   foundry: "Brass & copper — warm, polished, high-value metal. Machinery, rivets, cog-work.",
   salon: "Verdigris — oxidised copper-green. Drawing-room brocade, greenhouse glass, old bronze.",
+  coven: "Heather — dusky violet. Hedgerow heather at dusk, tea-leaf and candle-smoke shadows, bruised-plum silk.",
   neutral: "Parchment cream, ink black, and sparing sovereign gold — legendary frames, the Checks currency.",
 };
 

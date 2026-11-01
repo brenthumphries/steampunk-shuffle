@@ -13,10 +13,12 @@ import {
   otherPlayer,
   playTurn,
   type BoardCard,
+  type CardInstance,
   type MatchResult,
   type MatchState,
   type PlayerId,
   type RoundResult,
+  type ScryChoice,
   type TargetChooser,
 } from "../engine/matchEngine.ts";
 import { playAITurn, type Difficulty } from "../ai/aiOpponent.ts";
@@ -25,6 +27,9 @@ import { buildCardZoomEl } from "./cardZoom.ts";
 import { currentStep, isReadyToConfirm, stagePlay, toChooserSelections, toggleTarget, type StagedPlay } from "../match/humanTurn.ts";
 import { hapticTap } from "../native/haptics.ts";
 import { buildTargetChooser } from "../match/targetChooser.ts";
+import { buildScryChooser, nextScryRequest } from "../match/scryPreview.ts";
+import { draftToChoice, moveWithin, startDraft, toggleZone, type ScryDraft } from "../match/scryDraft.ts";
+import { buildScryOverlay } from "./scryOverlay.ts";
 import { buildBeerMat } from "./beerMat.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
@@ -128,6 +133,8 @@ type Phase =
   | { kind: "coin-toss" }
   | { kind: "idle" }
   | { kind: "staging"; play: StagedPlay }
+  /** Design.md §5.16: a confirmed play whose Scry is waiting on the player's answer; the play commits when they tap Done. */
+  | { kind: "scry"; instanceId: string; targetChooser: TargetChooser | undefined; answered: ScryChoice[]; cards: readonly CardInstance[]; draft: ScryDraft }
   | { kind: "ai-turn" }
   | { kind: "human-pass" }
   /**
@@ -683,16 +690,41 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     const play = phase.play;
     const chooser: TargetChooser | undefined =
       play.steps.length > 0 ? buildTargetChooser(state, toChooserSelections(play)) : undefined;
-    commitHumanPlay(play.instanceId, chooser);
+    askScryOrCommit(play.instanceId, chooser, []);
   }
 
-  function commitHumanPlay(instanceId: string | undefined, chooser?: TargetChooser): void {
+  /** Design.md §5.16: ask about each Scry the play will resolve (see src/match/scryPreview.ts), then commit. */
+  function askScryOrCommit(instanceId: string, chooser: TargetChooser | undefined, answered: ScryChoice[]): void {
+    const request = nextScryRequest(state, HUMAN, instanceId, answered);
+    if (!request) {
+      commitHumanPlay(instanceId, chooser, answered);
+      return;
+    }
+    phase = { kind: "scry", instanceId, targetChooser: chooser, answered, cards: request.cards, draft: startDraft(request.cards.map((c) => c.instanceId)) };
+    render();
+  }
+
+  function updateScryDraft(change: (draft: ScryDraft) => ScryDraft): void {
+    if (phase.kind !== "scry") return;
+    phase = { ...phase, draft: change(phase.draft) };
+    render();
+  }
+
+  function finishScry(): void {
+    if (phase.kind !== "scry") return;
+    askScryOrCommit(phase.instanceId, phase.targetChooser, [...phase.answered, draftToChoice(phase.draft)]);
+  }
+
+  function commitHumanPlay(instanceId: string | undefined, chooser?: TargetChooser, scryAnswers: readonly ScryChoice[] = []): void {
     hapticTap();
     const prevRoundCount = state.roundHistory.length;
     const hintSnapshot = captureHintSnapshot();
     const playedCard = instanceId === undefined ? undefined : state.players[HUMAN].hand.find((c) => c.instanceId === instanceId)?.card;
     if (playedCard) options.onCardPlayed?.(playedCard);
-    state = playTurn(state, HUMAN, instanceId, chooser ? { chooseTargets: chooser } : undefined);
+    state = playTurn(state, HUMAN, instanceId, {
+      ...(chooser ? { chooseTargets: chooser } : {}),
+      ...(scryAnswers.length > 0 ? { chooseScry: buildScryChooser(scryAnswers) } : {}),
+    });
     afterCommit(prevRoundCount, hintSnapshot);
   }
 
@@ -1329,6 +1361,15 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     root.appendChild(screen);
 
     if (phase.kind === "coin-toss") root.appendChild(buildCoinTossOverlay());
+    if (phase.kind === "scry") {
+      root.appendChild(
+        buildScryOverlay(phase.cards, phase.draft, {
+          onToggle: (id) => updateScryDraft((d) => toggleZone(d, id)),
+          onMove: (id, direction) => updateScryDraft((d) => moveWithin(d, id, direction)),
+          onDone: finishScry,
+        }),
+      );
+    }
     if (phase.kind === "instant-announce") root.appendChild(buildInstantAnnounceOverlay(phase.card, phase.ready));
     if (phase.kind === "round-reveal") root.appendChild(buildRoundRevealOverlay(phase.result));
     if (phase.kind === "match-over") root.appendChild(buildMatchOverOverlay());

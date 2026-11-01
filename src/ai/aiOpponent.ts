@@ -21,6 +21,7 @@ import {
   type CardInstance,
   type MatchState,
   type PlayerId,
+  type ScryChooser,
 } from "../engine/matchEngine.ts";
 import { shuffle, stepRandom } from "../engine/rng.ts";
 
@@ -42,6 +43,9 @@ export const DIFFICULTY_DIALS: Record<Difficulty, DifficultyDial> = {
   seasoned: { lookaheadTurns: 2, hiddenHandSamples: 8, noise: { topN: 2, chance: 0.15 } },
   legend: { lookaheadTurns: 3, hiddenHandSamples: 32, noise: { topN: 1, chance: 0 } },
 };
+
+/** Small hand-potential nudge for a card that sets up its own next draws (Scry). */
+const SCRY_NUDGE = 0.25;
 
 export interface AIMove {
   /** Card to play, or undefined to pass (only legal when the hand is empty). */
@@ -119,7 +123,35 @@ export function playAITurn(
   seed: number,
 ): { state: MatchState; nextSeed: number } {
   const move = chooseAIMove(state, playerId, opponentDeckList, difficulty, seed);
-  return { state: playTurn(state, playerId, move.instanceId), nextSeed: move.nextSeed };
+  return { state: playTurn(state, playerId, move.instanceId, { chooseScry: aiScryChooser(state, playerId) }), nextSeed: move.nextSeed };
+}
+
+// ---------------------------------------------------------------------------
+// Scry (design.md §5.16). Only the move actually played uses this: inside the
+// search a Scry leaves the deck alone (no chooser), which keeps lookahead as
+// cheap as before. The heuristic is a nudge on deck order, not a search: keep
+// the cards worth drawing next turn on top, best first, and send the rest
+// under the deck.
+// ---------------------------------------------------------------------------
+
+/**
+ * Chooser for `playerId`'s own Scry, valued against `state` as it stood
+ * before the play (so the current round and Moonrise are read correctly).
+ * A card stays on top when its value is at least the average value of the
+ * AI's own whole deck: sending a below-average card down is a gain, because
+ * what replaces it is worth the average in expectation. Value is
+ * cardPotentialValue, which already carries the Persist and Moonrise nudges.
+ */
+export function aiScryChooser(state: MatchState, playerId: PlayerId): ScryChooser {
+  const deck = state.players[playerId].deck;
+  return (cards) => {
+    const pool = deck.length > 0 ? deck : cards;
+    const average = pool.reduce((sum, c) => sum + cardPotentialValue(c.card, state), 0) / pool.length;
+    const valued = cards.map((c, i) => ({ id: c.instanceId, i, value: cardPotentialValue(c.card, state) }));
+    const keep = valued.filter((v) => v.value >= average).sort((a, b) => b.value - a.value || a.i - b.i);
+    const drop = valued.filter((v) => v.value < average).sort((a, b) => b.value - a.value || a.i - b.i);
+    return { top: keep.map((v) => v.id), bottom: drop.map((v) => v.id) };
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -195,6 +227,7 @@ function cardPotentialValue(card: Card, state: MatchState): number {
   if (face.keywords?.undying) value += 0.5;
   if (face.keywords?.moonrise !== undefined) value += face.keywords.moonrise * (isFinalRound(state) ? 1 : 0.5);
   if (face.abilities?.some((a) => a.trigger === "onPlay")) value += 0.5;
+  if (face.abilities?.some((a) => a.effects.some((e) => e.effect === "scry"))) value += SCRY_NUDGE;
   return value;
 }
 

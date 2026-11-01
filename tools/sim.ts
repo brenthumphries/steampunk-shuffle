@@ -18,7 +18,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import type { Card, Deck, Family } from "../src/cards/cardTypes.ts";
-import { chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
+import { aiScryChooser, chooseAIMove, type Difficulty } from "../src/ai/aiOpponent.ts";
 import {
   createMatch,
   currentPlayer,
@@ -62,6 +62,7 @@ const FAMILY_TARGETS: Partial<Record<Family, number>> = {
   salon: 2.4,
   rookery: 2.4,
   irregulars: 2.0,
+  coven: 2.6,
 };
 // design.md §8.1: 6 Characters per family in the family's 9-card slice
 // (the other 3 slots are Gadget/Scheme/Headline, non-Character). Legend
@@ -201,7 +202,7 @@ function aiTurn(
   seed: number,
 ): { state: MatchState; nextSeed: number } {
   const move = chooseAIMove(state, playerId, opponentDeckList, difficulty, seed);
-  return { state: playTurn(state, playerId, move.instanceId), nextSeed: move.nextSeed };
+  return { state: playTurn(state, playerId, move.instanceId, { chooseScry: aiScryChooser(state, playerId) }), nextSeed: move.nextSeed };
 }
 
 const TURN_GUARD = 60;

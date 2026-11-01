@@ -7,6 +7,7 @@ export const FAMILIES = [
   "rookery",
   "foundry",
   "salon",
+  "coven",
   "neutral",
 ] as const;
 export type Family = (typeof FAMILIES)[number];
@@ -96,7 +97,9 @@ export type Effect =
   | { effect: "reveal"; target: Target }
   | { effect: "discardLocation" }
   | { effect: "buff"; target: Target; amount: number }
-  | { effect: "steal"; target: Target };
+  | { effect: "steal"; target: Target }
+  /** Scry N (design.md §5.16): look at the top N cards of the controller's deck, reorder them, bottom any. */
+  | { effect: "scry"; amount: number };
 
 export interface Ability {
   trigger: Trigger;

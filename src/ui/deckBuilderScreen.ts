@@ -51,6 +51,7 @@ const FAMILY_LABEL: Record<Family, string> = {
   rookery: "The Rookery",
   foundry: "The Foundry",
   salon: "The Salon",
+  coven: "The Coven",
   neutral: "Neutral",
 };
 
