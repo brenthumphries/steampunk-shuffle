@@ -160,7 +160,7 @@ Fallback if TestFlight fails for any reason: the PWA at https://brenthumphries.g
 
 `.github/workflows/testflight.yml` does sections A, B and D on a GitHub macOS runner, so no Mac is needed for a later build. It only runs by hand.
 
-1. Repo Settings, Secrets and variables, Actions: add `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (paste the whole `.p8` file) and `APPLE_TEAM_ID`. The key comes from App Store Connect, Users and Access, Integrations; give it the App Manager role.
+1. Repo Settings, Secrets and variables, Actions: add `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (paste the whole `.p8` file) and `APPLE_TEAM_ID`. The key comes from App Store Connect, Users and Access, Integrations; give it the **Admin** role. Cloud-managed signing (`-allowProvisioningUpdates`) creates a distribution certificate, which an App Manager key can do only if it was also granted "Access to Cloud Managed Distribution Certificate"; without that the archive fails with a cloud-signing permission error.
 2. Actions tab, **TestFlight**, **Run workflow**, pick the branch.
 3. Leave **Upload to TestFlight** ticked to upload. Untick it for a dry run: it archives and exports but never uploads.
 4. The build number is 4 plus the workflow run number, so it always rises. The build appears under the TestFlight tab after processing, as in section D.
