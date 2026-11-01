@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ALL_CARDS } from "../../src/cards/data/index.ts";
 import type { MatchState } from "../../src/engine/matchEngine.ts";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // PT-35: Séance's targets are the player's own face-down cards, and a
 // face-down card used to be built without its tap handler or highlight, so
@@ -39,6 +40,7 @@ function buildMatchState(): MatchState {
 
 test.describe("match screen: choosing a face-down card to turn face-up (PT-35)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     const matchState = buildMatchState();
     await page.evaluate(

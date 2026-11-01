@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Plan step 2.3's exit check: "win a pickup game vs an opponent → receive
 // their reward card → it appears in collection." Actually playing to a win
@@ -10,6 +11,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("pub hub (plan step 2.3)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();
