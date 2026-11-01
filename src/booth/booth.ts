@@ -2,6 +2,7 @@
 // a day from the Major Arcana unlocked so far. Pure functions over PubState;
 // the screen decides when to call them and saves the result.
 
+import type { MonthDay } from "../events/eventClock.ts";
 import { stepRandom } from "../engine/rng.ts";
 import { localDayIndex } from "../pub/opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
@@ -21,6 +22,14 @@ export const COME_BACK_LINE = "Come back tomorrow, love.";
 const BOOTH_SALT = 0x600717;
 const SALT_RANGE = 0x7fffffff;
 
+/**
+ * The Booth host's arrival and the end of the Cunning Folk window (Nov 30).
+ * Mirrors the pack's `hosts[].arrives` and `window.end`; the pack is authored
+ * in N-D, so these named constants stand in until booth.ts can read it.
+ */
+export const BOOTH_HOST_ARRIVES: MonthDay = { month: 11, day: 13 };
+export const BOOTH_WINDOW_END: MonthDay = { month: 11, day: 30 };
+
 function parseKey(key: string): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
   return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
@@ -31,11 +40,21 @@ function parseKey(key: string): number | null {
  * least once since the first launch: some year's occurrence of that date falls
  * on or after the first-launch day and on or before today. Computed from dates,
  * never stored; once true it stays true because later days only add occurrences.
+ *
+ * Fallback: an arcana that unlocks on the host's arrival date also counts when
+ * the first launch fell after that date but still inside the same year's
+ * window (arrival to window end), since the player met the host that launch.
  */
 export function isUnlocked(arcana: TarotArcana, firstLaunch: string | null, date: Date): boolean {
   const first = firstLaunch === null ? null : parseKey(firstLaunch);
   if (first === null) return false;
   const todayUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  if (arcana.unlocks.month === BOOTH_HOST_ARRIVES.month && arcana.unlocks.day === BOOTH_HOST_ARRIVES.day) {
+    const year = new Date(first).getUTCFullYear();
+    const arrival = Date.UTC(year, BOOTH_HOST_ARRIVES.month - 1, BOOTH_HOST_ARRIVES.day);
+    const windowEnd = Date.UTC(year, BOOTH_WINDOW_END.month - 1, BOOTH_WINDOW_END.day);
+    if (first > arrival && first <= windowEnd && todayUtc >= first) return true;
+  }
   for (let year = new Date(first).getUTCFullYear(); year <= date.getFullYear(); year++) {
     const occurrence = Date.UTC(year, arcana.unlocks.month - 1, arcana.unlocks.day);
     if (occurrence >= first && occurrence <= todayUtc) return true;

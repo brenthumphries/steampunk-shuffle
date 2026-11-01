@@ -28,10 +28,34 @@ describe("isUnlocked", () => {
     expect(isUnlocked(FOOL, "2026-11-01", d(2027, 3, 4))).toBe(true);
   });
 
-  it("is not unlocked when the first launch came after the pack start, until the date comes round again", () => {
-    expect(isUnlocked(FOOL, "2026-11-20", d(2026, 11, 25))).toBe(false);
-    expect(isUnlocked(FOOL, "2026-11-20", d(2026, 12, 25))).toBe(false);
-    expect(isUnlocked(FOOL, "2026-11-20", d(2027, 11, 13))).toBe(true);
+  it("unlocks the host-arrival arcana for a first launch inside the window after her arrival", () => {
+    const MAGICIAN = TAROT_BY_ID.get("tarot-the-magician")!;
+    expect(isUnlocked(FOOL, "2026-11-20", d(2026, 11, 20))).toBe(true);
+    expect(isUnlocked(MAGICIAN, "2026-11-20", d(2026, 11, 20))).toBe(true);
+    expect(isUnlocked(FOOL, "2026-11-30", d(2026, 12, 25))).toBe(true);
+  });
+
+  it("keeps a first launch after the window locked until the date comes round again", () => {
+    const MAGICIAN = TAROT_BY_ID.get("tarot-the-magician")!;
+    for (const a of [FOOL, MAGICIAN]) {
+      expect(isUnlocked(a, "2026-12-05", d(2026, 12, 25))).toBe(false);
+      expect(isUnlocked(a, "2026-12-05", d(2027, 11, 12))).toBe(false);
+      expect(isUnlocked(a, "2026-12-05", d(2027, 11, 13))).toBe(true);
+    }
+  });
+
+  it("leaves a pre-arrival first launch unchanged", () => {
+    expect(isUnlocked(FOOL, "2026-11-10", d(2026, 11, 12))).toBe(false);
+    expect(isUnlocked(FOOL, "2026-11-10", d(2026, 11, 13))).toBe(true);
+  });
+
+  it("does not extend the fallback to other arcana", () => {
+    expect(isUnlocked(PRIESTESS, "2026-11-20", d(2026, 11, 25))).toBe(false);
+    expect(isUnlocked(PRIESTESS, "2026-11-20", d(2026, 12, 1))).toBe(true);
+    expect(unlockedArcana("2026-11-20", d(2026, 11, 20)).map((a) => a.id)).toEqual(["tarot-the-fool", "tarot-the-magician"]);
+    for (const a of TAROT.filter((x) => x.unlocks.month !== 11 || x.unlocks.day !== 13)) {
+      expect(isUnlocked(a, "2026-11-20", d(2026, 11, 25))).toBe(false);
+    }
   });
 
   it("is locked when no first launch is recorded", () => {
