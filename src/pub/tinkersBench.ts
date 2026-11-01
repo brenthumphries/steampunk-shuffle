@@ -50,10 +50,10 @@ export interface FuseResult {
   resultCardId: string;
 }
 
-/** Fuses two copies of `cardId` plus `TINKER_FEE_CHECKS` into a foil or a random card one rarity up. Callers must check `canFuse`, `fuseChoicesFor`, and affordability first. */
-export function fuse(state: PubState, cardId: string, choice: FuseChoice, seed: number): FuseResult {
+/** Fuses two copies of `cardId` plus `fee` (default `TINKER_FEE_CHECKS`; the Booth's tinkerFree omen passes 0) into a foil or a random card one rarity up. Callers must check `canFuse`, `fuseChoicesFor`, and affordability first. */
+export function fuse(state: PubState, cardId: string, choice: FuseChoice, seed: number, fee: number = TINKER_FEE_CHECKS): FuseResult {
   const card = ACQUIRABLE_CARDS_BY_ID.get(cardId)!;
-  const afterFee: PubState = { ...removeOneFromCollection(removeOneFromCollection(state, cardId), cardId), checks: state.checks - TINKER_FEE_CHECKS };
+  const afterFee: PubState = { ...removeOneFromCollection(removeOneFromCollection(state, cardId), cardId), checks: state.checks - fee };
 
   if (choice === "foil") {
     const resultCardId = foilId(cardId);

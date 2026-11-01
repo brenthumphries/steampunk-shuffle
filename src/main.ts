@@ -25,6 +25,11 @@ import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "./pub/acquirableCards.ts";
 import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, localDateKey, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
 import { resolveBarBet } from "./pub/barBet.ts";
+import { applyWinOmen, barBetInsuranceAvailable, markOneShotUsed, openingHandExtra, winOmenBonus } from "./booth/omens.ts";
+import { mountBoothScreen } from "./ui/boothScreen.ts";
+import { PIXIE_HOST_ID } from "./booth/booth.ts";
+import { mountTarotAlbumScreen } from "./ui/tarotAlbumScreen.ts";
+import { hostMet } from "./events/arrivals.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type MatchContext } from "./save/activeMatch.ts";
 import type { Tournament } from "./tournaments/tournaments.ts";
 import { TOURNAMENTS_BY_ID } from "./tournaments/tournaments.ts";
@@ -98,6 +103,8 @@ function syncTournamentTrigger(): void {
   const next = checkInvitationalTrigger(state, today());
   if (next !== state) saveTournamentState(next);
 }
+
+const BAR_BET_INSURANCE_LINE = "The Devil's chains slipped: your stake is back in your collection.";
 
 /** Beer-mat lines waiting for the next hub visit (arrival gifts handed over at launch). Consumed by `showPubHub`. */
 let pendingNotices: string[] = [];
@@ -174,10 +181,25 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     onOpenBackRoom: showBackRoom,
     onOpenSaveData: showSaveScreen,
     onOpenHouseRules: showHouseRules,
+    onOpenBooth: hostMet(pubNow, PIXIE_HOST_ID) ? showBooth : undefined,
     pendingReveals,
     notices,
     hint,
   });
+}
+
+function showBooth(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountBoothScreen(app!, { onBack: () => showPubHub(), onOpenAlbum: () => showTarotAlbum(showBooth) });
+}
+
+function showTarotAlbum(back: () => void): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountTarotAlbumScreen(app!, { onBack: back });
 }
 
 function showBackRoom(): void {
@@ -245,10 +267,19 @@ function mountMatch(params: {
   previewResult?: (result: MatchResult) => string | null;
   onFinish: (result: MatchResult) => void;
 }): void {
+  // The Booth's openingHandPlusOne omen: the first fresh match of the day opens with an extra card.
+  let humanExtraOpeningCards = 0;
+  if (!params.resume) {
+    const date = today();
+    const pub = loadPubState();
+    humanExtraOpeningCards = openingHandExtra(pub, date);
+    if (humanExtraOpeningCards > 0) savePubState(markOneShotUsed(pub, date, "openingHandPlusOne"));
+  }
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
   teardownScreen = mountMatchScreen(app!, {
+    humanExtraOpeningCards,
     humanDeck: params.humanDeck,
     aiDeck: params.aiDeck,
     aiName: params.aiName,
@@ -282,7 +313,8 @@ function formatPickupReward(opponent: Opponent, result: MatchResult): string | n
   const outcome = result.winner === "A" ? "win" : "loss";
   const pub = loadPubState();
   const { checksEarned, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
-  const parts = [`+${checksEarned} Checks`];
+  const omenBonus = opponent.tier !== "house" && outcome === "win" ? winOmenBonus(pub, today()) : 0;
+  const parts = [`+${checksEarned + omenBonus} Checks`];
   if (rewardCardId) {
     const card = ACQUIRABLE_CARDS_BY_ID.get(rewardCardId);
     parts.push(`+ ${card ? card.faces[0].name : "a reward card"} (first win!)`);
@@ -309,13 +341,21 @@ function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, resu
   let pub = loadPubState();
   const { next, rewardCardId, checksEarned } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
   pub = withLedger(next, (l) => ledgerAfterPickup(l, { opponentId: opponent.id, outcome, checksEarned, reward: cardRef(rewardCardId), dateKey: localDateKey(today()) }));
+  // The Booth's win omens (firstWinBonus, checksPerWin). Sir Charles pays no Checks, so no omen bonus either.
+  if (outcome === "win" && opponent.tier !== "house") pub = applyWinOmen(pub, today()).next;
 
   const reveals: PendingReveal[] = [];
   if (rewardCardId) reveals.push({ title: `First win against ${opponent.name}!`, cardId: rewardCardId });
 
   if (stakedCardId) {
-    const { next: afterBet, wonCardId } = resolveBarBet(pub, stakedCardId, opponent, outcome, Date.now());
+    // barBetInsurance: the first lost Bar Bet of the day comes straight back, with a beer mat.
+    const insured = outcome === "loss" && barBetInsuranceAvailable(pub, today());
+    const { next: afterBet, wonCardId } = resolveBarBet(pub, stakedCardId, opponent, outcome, Date.now(), insured);
     pub = afterBet;
+    if (insured) {
+      pub = markOneShotUsed(pub, today(), "barBetInsurance");
+      pendingNotices.push(BAR_BET_INSURANCE_LINE);
+    }
     if (wonCardId) {
       reveals.push({ title: `Won the bet against ${opponent.name}!`, cardId: wonCardId });
       pub = noteAcquired(pub, wonCardId);
@@ -392,6 +432,7 @@ function startDeckBuilder(): void {
       selectedDeck = deck;
       selectedDeckName = name;
     },
+    onOpenTarotAlbum: hostMet(loadPubState(), PIXIE_HOST_ID) ? () => showTarotAlbum(startDeckBuilder) : undefined,
   });
 }
 
@@ -447,6 +488,7 @@ function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracke
   let pub: PubState = loadPubState();
   pub = recordTournamentMatchResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome);
   pub = withLedger(pub, (l) => ledgerAfterTournamentMatch(l, opponent.id, outcome));
+  if (outcome === "win") pub = applyWinOmen(pub, today()).next;
 
   const nextBracket = advanceBracket(bracket, outcome);
   let tournamentState = loadTournamentState();

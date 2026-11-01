@@ -72,11 +72,13 @@ export interface BarBetOutcome {
  * nor loss" for the match itself; a bet made on an unresolved match is
  * itself unresolved, not a loss.
  */
-export function resolveBarBet(state: PubState, stakedCardId: string, opponent: Opponent, outcome: "win" | "loss" | "draw", seed: number): BarBetOutcome {
+export function resolveBarBet(state: PubState, stakedCardId: string, opponent: Opponent, outcome: "win" | "loss" | "draw", seed: number, insured: boolean = false): BarBetOutcome {
   if (outcome === "draw") {
     return { next: state, wonCardId: null };
   }
   if (outcome === "loss") {
+    // The Booth's barBetInsurance omen: the stake stays in the collection instead of going to the Pawnbroker.
+    if (insured) return { next: state, wonCardId: null };
     const next = addToPawnedCards(removeOneFromCollection(state, stakedCardId), stakedCardId);
     return { next, wonCardId: null };
   }
