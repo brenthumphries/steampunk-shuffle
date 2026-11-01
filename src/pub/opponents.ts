@@ -13,6 +13,7 @@
 import type { Deck } from "../cards/cardTypes.ts";
 import type { Difficulty } from "../ai/aiOpponent.ts";
 import type { MatchState } from "../engine/matchEngine.ts";
+import { visibleInEdition } from "../edition.ts";
 import { eventLineOverride, eventSirCharlesLines, isVisitorInTown } from "../events/seasonalEvents.ts";
 import {
   houseDeck,
@@ -69,6 +70,8 @@ export interface Opponent {
    * into any other tournament's field even though his tier is `legend`.
    */
   tournamentOnly?: boolean;
+  /** Dropped from a `VITE_EDITION=public` build: never in Tonight's Patrons or a tournament field (src/edition.ts). */
+  giftOnly?: boolean;
   /** Combined pickup + tournament wins (§12.1) needed before this opponent appears in "tonight's patrons". */
   unlockWins: number;
   portraitArtId?: string;
@@ -379,7 +382,7 @@ export function legendsInTown(date: Date): readonly [string, string] {
 }
 
 export function isOpponentInTown(opponent: Opponent, totalWins: number, date: Date): boolean {
-  if (opponent.tournamentOnly) return false;
+  if (opponent.tournamentOnly || !visibleInEdition(opponent)) return false;
   if (opponent.tier === "visitor") return isVisitorInTown(opponent.id, totalWins, date);
   if (totalWins < opponent.unlockWins) return false;
   if (opponent.tier !== "legend") return true;

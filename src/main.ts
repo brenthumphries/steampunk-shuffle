@@ -18,10 +18,12 @@ import { currentIntroEnvironment, introShouldPlay, mountIntroScreen } from "./ui
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { deckCardsById } from "./decks/cardCatalog.ts";
 import { today } from "./events/eventClock.ts";
+import { dueBanner, grantArrivalGifts, markBannerSeen, updateHostsMet, type DueGift } from "./events/arrivals.ts";
+import { ledgerAfterPickup, ledgerAfterTournamentEnd, ledgerAfterTournamentMatch, recordCardAcquired, recordCardPlay, recordChecksEarned, registerLaunch, type Ledger } from "./save/ledger.ts";
 import { loadDeckSlotsState, saveDeckSlotsState, seedStarterDeckIfMissing } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "./pub/acquirableCards.ts";
-import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
+import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, localDateKey, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
 import { resolveBarBet } from "./pub/barBet.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type MatchContext } from "./save/activeMatch.ts";
 import type { Tournament } from "./tournaments/tournaments.ts";
@@ -97,8 +99,58 @@ function syncTournamentTrigger(): void {
   if (next !== state) saveTournamentState(next);
 }
 
+/** Beer-mat lines waiting for the next hub visit (arrival gifts handed over at launch). Consumed by `showPubHub`. */
+let pendingNotices: string[] = [];
+
+/** Applies `change` to the Ledger inside `pub` (src/save/ledger.ts); the caller saves. */
+function withLedger(pub: PubState, change: (ledger: Ledger) => Ledger): PubState {
+  return { ...pub, ledger: change(pub.ledger) };
+}
+
+function describeGift(due: DueGift): string {
+  const names = due.gift.cardIds.map((c) => {
+    const name = ACQUIRABLE_CARDS_BY_ID.get(c.id)?.faces[0].name;
+    return name ? (c.qty > 1 ? `${c.qty} x ${name}` : name) : null;
+  });
+  const list = names.filter((n): n is string => n !== null).join(", ");
+  return list ? `${due.gift.line} (${list})` : due.gift.line;
+}
+
+/**
+ * Once per launch (content plan §4): registers the first launch, meets any
+ * host whose arrival date has passed, hands over due arrival gifts (queueing
+ * their beer-mat lines for the hub), and notes the first legendary the player
+ * owns, however it arrived. All of it is idempotent, so running it twice in a
+ * day grants nothing twice.
+ */
+function runLaunchTasks(): void {
+  const date = today();
+  let pub = withLedger(loadPubState(), (l) => registerLaunch(l, localDateKey(date)));
+  pub = updateHostsMet(pub, date);
+  const { next, granted } = grantArrivalGifts(pub, date);
+  pub = next;
+  for (const id of pub.collection) {
+    const rarity = ACQUIRABLE_CARDS_BY_ID.get(id)?.rarity;
+    if (rarity) pub = withLedger(pub, (l) => recordCardAcquired(l, id, rarity, localDateKey(date)));
+  }
+  pendingNotices.push(...granted.map(describeGift));
+  // Always saved: a save that predates the ledger was migrated in memory by loadPubState, and its
+  // first-launch day (today) must be written down now or it would drift to each later launch's date.
+  savePubState(pub);
+}
+
 function showPubHub(pendingReveals?: PendingReveal[]): void {
   syncTournamentTrigger();
+  // The "new this month" banner, once per event per year, after any gift lines.
+  const notices = pendingNotices;
+  pendingNotices = [];
+  const date = today();
+  const pubNow = loadPubState();
+  const banner = dueBanner(pubNow, date);
+  if (banner) {
+    savePubState(markBannerSeen(pubNow, banner.eventId, banner.year));
+    notices.push(banner.text);
+  }
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
@@ -123,6 +175,7 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     onOpenSaveData: showSaveScreen,
     onOpenHouseRules: showHouseRules,
     pendingReveals,
+    notices,
     hint,
   });
 }
@@ -206,6 +259,8 @@ function mountMatch(params: {
     hints: params.hints,
     previewResult: params.previewResult,
     leaveGame: { matchKind: params.context.kind },
+    // The Ledger's per-card play counts (src/save/ledger.ts); tutorial matches don't go through mountMatch.
+    onCardPlayed: (card) => savePubState(withLedger(loadPubState(), (l) => recordCardPlay(l, card.id))),
     onStateChange: (state, aiSeed) => {
       saveActiveMatch({ matchState: state, aiSeed, humanDeck: params.humanDeck, humanDeckName: params.humanDeckName, context: params.context });
     },
@@ -235,13 +290,25 @@ function formatPickupReward(opponent: Opponent, result: MatchResult): string | n
   return parts.join(" · ");
 }
 
+/** A card id with its rarity, for the Ledger's first-legendary note (null for no card or one the registry can't resolve). */
+function cardRef(cardId: string | null): { id: string; rarity: string } | null {
+  const rarity = cardId ? ACQUIRABLE_CARDS_BY_ID.get(cardId)?.rarity : undefined;
+  return cardId && rarity ? { id: cardId, rarity } : null;
+}
+
+/** Ledger: a card just reached the collection (a bet win); notes the first legendary. */
+function noteAcquired(pub: PubState, cardId: string): PubState {
+  const rarity = ACQUIRABLE_CARDS_BY_ID.get(cardId)?.rarity;
+  return rarity ? withLedger(pub, (l) => recordCardAcquired(l, cardId, rarity, localDateKey(today()))) : pub;
+}
+
 function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, result: MatchResult): void {
   saveTutorialState(recordMatchPlayed(loadTutorialState())); // design.md §13.3's "matches 2-4" window
 
   const outcome = result.winner === "draw" ? "draw" : result.winner === "A" ? "win" : "loss";
   let pub = loadPubState();
-  const { next, rewardCardId } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
-  pub = next;
+  const { next, rewardCardId, checksEarned } = recordPickupResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome, today());
+  pub = withLedger(next, (l) => ledgerAfterPickup(l, { opponentId: opponent.id, outcome, checksEarned, reward: cardRef(rewardCardId), dateKey: localDateKey(today()) }));
 
   const reveals: PendingReveal[] = [];
   if (rewardCardId) reveals.push({ title: `First win against ${opponent.name}!`, cardId: rewardCardId });
@@ -249,7 +316,10 @@ function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, resu
   if (stakedCardId) {
     const { next: afterBet, wonCardId } = resolveBarBet(pub, stakedCardId, opponent, outcome, Date.now());
     pub = afterBet;
-    if (wonCardId) reveals.push({ title: `Won the bet against ${opponent.name}!`, cardId: wonCardId });
+    if (wonCardId) {
+      reveals.push({ title: `Won the bet against ${opponent.name}!`, cardId: wonCardId });
+      pub = noteAcquired(pub, wonCardId);
+    }
   }
 
   savePubState(pub);
@@ -293,7 +363,7 @@ function startTutorial(): void {
 
 /** design.md §13.2's "After": the reward reveal (starter deck + Checks), then the pub hub opens for the first time. */
 function finishTutorial(): void {
-  savePubState(grantChecks(loadPubState(), TUTORIAL_REWARD_CHECKS));
+  savePubState(withLedger(grantChecks(loadPubState(), TUTORIAL_REWARD_CHECKS), (l) => recordChecksEarned(l, TUTORIAL_REWARD_CHECKS)));
   saveTutorialState(markTutorialCompleted(loadTutorialState()));
   // PT-4: "Take the deck. It was always going to be yours" should mean the
   // builder actually has it, not 13 empty illegal slots.
@@ -376,6 +446,7 @@ function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracke
 
   let pub: PubState = loadPubState();
   pub = recordTournamentMatchResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome);
+  pub = withLedger(pub, (l) => ledgerAfterTournamentMatch(l, opponent.id, outcome));
 
   const nextBracket = advanceBracket(bracket, outcome);
   let tournamentState = loadTournamentState();
@@ -383,11 +454,13 @@ function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracke
 
   if (nextBracket.status === "eliminated") {
     pub = applyTournamentPayout(pub, tournament.consolationChecks, null);
+    pub = withLedger(pub, (l) => ledgerAfterTournamentEnd(l, { tournamentId: tournament.id, champion: false, checks: tournament.consolationChecks, dateKey: localDateKey(today()) }));
     payout = { checks: tournament.consolationChecks, cardId: null, card: null };
     tournamentState = clearActiveBracket(tournamentState);
   } else if (nextBracket.status === "champion") {
     const prize = resolvePrize(tournament, ALL_CARDS, pub, Date.now());
     pub = applyTournamentPayout(pub, prize.checks, prize.cardId);
+    pub = withLedger(pub, (l) => ledgerAfterTournamentEnd(l, { tournamentId: tournament.id, champion: true, checks: prize.checks, prize: cardRef(prize.cardId), dateKey: localDateKey(today()) }));
     payout = { checks: prize.checks, cardId: prize.cardId, card: prize.cardId ? (cardsById.get(prize.cardId) ?? null) : null };
     tournamentState = clearActiveBracket(tournamentState);
   } else {
@@ -485,6 +558,7 @@ function tryResumeActiveMatch(): boolean {
  * is otherwise unchanged.
  */
 function bootAfterDedication(): void {
+  runLaunchTasks();
   if (!loadTutorialState().completed) {
     // A newcomer's very first launch (design.md §13): the tutorial itself
     // isn't resumable mid-match (see startTutorial) — if the app was killed

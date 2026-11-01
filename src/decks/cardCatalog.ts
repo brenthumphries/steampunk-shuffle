@@ -11,6 +11,7 @@
 // lose it in `slotToDeck`.
 
 import type { Card } from "../cards/cardTypes.ts";
+import { forEdition } from "../edition.ts";
 import { ALL_CARDS } from "../cards/data/index.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { ownedCopies } from "./ownership.ts";
@@ -29,5 +30,5 @@ export function builderCards(collection: readonly string[]): Card[] {
     if (BASE_IDS.has(card.id)) continue;
     if (ownedCopies(card.id, collection) > 0) extras.push(card);
   }
-  return [...ALL_CARDS, ...extras];
+  return forEdition([...ALL_CARDS, ...extras]);
 }

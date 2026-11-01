@@ -6,6 +6,8 @@
 // until then the pub hub needs *some* persistence to track Checks and
 // first-win rewards at all.
 
+import { today } from "../events/eventClock.ts";
+import { defaultLedger, parseLedger, type Ledger } from "../save/ledger.ts";
 import type { OpponentTier } from "./opponents.ts";
 
 const STORAGE_KEY = "steampunk-shuffle:pub-state";
@@ -63,6 +65,19 @@ export interface PubState {
    */
   pawnbrokerPurchasedToday: string[];
   pawnbrokerPurchaseDate: string | null;
+  /**
+   * Seasonal-event hosts (non-playing characters) the player has met, by id.
+   * Permanent: never removed when an event window closes. See
+   * src/events/arrivals.ts. (Content-plan §4.1; lives in this key because the
+   * privacy test whitelists localStorage keys.)
+   */
+  hostsMet: string[];
+  /** Arrival gifts already handed over: event id -> calendar year -> gift keys. Never granted twice. */
+  giftsClaimed: Record<string, Record<string, string[]>>;
+  /** Event banners already shown: event id -> years. Once per event per year. */
+  bannersSeen: Record<string, number[]>;
+  /** Counts for the year's recap (src/save/ledger.ts). Added in save version 2. */
+  ledger: Ledger;
 }
 
 export function defaultPubState(): PubState {
@@ -76,6 +91,10 @@ export function defaultPubState(): PubState {
     pawnedCards: [],
     pawnbrokerPurchasedToday: [],
     pawnbrokerPurchaseDate: null,
+    hostsMet: [],
+    giftsClaimed: {},
+    bannersSeen: {},
+    ledger: defaultLedger(),
   };
 }
 
@@ -234,6 +253,31 @@ export function applyTournamentPayout(state: PubState, checksEarned: number, pri
   };
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === "string");
+}
+
+function parseGiftsClaimed(value: unknown): Record<string, Record<string, string[]>> {
+  const out: Record<string, Record<string, string[]>> = {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return out;
+  for (const [eventId, years] of Object.entries(value)) {
+    if (typeof years !== "object" || years === null || Array.isArray(years)) continue;
+    const byYear: Record<string, string[]> = {};
+    for (const [year, keys] of Object.entries(years)) if (isStringArray(keys)) byYear[year] = keys;
+    out[eventId] = byYear;
+  }
+  return out;
+}
+
+function parseBannersSeen(value: unknown): Record<string, number[]> {
+  const out: Record<string, number[]> = {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return out;
+  for (const [eventId, years] of Object.entries(value)) {
+    if (Array.isArray(years) && years.every((y) => typeof y === "number")) out[eventId] = years;
+  }
+  return out;
+}
+
 function isOpponentRecord(value: unknown): value is OpponentRecord {
   const r = value as OpponentRecord;
   return !!r && typeof r === "object" && typeof r.wins === "number" && typeof r.losses === "number" && typeof r.rewardClaimed === "boolean";
@@ -267,6 +311,11 @@ export function loadPubState(): PubState {
       pawnbrokerPurchasedToday:
         Array.isArray(parsed.pawnbrokerPurchasedToday) && parsed.pawnbrokerPurchasedToday.every((c) => typeof c === "string") ? parsed.pawnbrokerPurchasedToday : [],
       pawnbrokerPurchaseDate: typeof parsed.pawnbrokerPurchaseDate === "string" ? parsed.pawnbrokerPurchaseDate : null,
+      hostsMet: isStringArray(parsed.hostsMet) ? parsed.hostsMet : [],
+      giftsClaimed: parseGiftsClaimed(parsed.giftsClaimed),
+      bannersSeen: parseBannersSeen(parsed.bannersSeen),
+      // Save version 2 migration: a save with no ledger gets one whose first launch is the day it was migrated.
+      ledger: parseLedger(parsed.ledger, localDateKey(today())),
     };
   } catch {
     return defaultPubState();

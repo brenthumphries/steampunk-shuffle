@@ -10,6 +10,7 @@
 // this fix's job.
 
 import type { Card, CardFace } from "../cards/cardTypes.ts";
+import { applyFaceFrame } from "./almanackFrame.ts";
 import { abilityLines, keywordChips } from "./cardText.ts";
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -34,6 +35,7 @@ export function buildCardZoomEl(card: Card, faceIndex: 0 | 1 = 0): HTMLElement {
   wrap.dataset.family = face.family;
   wrap.dataset.rarity = card.rarity;
   wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
+  applyFaceFrame(wrap, face);
   wrap.appendChild(el("span", "card-points", String(face.points)));
   wrap.appendChild(el("span", "card-name", face.name));
   wrap.appendChild(el("p", "card-meta", `${capitalize(face.type)} · ${capitalize(face.family)} · ${capitalize(card.rarity)}`));

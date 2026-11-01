@@ -9,7 +9,15 @@
 // registry and skips one it can't find, so a later step adds content by
 // adding data — this file's shape doesn't change.
 
+import { forEdition, visibleLines, type TaggedLine } from "../edition.ts";
 import { isOnOrAfter, isWithinWindow, type MonthDay } from "./eventClock.ts";
+import { HALLOWEEN } from "./packs/halloween.ts";
+import { TEST_PACK, testPackRequested } from "./packs/testPack.ts";
+
+// Content packs (docs/plans/monthly/00-monthly-content-plan.md §4.1): each
+// month is one file under ./packs/ exporting a SeasonalEvent. This file keeps
+// only the types, the registry and the date predicates.
+export { HALLOWEEN };
 
 export interface EventVisitor {
   opponentId: string;
@@ -20,9 +28,46 @@ export interface EventVisitor {
 export interface LineOverride {
   opponentId: string;
   line: string;
+  /** Dropped from a `VITE_EDITION=public` build (src/edition.ts). */
+  giftOnly?: boolean;
   /** Apply only once this visitor has arrived, e.g. Mary Shelley reacting to the Creature. */
   whenArrived?: string;
 }
+
+/**
+ * A non-playing character who arrives on a date and then stays for good
+ * (the Fortune-teller's Booth host). Not an Opponent: hosts never appear in
+ * Tonight's Patrons, a tournament field or any opponent list, and the window
+ * closing doesn't remove them. See src/events/arrivals.ts.
+ */
+export interface EventHost {
+  id: string;
+  arrives: MonthDay;
+}
+
+/** A card the player is handed, in a quantity (the November Coven trio is 2 x Hedge Witch + 1 x Witch Bottle). */
+export interface GiftCard {
+  id: string;
+  qty: number;
+}
+
+/**
+ * Cards granted once per event per calendar year, on the first launch on or
+ * after max(window start, `from`) while the event is live, and only in years
+ * >= `fromYear` when that is set. `line` is the beer-mat text.
+ */
+export interface ArrivalGift {
+  /** Stable key for `giftsClaimed`; defaults to the gift's index in `arrivalGifts`. */
+  id?: string;
+  cardIds: GiftCard[];
+  from?: MonthDay;
+  fromYear?: number;
+  line: string;
+  giftOnly?: boolean;
+}
+
+/** A `cardPool` entry: a plain id, or one that joins the pool only from `fromYear` (Penny for the Guy, 2027). */
+export type CardPoolEntry = string | { id: string; fromYear: number };
 
 export interface SeasonalEvent {
   id: string;
@@ -33,7 +78,7 @@ export interface SeasonalEvent {
   /** Tournament ids that exist only while this event is live (each narrows its own sub-window). */
   tournaments: string[];
   /** Card ids added to Lost & Found and Pawnbroker rolls only while the event is live. Ownership is permanent. */
-  cardPool: string[];
+  cardPool: CardPoolEntry[];
   /** Total wins before visitors show up; below it, Sir Charles hints instead. */
   minWins: number;
   dressing: {
@@ -42,53 +87,46 @@ export interface SeasonalEvent {
     /** Sir Charles's line while the event is live but `minWins` hasn't been reached. */
     lockedHint: string;
     /** Added to Sir Charles's own line pool while the event is live. */
-    sirCharlesLines: string[];
+    sirCharlesLines: TaggedLine[];
     lineOverrides: LineOverride[];
   };
+  /** Non-playing characters who arrive during the window and stay year-round afterwards. */
+  hosts?: EventHost[];
+  /** Cards handed over on a first launch inside the window (see ArrivalGift). */
+  arrivalGifts?: ArrivalGift[];
+  /** The month's thread items (plan §5), read from here by the year-round systems. */
+  almanackIds?: string[];
+  tarotIds?: string[];
+  covenCardIds?: string[];
+  sleeveId?: string;
+  /** A one-time "new this month" beer mat on the first hub visit inside the window, once per event per year. */
+  banner?: string;
 }
 
-export const HALLOWEEN: SeasonalEvent = {
-  id: "halloween",
-  name: "Hallowe'en at the Bridge",
-  window: { start: { month: 10, day: 1 }, end: { month: 10, day: 31 } },
-  visitors: [
-    { opponentId: "mr-griffin", arrives: { month: 10, day: 1 } },
-    { opponentId: "clockwork-pharaoh", arrives: { month: 10, day: 1 } },
-    { opponentId: "carpathian-count", arrives: { month: 10, day: 15 } },
-    { opponentId: "hampstead-wolf", arrives: { month: 10, day: 15 } },
-    { opponentId: "galvanic-creature", arrives: { month: 10, day: 15 } },
-  ],
-  tournaments: ["all-hallows-wake"],
-  cardPool: [
-    "turnip-lantern",
-    "resurrection-man",
-    "spirit-photograph",
-    "the-witching-hour",
-    "grave-robber",
-    "night-constable",
-    "lamplighter-at-dusk",
-    "galvanic-battery",
-  ],
-  minWins: 3,
-  dressing: {
-    taproomArtId: "background-the-taproom-halloween",
-    lockedHint: "Odd folk on the cellar stairs this month. Win a few hands first, and I'll introduce you.",
-    sirCharlesLines: [
-      "The cellar door's been busy. I've stopped asking who's knocking.",
-      "Turnips, mind. Not pumpkins. I'll not have a foreign vegetable on my bar.",
-      "If a chair moves on its own tonight, it's the draught. It is always the draught.",
-    ],
-    lineOverrides: [{ opponentId: "shelley", line: "Oh. You've met him.", whenArrived: "galvanic-creature" }],
-  },
-};
+/** Every month's pack, in calendar order. One event is live at a time: tests/unit/events/packs.test.ts asserts no two windows overlap. */
+const PACKS: readonly SeasonalEvent[] = [HALLOWEEN];
 
-export const SEASONAL_EVENTS: readonly SeasonalEvent[] = [HALLOWEEN];
+function urlSearch(): string {
+  try {
+    return typeof location === "undefined" ? "" : location.search;
+  } catch {
+    return "";
+  }
+}
+
+// The test-only pack (src/events/packs/testPack.ts) joins the registry only
+// when the URL asks for it (`?testpack=1`) in a dev build or with `&preview=1`
+// — the same gate as the `?now=` dev clock — so the Playwright smoke test can
+// exercise the framework and the copy Sara plays never loads it.
+export const SEASONAL_EVENTS: readonly SeasonalEvent[] = testPackRequested(urlSearch(), import.meta.env?.DEV || new URLSearchParams(urlSearch()).get("preview") === "1")
+  ? [...PACKS, TEST_PACK]
+  : PACKS;
 
 export const SEASONAL_EVENTS_BY_ID: ReadonlyMap<string, SeasonalEvent> = new Map(SEASONAL_EVENTS.map((e) => [e.id, e]));
 
 /** Every event whose window contains `date`'s local calendar day. */
-export function activeEvents(date: Date): SeasonalEvent[] {
-  return SEASONAL_EVENTS.filter((e) => isWithinWindow(date, e.window.start, e.window.end));
+export function activeEvents(date: Date, events: readonly SeasonalEvent[] = SEASONAL_EVENTS): SeasonalEvent[] {
+  return events.filter((e) => isWithinWindow(date, e.window.start, e.window.end));
 }
 
 export function isEventLive(id: string, date: Date): boolean {
@@ -128,14 +166,15 @@ export function eventTaproomArtId(date: Date): string | undefined {
   return undefined;
 }
 
+/** Sir Charles's extra lines for today; gift-only lines are dropped in a public build. */
 export function eventSirCharlesLines(date: Date): string[] {
-  return activeEvents(date).flatMap((e) => e.dressing.sirCharlesLines);
+  return activeEvents(date).flatMap((e) => visibleLines(e.dressing.sirCharlesLines));
 }
 
 /** An event's replacement pickup line for `opponentId`, if one applies today. */
 export function eventLineOverride(opponentId: string, date: Date): string | null {
   for (const event of activeEvents(date)) {
-    for (const override of event.dressing.lineOverrides) {
+    for (const override of forEdition(event.dressing.lineOverrides)) {
       if (override.opponentId !== opponentId) continue;
       if (override.whenArrived && !visitorArrived(event, override.whenArrived, date)) continue;
       return override.line;
@@ -145,6 +184,13 @@ export function eventLineOverride(opponentId: string, date: Date): string | null
 }
 
 /** Card ids the live events add to Lost & Found / Pawnbroker rolls today. Callers skip ids they can't resolve. */
-export function eventCardPoolIds(date: Date): string[] {
-  return activeEvents(date).flatMap((e) => e.cardPool);
+export function eventCardPoolIds(date: Date, events: readonly SeasonalEvent[] = SEASONAL_EVENTS): string[] {
+  const year = date.getFullYear();
+  return activeEvents(date, events).flatMap((e) => e.cardPool.flatMap((entry) => (typeof entry === "string" ? [entry] : entry.fromYear <= year ? [entry.id] : [])));
+}
+
+/** True when two events' windows share a calendar day (the one-event-at-a-time rule, plan §4.1). */
+export function windowsOverlap(a: SeasonalEvent, b: SeasonalEvent): boolean {
+  const ord = (md: MonthDay): number => md.month * 100 + md.day;
+  return ord(a.window.start) <= ord(b.window.end) && ord(b.window.start) <= ord(a.window.end);
 }

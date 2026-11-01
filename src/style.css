@@ -113,6 +113,10 @@ body {
   --family-foundry: #a8712f;
   --family-salon: #3e6b5a;
   --family-neutral: #7c6a4d;
+  /* Heather, the Coven's colour (style-bible.md §2): dusky violet. 4.96:1
+     against the parchment text colour --ink, as readable as Salon's green. The
+     Coven is not in FAMILIES yet (N-B adds it), so only the frame variant below uses it. */
+  --family-coven: #6e5a7e;
   --gold-leaf: #f6dfa0;
   --gold-leaf-dark: #a97a1e;
 }
@@ -562,6 +566,37 @@ body {
 }
 .card[data-family="neutral"] {
   --family: var(--family-neutral);
+}
+
+/* Coven frame variant (content plan §4.4): Heather, with a soft violet inner
+   glow so it reads as its own family at a glance. Dormant until "coven" joins FAMILIES. */
+.card[data-family="coven"] {
+  --family: var(--family-coven);
+  --state-shadow: inset 0 0 0.45rem rgba(150, 120, 180, 0.35);
+}
+
+/* Almanack frame (content plan §4.4, src/ui/almanackFrame.ts): a printed
+   almanack page. The SVG frame sits behind the card text but above the art;
+   the card needs its own stacking context for that, and the parchment-and-brass
+   border replaces the family-coloured one. */
+.card[data-frame="almanack"] {
+  --frame-light: #f0d28a;
+  --frame-dark: #b8862b;
+  isolation: isolate;
+}
+
+.card-frame-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Leave the glyph medallion in the top-right corner clear of the name. */
+.card[data-frame="almanack"] .card-name {
+  padding-right: 22%;
 }
 
 /* Common: no ornament beyond the plain family-coloured frame above. */

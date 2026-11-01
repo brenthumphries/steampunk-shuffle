@@ -3,6 +3,7 @@
 // and should never be trusted at the type level.
 
 import {
+  CARD_FRAMES,
   CARD_TYPES,
   FAMILIES,
   LEGENDARY_CHARACTER_POINT_RANGE,
@@ -227,6 +228,18 @@ function validateFace(
     }
   }
 
+  if (f.frame !== undefined) {
+    if (!oneOf(CARD_FRAMES, f.frame)) {
+      errors.push(`${path}.frame: expected one of ${CARD_FRAMES.join(", ")}`);
+    } else if (f.type !== "headline") {
+      errors.push(`${path}.frame: only a headline may use the "${f.frame}" frame`);
+    }
+  }
+  if (f.glyph !== undefined) {
+    if (!isNonEmptyString(f.glyph)) errors.push(`${path}.glyph: expected a non-empty string`);
+    else if (f.frame !== "almanack") errors.push(`${path}.glyph: only a face with frame "almanack" has a glyph slot`);
+  }
+
   validateKeywords(f.keywords, `${path}.keywords`, errors);
 
   if (f.abilities !== undefined) {
@@ -268,6 +281,9 @@ export function validateCard(card: unknown): ValidationResult {
 
   if (c.tutorialLocked !== undefined && typeof c.tutorialLocked !== "boolean") {
     errors.push("tutorialLocked: expected a boolean");
+  }
+  if (c.giftOnly !== undefined && typeof c.giftOnly !== "boolean") {
+    errors.push("giftOnly: expected a boolean");
   }
 
   return { valid: errors.length === 0, errors };

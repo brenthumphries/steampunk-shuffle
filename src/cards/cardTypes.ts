@@ -103,6 +103,14 @@ export interface Ability {
   effects: Effect[];
 }
 
+/**
+ * Alternative card frames. `"almanack"` is for Headlines only (a printed
+ * almanack page instead of the newspaper frame: brass orrery ring, zodiac
+ * glyph slot, parchment ground). Rules are unchanged.
+ */
+export const CARD_FRAMES = ["almanack"] as const;
+export type CardFrame = (typeof CARD_FRAMES)[number];
+
 export interface CardFace {
   name: string;
   type: CardType;
@@ -113,6 +121,10 @@ export interface CardFace {
   abilities?: Ability[];
   flavor: string;
   artId: string;
+  /** Alternative frame; only a Headline may set it (cardValidator.ts). */
+  frame?: CardFrame;
+  /** The Unicode zodiac glyph the Almanack frame renders in its glyph slot (for example "\u264F" for Scorpio). */
+  glyph?: string;
 }
 
 export interface Card {
@@ -126,6 +138,8 @@ export interface Card {
   faces: [CardFace] | [CardFace, CardFace];
   /** Locked stats for a tutorial-scripted card (design.md §8.3, §16). */
   tutorialLocked?: boolean;
+  /** Dropped from a `VITE_EDITION=public` build (src/edition.ts). */
+  giftOnly?: boolean;
 }
 
 // Deck legality (design.md §7.2). A deck is a list of distinct cards with a
