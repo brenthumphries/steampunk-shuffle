@@ -40,6 +40,8 @@ import { titleForWins } from "../pub/progression.ts";
 export interface DeckBuilderOptions {
   onExit: () => void;
   /** Called when the player selects a legal deck slot to play with. */
+  /** Set once the Booth host has arrived: a link to the Tarot album from the collection page. */
+  onOpenTarotAlbum?: () => void;
   onSelectDeck?: (deck: Deck, deckName: string) => void;
 }
 
@@ -103,6 +105,12 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
     backBtn.type = "button";
     backBtn.addEventListener("click", () => options.onExit());
     header.appendChild(backBtn);
+    if (options.onOpenTarotAlbum) {
+      const albumBtn = el("button", "action-button action-button--secondary", "Tarot album");
+      albumBtn.type = "button";
+      albumBtn.addEventListener("click", () => options.onOpenTarotAlbum?.());
+      header.appendChild(albumBtn);
+    }
     header.appendChild(el("h1", "deck-builder-title", "Your decks"));
     header.appendChild(el("span", "deck-builder-subtitle", titleForWins(loadPubState().totalWins)));
     screen.appendChild(header);

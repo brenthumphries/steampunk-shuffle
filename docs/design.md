@@ -555,3 +555,29 @@ The monthly content plan (`docs/plans/monthly/00-monthly-content-plan.md`, §4) 
 5. **Edition flag.** `src/edition.ts` reads `VITE_EDITION` (default `"gift"`; `"public"` is a future build). `giftOnly?: boolean` on `Card`, `Opponent`, `LineOverride` and a Sir Charles line (`{ text, giftOnly? }`; a plain string still works) is dropped from every registry in a public build: the card catalog and deck builder, Lost & Found, the Pawnbroker, Tonight's Patrons, tournament fields and the line pools. Nothing is tagged yet; the test stubs the edition to `public` and checks the filter. What a public build does about a saved deck holding a gift-only card is decided when that build happens.
 6. **The Ledger.** Save version 2 adds `pub.ledger` (counts only, nothing networked): first-launch date, per-card plays, per-opponent W/L/D, Checks earned, the first legendary and its date, tournaments won, plays of the five pub cats, and Booth draws. It sits inside the existing `pub-state` key, as do `hostsMet`, `giftsClaimed` and `bannersSeen`, because the privacy test whitelists `localStorage` keys. A save from before version 2 gets an empty ledger whose first launch is the day it was migrated.
 7. **Almanack frame and Heather.** A Headline face may set `frame: "almanack"` (validated: headlines only) and a `glyph` (the Unicode zodiac sign). The frame is an SVG page: parchment margin, brass orrery ring, glyph medallion. Rules are unchanged. Heather (`#6E5A7E`, the Coven's colour) and a Coven frame variant are in the CSS; "coven" is not in `FAMILIES` until the Coven's first cards land.
+
+### 17.2 The Fortune-teller's Booth
+
+A curtained booth in the snug, run by Pamela Colman Smith ("Pixie"), a host in the §17.1 sense: she arrives with the Cunning Folk pack on Nov 13, stays for good, and never plays a match. The code is `src/booth/` (rules) and `src/ui/boothScreen.ts`, `src/ui/tarotAlbumScreen.ts`. Content-plan §5.3 has the full table.
+
+1. **Reachable once she has arrived.** The hub's "Fortune-teller's Booth" tile and the Tarot album link in the deck builder appear only when `hostMet("pamela-colman-smith")`. Before that the hub shows nothing of the Booth.
+2. **The deck.** `src/booth/tarot.ts` holds all 22 Major Arcana from November (id `tarot-the-fool` etc., number 0-21, art id equal to the id, omen, Pixie's line, `unlocks`). `unlocks` is the 1st of the arcana's month in the table; the Fool and the Magician unlock on Nov 13.
+3. **Unlocking is computed, not stored.** An arcana is unlocked once some year's occurrence of its `unlocks` date falls on or after `ledger.firstLaunch` and on or before today. Once true it stays true. A player whose first launch is after an arcana's date therefore meets it the next time that date comes round.
+4. **One reading a day.** Tapping the curtain draws one unlocked arcana, seeded from the date plus a per-save salt (`pub.booth.salt`), never yesterday's card when more than one is unlocked. It is appended to `ledger.boothDraws`. The first reading ever also hands over Pixie's signature card, `pamela-colman-smith`, once, with the beer mat "I painted one of me. Vanity. Keep it." (skipped without error if the card is not authored yet). Reduce Motion skips the flip. Already drawn: today's card, and "Come back tomorrow, love."
+5. **Omens** are always kind and last until local midnight. Today's omen is not stored: it is the arcana of today's `boothDraws` entry, so it lapses with the date. Only one-shot effects keep a per-day flag (`pub.booth.used`). `src/booth/omens.ts` is the closed set; each economy module asks it at the right moment:
+
+| Omen | Where it applies |
+|---|---|
+| `checksNow(n)` | Paid once, at the draw |
+| `firstWinBonus(n)` | The first pickup or tournament win of the day (not Sir Charles, who pays no Checks) |
+| `checksPerWin(n)` | Every pickup or tournament win of the day |
+| `lostAndFoundUpgrade` | The Lost & Found roll is one rarity better (`lostAndFound.ts`) |
+| `lostAndFoundExtra` | A second, different Lost & Found card, once (`lostAndFound.ts`) |
+| `pawnbrokerDiscount(pct)` | Window prices, rounded to whole Checks (`pawnbroker.ts`) |
+| `tinkerFree` | The fee for the first fusing of the day (`tinkersBench.ts`) |
+| `openingHandPlusOne` | The player's first fresh match of the day opens with 5 cards, not 4 (`createMatch`'s `extraOpeningCards`) |
+| `barBetInsurance` | The first lost Bar Bet of the day: the stake stays in the collection, with a beer mat, instead of going to the Pawnbroker |
+| `wildcard` | Resolves to one of the other omens, seeded by the date |
+
+6. **Hub chip.** While an omen is live the hub shows it as a small chip under the header.
+7. **Tarot album.** 22 slots in order, reached from the Booth and from the deck builder. Drawn shows the art, unlocked but undrawn a face-down back, locked a silhouette. Missing art falls back to parchment carrying the arcana's numeral. Tapping a drawn slot shows its name, Pixie's line and the omen.

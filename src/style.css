@@ -2669,3 +2669,181 @@ body {
   align-self: center;
   min-width: 8rem;
 }
+
+/* ---------------------------------------------------------------------
+   The Fortune-teller's Booth and the Tarot album (design.md §17.2)
+--------------------------------------------------------------------- */
+
+.omen-chip {
+  align-self: flex-start;
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--ink);
+  background: rgba(36, 26, 16, 0.85);
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+}
+
+.booth-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 100dvh;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: linear-gradient(rgba(20, 12, 8, 0.7), rgba(20, 12, 8, 0.85)), var(--scene-bg) center / cover no-repeat;
+  overflow-y: auto;
+}
+
+.booth-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.booth-portrait {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--amber);
+  background: radial-gradient(circle, #5a3a52, #2a1a2a);
+}
+
+.booth-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.booth-curtain {
+  width: 100%;
+  min-height: 9rem;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: repeating-linear-gradient(90deg, #5b1f2a 0 1.2rem, #451620 1.2rem 2.4rem);
+  border: 2px solid var(--amber);
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+
+.booth-note {
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.booth-card {
+  position: relative;
+  width: 9rem;
+  aspect-ratio: 2 / 3;
+  perspective: 800px;
+}
+
+.tarot-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 2px solid var(--amber);
+  background: #e8d9b5;
+  backface-visibility: hidden;
+}
+
+.tarot-face--back {
+  background: repeating-linear-gradient(45deg, #3b2a4a 0 0.5rem, #2a1c36 0.5rem 1rem);
+}
+
+.tarot-face--silhouette {
+  background: rgba(10, 6, 4, 0.55);
+  border-style: dashed;
+}
+
+.tarot-numeral {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  color: #4a3320;
+}
+
+.tarot-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.booth-card--open .tarot-face--front {
+  transform: rotateY(180deg);
+}
+
+.booth-card--flipped .tarot-face--back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .booth-card .tarot-face {
+    transition: transform 0.6s ease-in-out;
+  }
+}
+
+.booth-mat {
+  width: 100%;
+  background: #241a10;
+  border: 1px solid var(--amber);
+  border-radius: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  text-align: center;
+}
+
+.booth-mat p {
+  margin: 0.2rem 0;
+}
+
+.booth-card-name {
+  font-size: 1.05rem;
+}
+
+.booth-line {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.booth-omen {
+  font-size: 0.85rem;
+  color: var(--amber);
+}
+
+.booth-return {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.tarot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.tarot-slot {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tarot-detail {
+  text-align: center;
+}

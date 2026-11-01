@@ -10,6 +10,7 @@ import { stepRandom } from "../engine/rng.ts";
 import { visibleInEdition } from "../edition.ts";
 import { localDayIndex, OPPONENTS } from "./opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID, acquirablePoolFor } from "./acquirableCards.ts";
+import { pawnbrokerPrice } from "../booth/omens.ts";
 import { addCopyToCollection, localDateKey, removeOneFromPawnedCards, type PubState } from "./pubState.ts";
 
 export const PAWNBROKER_WINDOW_SIZE = 3;
@@ -60,7 +61,7 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
     if (slots.length >= PAWNBROKER_WINDOW_SIZE || shown.has(cardId)) continue;
     const card = ACQUIRABLE_CARDS_BY_ID.get(cardId);
     if (!card || card.rarity === "legendary" || !visibleInEdition(card)) continue;
-    slots.push({ card, price: PAWNBROKER_PRICES[card.rarity as PricedRarity], isPawned: true });
+    slots.push({ card, price: pawnbrokerPrice(state, date, PAWNBROKER_PRICES[card.rarity as PricedRarity]), isPawned: true });
     shown.add(cardId);
   }
 
@@ -74,7 +75,7 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
     guard++;
     const card = pool[Math.floor(step.value * pool.length)]!;
     if (shown.has(card.id) || bought.has(card.id) || unclaimedRewards.has(card.id)) continue;
-    slots.push({ card, price: PAWNBROKER_PRICES[card.rarity as PricedRarity], isPawned: false });
+    slots.push({ card, price: pawnbrokerPrice(state, date, PAWNBROKER_PRICES[card.rarity as PricedRarity]), isPawned: false });
     shown.add(card.id);
   }
 
