@@ -94,6 +94,7 @@ export interface PubStateSnapshot {
   totalWins: number;
   opponents: Record<string, { wins: number; losses: number; rewardClaimed: boolean }>;
   collection: string[];
+  ledger?: { opponents: Record<string, { wins: number; losses: number; draws: number }> };
 }
 
 export async function readPub(page: Page): Promise<PubStateSnapshot> {
