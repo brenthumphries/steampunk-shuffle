@@ -620,9 +620,10 @@ steampunk-shuffle/
 ## bops
 
 Process conventions read by the bops plugin (`/next`, `/route`, `/daily`,
-`/log`, `/verify`, `/weekly`). Reviews are off: this repo takes commits only
-from Brent, straight to `main`, so there is no review cycle, no `week.json`,
-and no dispatch. The running log is `docs/logs/`, one entry per session.
+`/log`, `/verify`, `/weekly`). Reviews are off: there is no review cycle and
+no `week.json`. Commits arrive as PRs from Claude agents; the orchestrator (one
+Opus Cowork conversation) merges them, and release runs through CI. The running
+log is `docs/logs/`, one entry per session.
 
 ```yaml
 bops:
@@ -638,12 +639,13 @@ bops:
     file: steampunk-shuffle-plan.md
     ids: "<phase>.<step>[letter] from the plan (1.3, 4.0b); playtest items PT-n in PLAYTEST.md"
     sizes: none
-    also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md, seasonal-events-plan.md]
+    also: [PLAYTEST.md, wheatstone-bridge-bugfix-plan.md, seasonal-events-plan.md, docs/plans/monthly/]
   commit:
     tool: ss-ship (tools/ship.sh); Brent runs it
+    flow: "commits arrive as PRs from Claude agents; orchestrator (one Opus Cowork conversation) merges; release runs through CI"
     branch: main
     git_over_mount: never
-  dispatch: none
+  dispatch: orchestrator
   routing:
     rubric: steampunk-shuffle-plan.md#2. Model ladder
   verify:
