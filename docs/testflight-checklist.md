@@ -156,6 +156,17 @@ Do this once the build is approved and your own playthrough is clean, no later t
 
 Fallback if TestFlight fails for any reason: the PWA at https://brenthumphries.github.io/steampunk-shuffle/ with the QR code from plan step 5.2.
 
+## TestFlight from CI
+
+`.github/workflows/testflight.yml` does sections A, B and D on a GitHub macOS runner, so no Mac is needed for a later build. It only runs by hand.
+
+1. Repo Settings, Secrets and variables, Actions: add `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (paste the whole `.p8` file) and `APPLE_TEAM_ID`. The key comes from App Store Connect, Users and Access, Integrations; give it the App Manager role.
+2. Actions tab, **TestFlight**, **Run workflow**, pick the branch.
+3. Leave **Upload to TestFlight** ticked to upload. Untick it for a dry run: it archives and exports but never uploads.
+4. The build number is 4 plus the workflow run number, so it always rises. The build appears under the TestFlight tab after processing, as in section D.
+
+Signing is cloud-managed through the API key (no certificates in the repo). A build stays installable for 90 days. The workflow is untested until its first run; if the archive step fails, send Claude the log.
+
 ## H. Updating the build (plan 5.1)
 
 1. Fix the bug, ship to `main`, run `npm run cap:sync`.
