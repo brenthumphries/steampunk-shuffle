@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // Plan step 2.1's exit check: "full match playable on your phone" at the
 // 402×874 iPhone 17 viewport (playwright.config.ts's only project). These
@@ -49,6 +50,7 @@ function boardBoundTappableCard(page: Page): Locator {
 
 test.describe("match screen (plan step 2.1)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     // A brand-new player sees the dedication screen (design.md §14.1) then
     // lands in the tutorial (§13) instead of the pub hub — these tests

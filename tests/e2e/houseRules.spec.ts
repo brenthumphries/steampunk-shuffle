@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
 
 // House Rules (plan step 2.7, design.md §13.4) had no e2e coverage of its
 // own before plan step 4.0e — this file starts one, covering PT-29's new
@@ -8,6 +9,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("House Rules (plan step 2.7 / 4.0e)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
       localStorage.clear();
