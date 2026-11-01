@@ -24,6 +24,7 @@ import { bucketsForefinger } from "../cards/data/decks/bucket.ts";
 import { theAnalyticalEngine } from "../cards/data/decks/lovelace.ts";
 import { thePhotograph } from "../cards/data/decks/adler.ts";
 import { nextInstalment } from "../cards/data/decks/dickens.ts";
+import { forEdition } from "../edition.ts";
 import { eventCardPoolIds } from "../events/seasonalEvents.ts";
 
 export const ACQUIRABLE_CARDS: Card[] = [...ALL_CARDS, bucketsForefinger, theAnalyticalEngine, thePhotograph, nextInstalment];
@@ -41,8 +42,12 @@ export const NON_LEGENDARY_ACQUIRABLE_CARDS = ACQUIRABLE_CARDS.filter((c) => c.r
  * yet) is skipped, as is a legendary — those never roll.
  */
 export function acquirablePoolFor(date: Date): Card[] {
-  const seasonal = eventCardPoolIds(date)
-    .map((id) => EVENT_CARDS_BY_ID.get(id))
-    .filter((c): c is Card => c !== undefined && c.rarity !== "legendary");
-  return seasonal.length === 0 ? NON_LEGENDARY_ACQUIRABLE_CARDS : [...NON_LEGENDARY_ACQUIRABLE_CARDS, ...seasonal];
+  const seasonal = forEdition(
+    eventCardPoolIds(date)
+      .map((id) => EVENT_CARDS_BY_ID.get(id))
+      .filter((c): c is Card => c !== undefined && c.rarity !== "legendary"),
+  );
+  // forEdition returns the same array in the gift edition, so the year-round pool keeps its identity.
+  const everyday = forEdition(NON_LEGENDARY_ACQUIRABLE_CARDS);
+  return seasonal.length === 0 ? everyday : [...everyday, ...seasonal];
 }

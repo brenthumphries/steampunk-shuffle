@@ -11,7 +11,7 @@ Victorian-engineering steampunk, not goggles-and-corsets cosplay (`design.md` §
 
 ## 2. Palette
 
-Five family colours (`design.md` §4) plus three neutrals. Every asset draws from this set — no colour outside it without a reason.
+Five family colours (`design.md` §4), **Heather** for the Coven (the sixth family, added with the monthly content plan), plus three neutrals. Every asset draws from this set — no colour outside it without a reason.
 
 | Name | Family / use | Feel |
 |---|---|---|
@@ -20,6 +20,7 @@ Five family colours (`design.md` §4) plus three neutrals. Every asset draws fro
 | **Verdigris** | The Salon | Oxidised copper-green. Drawing-room brocade, greenhouse glass, old bronze. |
 | **Gaslight amber** | The Irregulars | Warm yellow-orange glow. Street lamps, pub light, informants in doorways. |
 | **Gunmetal blue** | The Yard | Cool dark blue-grey. Police wool, iron railings, evening fog. |
+| **Heather** | The Coven (`#6E5A7E`) | Dusky violet. Hedgerow heather at dusk, tea-leaf and candle-smoke shadows, bruised-plum silk. 4.96:1 against the parchment text colour, so it carries card text as well as Salon's green does. Wired as `--family-coven` and a Coven frame variant in `src/style.css`; "coven" joins `FAMILIES` with the Coven's first cards (November's N-B). |
 | **Parchment cream** | Neutral / UI ground | Aged paper, card stock, beer mats. |
 | **Ink black** | Neutral / linework | Deep warm black, never pure `#000`. |
 | **Sovereign gold** | Neutral / legendary accent | Used sparingly — legendary frames, the Checks currency, the dedication screen. |
@@ -47,6 +48,9 @@ Rule of thumb: an illustration should read as *one* dominant family colour plus 
 | **Headline** | Newspaper front page: symmetrical masthead-style composition, bold central motif | 3:4 | The only type styled as a graphic object rather than an illustrated scene — it should look like it was printed, not painted. |
 | **Portrait (opponent reference)** | Same as Character but framed for the pub-hub roster, slightly tighter | 1:1 | Used for the "tonight's patrons" UI, not for cards. |
 | **Background (pub scenes)** | Full environment, room to compose UI over the lower third | 9:16 | Taproom, snug, back parlour, cellar. |
+| **Tarot (Booth)** | The Rider-Waite-Smith composition for that arcana (public domain, 1909), re-imagined in the house style with Victorian-engineering details | 2:3 | No numerals, titles or lettering (the UI adds them). A thin painted border is allowed *inside* the image, since these are shown as tarot cards, not in the game frame. |
+| **Almanack (Headline)** | Looks printed, not painted: a woodcut or engraving of the zodiac figure, centred and symmetrical, inside a brass orrery ring on foxed parchment. Two inks plus a sovereign-gold accent | 3:4 | No lettering or glyph text: the Almanack frame (`src/ui/almanackFrame.ts`) adds the ring's rules, the parchment margin and the zodiac glyph. |
+| **Sleeve (card back)** | Symmetrical, pattern-led, full-bleed, readable at thumbnail size | 3:4 | No lettering. |
 
 The illustration window only — the SVG frame (step 3.1) supplies the border, so compose the subject to fill the window edge-to-edge with no vignette or card-shaped crop baked in.
 

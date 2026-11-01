@@ -14,14 +14,21 @@
 // other flagged ones (see CLAUDE.md).
 
 import { loadDeckSlotsState, saveDeckSlotsState, type DeckSlotsState } from "../decks/deckStorage.ts";
-import { loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
+import { today } from "../events/eventClock.ts";
+import { loadPubState, localDateKey, savePubState, type PubState } from "../pub/pubState.ts";
+import { parseLedger } from "./ledger.ts";
 import { defaultTournamentState, loadTournamentState, saveTournamentState, type TournamentState } from "../tournaments/tournamentState.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type ActiveMatchSave } from "./activeMatch.ts";
 import { defaultTutorialState, loadTutorialState, saveTutorialState, type TutorialState } from "../tutorial/tutorialState.ts";
 import { defaultAudioState, loadAudioState, saveAudioState, type AudioState } from "../audio/audioState.ts";
 import { defaultPlayerState, loadPlayerState, savePlayerState, type PlayerState } from "../player/playerState.ts";
 
-export const SAVE_FILE_VERSION = 1;
+/**
+ * 1: the original blob. 2: `pub` gained `ledger`, `hostsMet`, `giftsClaimed`
+ * and `bannersSeen` (content plan §4.1/§4.3). Those live inside `pub`, which
+ * is one localStorage key, because the privacy test whitelists keys.
+ */
+export const SAVE_FILE_VERSION = 2;
 
 export interface SaveFile {
   version: number;
@@ -53,6 +60,28 @@ export function buildSaveFile(now: Date = new Date()): SaveFile {
   };
 }
 
+/**
+ * Upgrades a save file of any older version to the current shape. A version-1
+ * file has no ledger, so it gets an empty one whose first launch is
+ * `migrationDate` (the day of the import or migration); the new `pub` fields
+ * default to empty. A current file passes through with its ledger intact.
+ */
+export function migrateSaveFile(file: SaveFile, migrationDate: string = localDateKey(today())): SaveFile {
+  if (file.version >= SAVE_FILE_VERSION) return file;
+  const pub = file.pub as Partial<PubState>;
+  return {
+    ...file,
+    version: SAVE_FILE_VERSION,
+    pub: {
+      ...(file.pub as PubState),
+      hostsMet: pub.hostsMet ?? [],
+      giftsClaimed: pub.giftsClaimed ?? {},
+      bannersSeen: pub.bannersSeen ?? {},
+      ledger: parseLedger(pub.ledger, migrationDate),
+    },
+  };
+}
+
 export interface ApplySaveFileResult {
   ok: boolean;
   error?: string;
@@ -71,10 +100,11 @@ export function applySaveFile(data: unknown): ApplySaveFileResult {
   if (!data || typeof data !== "object") {
     return { ok: false, error: "That doesn't look like a Steampunk Shuffle save file." };
   }
-  const file = data as Partial<SaveFile>;
-  if (typeof file.version !== "number" || !file.pub || !file.deckSlots) {
+  const raw = data as Partial<SaveFile>;
+  if (typeof raw.version !== "number" || !raw.pub || !raw.deckSlots) {
     return { ok: false, error: "That doesn't look like a Steampunk Shuffle save file." };
   }
+  const file = migrateSaveFile(raw as SaveFile);
 
   savePubState(file.pub as PubState);
   saveDeckSlotsState(file.deckSlots as DeckSlotsState);

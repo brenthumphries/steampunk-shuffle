@@ -4,6 +4,7 @@
 // src/pub/opponents.ts (registry) vs src/pub/pubState.ts (persistence) —
 // bracket generation lives in bracket.ts, persistence in tournamentState.ts.
 
+import { visibleInEdition } from "../edition.ts";
 import type { Deck, Family } from "../cards/cardTypes.ts";
 import { isWithinWindow, type MonthDay } from "../events/eventClock.ts";
 import { HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
@@ -95,7 +96,7 @@ const isWakeVisitor = (o: Opponent): boolean => HALLOWEEN.visitors.some((v) => v
 /** Mudd and Bucket are the Yard-affiliated Regular/Seasoned opponents (src/cards/data/decks/README.md's per-opponent family table). */
 const YARD_AFFILIATED_IDS = new Set(["mudd", "bucket"]);
 
-export const TOURNAMENTS: Tournament[] = [
+const ALL_TOURNAMENTS: Tournament[] = [
   {
     id: "tuesday-knockout",
     name: "The Tuesday Knockout",
@@ -183,6 +184,15 @@ export const TOURNAMENTS: Tournament[] = [
     checkEntryDeck: anyLegalDeck,
   },
 ];
+
+/**
+ * Every tournament's field is drawn after the edition filter, so a public
+ * build never seats a `giftOnly` opponent (src/edition.ts).
+ */
+export const TOURNAMENTS: Tournament[] = ALL_TOURNAMENTS.map((t) => ({
+  ...t,
+  eligiblePool: (opponents: readonly Opponent[]) => t.eligiblePool(opponents.filter(visibleInEdition)),
+}));
 
 export const TOURNAMENTS_BY_ID = new Map<TournamentId, Tournament>(TOURNAMENTS.map((t) => [t.id, t]));
 

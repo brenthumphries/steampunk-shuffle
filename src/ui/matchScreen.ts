@@ -29,6 +29,7 @@ import { buildBeerMat } from "./beerMat.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
 import type { HintId } from "../tutorial/tutorialState.ts";
+import { applyFaceFrame } from "./almanackFrame.ts";
 import { buildMatchHud } from "./matchHud.ts";
 import {
   buffDelta,
@@ -93,6 +94,8 @@ export interface MatchScreenOptions {
   initialState?: { state: MatchState; aiSeed: number };
   /** Called on mount and after every committed turn (human play, AI turn, forced pass) so the caller can autosave the match (design.md §12.4). */
   onStateChange?: (state: MatchState, aiSeed: number) => void;
+  /** Called with the card each time the human commits a play (the Ledger's per-card counts, src/save/ledger.ts). Not called for a pass. */
+  onCardPlayed?: (card: Card) => void;
   /** Called once the player dismisses the match-over overlay, with the final result. */
   onExit: (result: MatchResult) => void;
   /**
@@ -567,6 +570,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
     applyTargetState(wrap, opts);
     wrap.style.setProperty("--illustration", `url(${artUrl(face.artId)})`);
+    applyFaceFrame(wrap, face);
 
     const shownPoints = opts.pointsOverride ?? face.points;
     const pointsWrap = el("span", "card-points-wrap");
@@ -686,6 +690,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     hapticTap();
     const prevRoundCount = state.roundHistory.length;
     const hintSnapshot = captureHintSnapshot();
+    const playedCard = instanceId === undefined ? undefined : state.players[HUMAN].hand.find((c) => c.instanceId === instanceId)?.card;
+    if (playedCard) options.onCardPlayed?.(playedCard);
     state = playTurn(state, HUMAN, instanceId, chooser ? { chooseTargets: chooser } : undefined);
     afterCommit(prevRoundCount, hintSnapshot);
   }

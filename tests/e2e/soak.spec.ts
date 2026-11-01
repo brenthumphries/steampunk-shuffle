@@ -92,7 +92,16 @@ test.describe("soak", () => {
 
       if (result.outcome === "draw") {
         // design.md §6.3: a draw pays nothing and counts as neither a win nor a loss, daily bonus included.
-        expect(after).toEqual(before);
+        // The Ledger (N-A) is statistics, not the economy: it does record the draw.
+        const { ledger: ledgerAfter, ...economyAfter } = after;
+        const { ledger: ledgerBefore, ...economyBefore } = before;
+        expect(economyAfter).toEqual(economyBefore);
+        const tallyBefore = ledgerBefore?.opponents ?? {};
+        const drawn = Object.keys(ledgerAfter?.opponents ?? {}).filter((key) => (ledgerAfter!.opponents[key]!.draws) !== (tallyBefore[key]?.draws ?? 0));
+        expect(drawn, `${name}: exactly one opponent's draws changed`).toHaveLength(1);
+        const was = tallyBefore[drawn[0]!] ?? { wins: 0, losses: 0, draws: 0 };
+        const now = ledgerAfter!.opponents[drawn[0]!]!;
+        expect(now).toEqual({ wins: was.wins, losses: was.losses, draws: was.draws + 1 });
         continue;
       }
 

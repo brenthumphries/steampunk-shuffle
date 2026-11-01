@@ -7,6 +7,7 @@
 
 import type { Card, Rarity } from "../cards/cardTypes.ts";
 import { stepRandom } from "../engine/rng.ts";
+import { visibleInEdition } from "../edition.ts";
 import { localDayIndex, OPPONENTS } from "./opponents.ts";
 import { ACQUIRABLE_CARDS_BY_ID, acquirablePoolFor } from "./acquirableCards.ts";
 import { addCopyToCollection, localDateKey, removeOneFromPawnedCards, type PubState } from "./pubState.ts";
@@ -58,7 +59,7 @@ export function pawnbrokerWindow(state: PubState, date: Date): PawnbrokerSlot[] 
   for (const cardId of state.pawnedCards) {
     if (slots.length >= PAWNBROKER_WINDOW_SIZE || shown.has(cardId)) continue;
     const card = ACQUIRABLE_CARDS_BY_ID.get(cardId);
-    if (!card || card.rarity === "legendary") continue;
+    if (!card || card.rarity === "legendary" || !visibleInEdition(card)) continue;
     slots.push({ card, price: PAWNBROKER_PRICES[card.rarity as PricedRarity], isPawned: true });
     shown.add(cardId);
   }

@@ -41,6 +41,12 @@ export interface PubHubOptions {
   pendingReveals?: PendingReveal[];
   /** design.md §13.3's hub hint ("You've enough Checks for the Pawnbroker…"), shown once. */
   hint?: { text: string; onShown: () => void };
+  /**
+   * Beer-mat messages to slide across one at a time before the hint: an
+   * event's arrival-gift line, or its "new this month" banner (content plan
+   * §4.1). The caller records them as shown; dismissing here only advances the queue.
+   */
+  notices?: string[];
 }
 
 const CARDS_BY_ID = ACQUIRABLE_CARDS_BY_ID;
@@ -114,7 +120,13 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   let stakePrompt: Opponent | undefined;
   let stakeSelection: StakeSelectionState = clearStakeSelection();
   let hintDismissed = false;
+  let noticeQueue: string[] = [...(options.notices ?? [])];
   let torn = false;
+
+  function dismissNotice(): void {
+    noticeQueue = noticeQueue.slice(1);
+    render();
+  }
 
   function dismissHint(): void {
     hintDismissed = true;
@@ -388,7 +400,8 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     root.appendChild(screen);
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
-    if (options.hint && !hintDismissed) root.appendChild(buildBeerMat(options.hint.text, dismissHint));
+    if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));
+    else if (options.hint && !hintDismissed) root.appendChild(buildBeerMat(options.hint.text, dismissHint));
   }
 
   render();

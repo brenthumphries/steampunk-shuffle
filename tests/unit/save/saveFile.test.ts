@@ -19,7 +19,7 @@ beforeEach(() => {
 describe("buildSaveFile", () => {
   it("gathers defaults from all four stores when nothing is saved", () => {
     const file = buildSaveFile(new Date("2026-01-01T00:00:00Z"));
-    expect(file.version).toBe(1);
+    expect(file.version).toBe(2);
     expect(file.pub).toEqual(defaultPubState());
     expect(file.tournament).toEqual(defaultTournamentState());
     expect(file.activeMatch).toBeNull();
