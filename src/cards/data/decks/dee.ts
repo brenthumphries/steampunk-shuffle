@@ -9,7 +9,7 @@ import { hedgeWitch, cunningWoman, witchBottle } from "../families/coven.ts";
 import { galvanicBattery } from "../nightfall.ts";
 
 // Deck-local body (not in the labeled 60 or the event pool), replacing the
-// deck's two 1-point gadgets (curve check, 2026-11-02: starter 80% before).
+// deck's two 1-point gadgets (curve check, 2026-11-02: starter 60% before, 41% after the Mechanic at 6pt).
 // No art yet; tracked in KNOWN_MISSING (artAssets.test.ts).
 export const galvanicMechanic: Card = {
   id: "galvanic-mechanic",
@@ -19,7 +19,7 @@ export const galvanicMechanic: Card = {
       name: "Galvanic Mechanic",
       type: "character",
       family: "foundry",
-      points: 4,
+      points: 6,
       flavor: "Keeps the battery warm, the coils honest and the sparks in their box, mostly.",
       artId: "galvanic-mechanic",
     },

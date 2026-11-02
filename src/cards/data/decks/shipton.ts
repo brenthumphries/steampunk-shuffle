@@ -9,7 +9,7 @@ import { hedgeWitch, cunningWoman, witchBottle } from "../families/coven.ts";
 
 // Deck-local bodies (not in the labeled 60 or the event pool) replacing the
 // deck's 1-point Irregulars, so the visitor's curve sits near the seasoned
-// target (curve check, 2026-11-02: starter 80% before). No art yet; tracked
+// target (curve check, 2026-11-02: starter 73% before, 50% after Dale Carter 3pt to 4pt). No art yet; tracked
 // in KNOWN_MISSING (tests/unit/content/artAssets.test.ts).
 export const knaresboroughSeer: Card = {
   id: "knaresborough-seer",
@@ -34,7 +34,7 @@ export const daleCarter: Card = {
       name: "Dale Carter",
       type: "character",
       family: "irregulars",
-      points: 3,
+      points: 4,
       flavor: "Has carried the post, the coffin and the cheese over the Dales. Never once the wrong way up.",
       artId: "dale-carter",
     },
