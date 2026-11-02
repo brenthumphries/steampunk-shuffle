@@ -21,6 +21,8 @@ async function seed(page: import("@playwright/test").Page, hostMet: boolean): Pr
         lastDailyBonusDate: null,
         hostsMet: met ? ["pamela-colman-smith"] : [],
         ledger: { firstLaunch: "2026-11-01" },
+        giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } },
+        bannersSeen: { "cunning-folk": [2026] },
       }),
     );
   }, hostMet);
@@ -28,7 +30,7 @@ async function seed(page: import("@playwright/test").Page, hostMet: boolean): Pr
 
 test("before Pixie arrives the hub shows nothing of the booth", async ({ page }) => {
   await seed(page, false);
-  await page.goto(`${START}?now=2026-11-14&preview=1`);
+  await page.goto(`${START}?now=2026-11-12&preview=1`);
   await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
   await expect(page.getByText("Fortune-teller's Booth")).toHaveCount(0);
   await expect(page.locator(".omen-chip")).toHaveCount(0);

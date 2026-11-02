@@ -38,8 +38,8 @@ export const FAMILY_PALETTE: Record<Family, string> = {
   neutral: "Parchment cream, ink black, and sparing sovereign gold — legendary frames, the Checks currency.",
 };
 
-/** Asset categories a prompt sheet can cover: the five card types plus non-card assets. */
-export type AssetCategory = CardType | "portrait" | "background" | "card-back" | "icon";
+/** Asset categories a prompt sheet can cover: the five card types plus non-card and seasonal assets. */
+export type AssetCategory = CardType | "portrait" | "background" | "card-back" | "icon" | "tarot" | "almanack" | "sleeve";
 
 /** style-bible.md §4's framing table, keyed by asset category. */
 export const ASPECT_BY_CATEGORY: Record<AssetCategory, string> = {
@@ -52,6 +52,10 @@ export const ASPECT_BY_CATEGORY: Record<AssetCategory, string> = {
   portrait: "1:1",
   icon: "1:1",
   background: "9:16",
+  // Seasonal framings (style-bible.md §4, added with the monthly content plan).
+  tarot: "2:3",
+  almanack: "3:4",
+  sleeve: "3:4",
 };
 
 /** style-bible.md §5, verbatim — included on every generation. */

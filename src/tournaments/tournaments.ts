@@ -7,10 +7,10 @@
 import { visibleInEdition } from "../edition.ts";
 import type { Deck, Family } from "../cards/cardTypes.ts";
 import { isWithinWindow, type MonthDay } from "../events/eventClock.ts";
-import { HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
+import { CUNNING_FOLK, HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
 import type { Opponent } from "../pub/opponents.ts";
 
-export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational" | "all-hallows-wake";
+export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational" | "all-hallows-wake" | "almanack-stakes";
 
 export interface EntryCheck {
   valid: boolean;
@@ -77,6 +77,11 @@ function deckMaxSingleFamilyCount(deck: Deck): number {
   return Math.max(0, ...counts.values());
 }
 
+/** Copies of Coven-family cards in a deck (the Almanack Stakes' entry rule, 01-november.md §5). */
+function deckCovenCount(deck: Deck): number {
+  return deck.reduce((sum, e) => sum + (e.card.faces[0].family === "coven" ? e.quantity : 0), 0);
+}
+
 function anyLegalDeck(): EntryCheck {
   return { valid: true };
 }
@@ -92,6 +97,16 @@ const WAKE_END: MonthDay = { month: 10, day: 31 };
 
 /** The five Hallowe'en visitors, seated in the All Hallows' Wake. */
 const isWakeVisitor = (o: Opponent): boolean => HALLOWEEN.visitors.some((v) => v.opponentId === o.id);
+
+/** The Almanack Stakes' field (01-november.md §5): the three Cunning Folk, always seated; the other four seats are Seasoned. */
+export const ALMANACK_STAKES_FIELD_IDS: readonly string[] = ["mother-shipton", "john-dee", "mother-red-cap"];
+
+/** The Stakes open for the last ten days of the Cunning Folk window, with the event's own minWins. */
+const STAKES_START: MonthDay = { month: 11, day: 20 };
+const STAKES_END: MonthDay = { month: 11, day: 30 };
+
+/** Coven cards a deck needs to enter the Almanack Stakes. */
+export const ALMANACK_STAKES_MIN_COVEN = 2;
 
 /** Mudd and Bucket are the Yard-affiliated Regular/Seasoned opponents (src/cards/data/decks/README.md's per-opponent family table). */
 const YARD_AFFILIATED_IDS = new Set(["mudd", "bucket"]);
@@ -182,6 +197,32 @@ const ALL_TOURNAMENTS: Tournament[] = [
     eligiblePool: (opponents) => opponents.filter((o) => isWakeVisitor(o) || o.id === "spring-heeled-jack" || o.tier === "seasoned"),
     fixedSeats: (pool) => pool.filter((o) => isWakeVisitor(o) || o.id === "spring-heeled-jack"),
     checkEntryDeck: anyLegalDeck,
+  },
+  // The Cunning Folk (01-november.md §5): Nov 20-30, after 3 wins. Mother Red
+  // Cap is the prize; she is seated here by id, so `tournamentOnly` (which
+  // keeps her out of every other field) doesn't apply.
+  {
+    id: "almanack-stakes",
+    name: "The Almanack Stakes",
+    eventId: CUNNING_FOLK.id,
+    whenLabel: "Nov 20 – Nov 30, after 3 wins",
+    fieldLabel: "Mother Shipton, Dr John Dee, Mother Red Cap + 4 Seasoned",
+    entryRuleLabel: "At least 2 Coven cards",
+    entryChecks: 13,
+    consolationChecks: 13,
+    prizeChecks: 150,
+    prizeCard: { kind: "fixed", cardId: "mother-red-cap" },
+    houseLocationId: "the-petrifying-well",
+    isUnlocked: (totalWins, _invitationalTriggered, date) =>
+      totalWins >= (SEASONAL_EVENTS_BY_ID.get(CUNNING_FOLK.id)?.minWins ?? 0) && isEventLive(CUNNING_FOLK.id, date) && isWithinWindow(date, STAKES_START, STAKES_END),
+    eligiblePool: (opponents) => opponents.filter((o) => ALMANACK_STAKES_FIELD_IDS.includes(o.id) || o.tier === "seasoned"),
+    fixedSeats: (pool) => pool.filter((o) => ALMANACK_STAKES_FIELD_IDS.includes(o.id)),
+    checkEntryDeck: (deck) => {
+      const count = deckCovenCount(deck);
+      return count >= ALMANACK_STAKES_MIN_COVEN
+        ? { valid: true }
+        : { valid: false, reason: `The Almanack Stakes needs at least ${ALMANACK_STAKES_MIN_COVEN} Coven cards in the deck.` };
+    },
   },
 ];
 

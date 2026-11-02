@@ -53,6 +53,15 @@ practice: its printed intent is "each player returns their own lowest
 card," which a Location can't say, so it returns the two lowest-point
 face-up cards on the whole table instead.
 
+`Penny for the Guy` and the other November cards (`cunningFolk.ts`), the
+Coven trio (`families/coven.ts`) and the two Almanack headlines
+(`almanack.ts`) are event cards too. Mother Shipton, Dr John Dee and
+Mother Red Cap are the Cunning Folk visitors' signatures; Mother Red Cap is
+also the Almanack Stakes' boss. `Pamela Colman Smith` (Pixie's card) is
+granted by the Booth on her first reading, not from a pool. The
+Penny for the Guy joins the pool from 2027 only (`CardPoolEntry`
+`fromYear`).
+
 ## Known engine-schema gaps (found while authoring v1)
 
 Discovered writing cards against `docs/design.md`'s literal text; each is
@@ -106,6 +115,16 @@ punch list:
 7. **No conditional ("if opponent has X") effects at all.** Blocks
    design.md §15's *We're Not Worthy* (Salon: "if your opponent has a
    legendary face-up, Draw 2") — not authored in v1.
+
+8. **No "each player, one card each" target.** A targeted effect takes
+   `count` cards from the pooled candidates of its side, so
+   `side: "each"` with `count: 2` and `highestPoints` picks the two
+   highest across both boards, not one per player. Affects
+   `Sagittarius` (November, almanack): its "each player draws 1, and each
+   player's highest face-up card gets +1" is written for the controller
+   only (`draw` and a `self` buff). The Scorpio and REMEMBER, REMEMBER
+   "each player's / each face-up" effects are fine, since they take every
+   matching card on both boards (`count` = two boards' worth).
 
 None of these block plan step 1.5's exit check (cards pass `validateCard`,
 which is structural only) — they're gaps between the shipped 1.1/1.2

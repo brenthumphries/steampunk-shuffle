@@ -15,13 +15,14 @@ import { addToPawnedCards, defaultPubState } from "../../../src/pub/pubState.ts"
 const SEP_30 = new Date(2026, 8, 30);
 const OCT_15 = new Date(2026, 9, 15);
 const NOV_1 = new Date(2026, 10, 1);
+const DEC_1 = new Date(2026, 11, 1);
 const EVENT_IDS = new Set(EVENT_CARDS.map((c) => c.id));
 const SEASONAL_POOL_IDS = new Set(HALLOWEEN.cardPool);
 
 describe("acquirablePoolFor", () => {
   it("is exactly the year-round pool outside an event", () => {
     expect(acquirablePoolFor(SEP_30)).toBe(NON_LEGENDARY_ACQUIRABLE_CARDS);
-    expect(acquirablePoolFor(NOV_1)).toBe(NON_LEGENDARY_ACQUIRABLE_CARDS);
+    expect(acquirablePoolFor(DEC_1)).toBe(NON_LEGENDARY_ACQUIRABLE_CARDS);
   });
 
   it("adds the event's card pool while it's live", () => {
@@ -62,10 +63,10 @@ describe("Lost & Found across the window", () => {
     expect(rolled).toBeGreaterThan(0);
   });
 
-  it("never rolls an event card outside October", () => {
+  it("never rolls an event card outside October and November (the Cunning Folk)", () => {
     for (let year = 2026; year < 2032; year++) {
       for (let month = 0; month < 12; month++) {
-        if (month === 9) continue;
+        if (month === 9 || month === 10) continue;
         for (let day = 1; day <= 28; day++) {
           const card = rollLostAndFound([], new Date(year, month, day));
           expect(EVENT_IDS.has(card.id), `${year}-${month + 1}-${day}: ${card.id}`).toBe(false);
@@ -92,10 +93,10 @@ describe("Pawnbroker across the window", () => {
     expect(stocked).toBeGreaterThan(0);
   });
 
-  it("never stocks an event card at random outside October", () => {
+  it("never stocks an event card at random outside October and November (the Cunning Folk)", () => {
     for (let year = 2026; year < 2032; year++) {
       for (let month = 0; month < 12; month++) {
-        if (month === 9) continue;
+        if (month === 9 || month === 10) continue;
         for (let day = 1; day <= 28; day++) {
           const window = pawnbrokerWindow(defaultPubState(), new Date(year, month, day));
           for (const slot of window) expect(EVENT_IDS.has(slot.card.id), `${year}-${month + 1}-${day}`).toBe(false);

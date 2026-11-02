@@ -13,7 +13,7 @@ async function openHubOn(page: Page, date: string, totalWins: number): Promise<v
     localStorage.clear();
     localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
     localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null }));
+    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
   }, totalWins);
   await page.goto(`${START}?now=${date}&preview=1`);
   await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
@@ -53,8 +53,8 @@ test.describe("seasonal events: Hallowe'en at the Bridge", () => {
 
     await openHubOn(page, "2026-11-01", 30);
     await expect(page.getByText("Mr Griffin, the Unseen")).toHaveCount(0);
-    await expect(page.locator(".patron-notice")).toHaveCount(0);
-    expect(await sceneBackground(page)).toContain("background-the-taproom.webp");
+    // November's own pub dressing (the Cunning Folk) has taken over the taproom from Nov 1.
+    expect(await sceneBackground(page)).toContain("background-the-taproom-cunning-folk.webp");
   });
 
   test("a visitor can be played: tapping Mr Griffin starts a match against him", async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe("seasonal events: Hallowe'en at the Bridge", () => {
       localStorage.clear();
       localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
       localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: [], lastDailyBonusDate: null }));
+      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
     });
     await page.goto(`${START}?now=2026-10-01`);
     await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
@@ -95,7 +95,7 @@ test.describe("seasonal events: The All Hallows' Wake", () => {
         localStorage.clear();
         localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
         localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-        localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null }));
+        localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
       },
       { wins: totalWins, checks },
     );

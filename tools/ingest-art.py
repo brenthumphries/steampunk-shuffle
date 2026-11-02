@@ -50,6 +50,10 @@ ASPECT_BY_CATEGORY = {
     "portrait": "1:1",
     "icon": "1:1",
     "background": "9:16",
+    # Seasonal framings (style-bible.md §4, added with the monthly content plan).
+    "tarot": "2:3",
+    "almanack": "3:4",
+    "sleeve": "3:4",
 }
 
 # Base (1x) pixel size per aspect ratio, then doubled for retina (plan step
@@ -66,6 +70,8 @@ BASE_SIZE_BY_RATIO = {
     "3:4": (300, 400),
     "1:1": (320, 320),
     "9:16": (402, 715),
+    # 2:3 (tarot, the Booth): same judgment call as the others, 300x450 base.
+    "2:3": (300, 450),
 }
 
 WEBP_QUALITY = 90
