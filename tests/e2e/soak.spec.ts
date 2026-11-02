@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { DAILY_BONUS_CHECKS, LOSE_CHECKS, WIN_CHECKS } from "../../src/pub/pubState";
 import { readBracket, resumeFinishedTournamentMatch } from "./helpers/game";
-import { collectReveals, dismissHubHint, expectNoErrors, leaveTable, noonOn, openWithSave, playMatchToEnd, readKey, readPub, START, watchErrors } from "./helpers/game";
+import { CUNNING_FOLK_SEEN, collectReveals, dismissHubHint, expectNoErrors, leaveTable, noonOn, openWithSave, playMatchToEnd, readKey, readPub, START, watchErrors } from "./helpers/game";
 
 // Pre-TestFlight soak (ATT-26): long, real-UI runs of the paths a player
 // takes, on every Playwright project (the Native project is the iOS bundle).
@@ -67,7 +67,7 @@ test.describe("soak", () => {
     const log = watchErrors(page);
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks: 100, totalWins: 40, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks: 100, totalWins: 40, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
 
@@ -128,7 +128,7 @@ test.describe("soak", () => {
     const log = watchErrors(page);
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks: 50, totalWins: 0, opponents: {}, collection: ["sergeant-pike", "nells-basket"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks: 50, totalWins: 0, opponents: {}, collection: ["sergeant-pike", "nells-basket"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await page.getByRole("button", { name: "Build a deck" }).click();
     const slot = page.locator(".deck-slot-row").nth(2);
@@ -222,7 +222,7 @@ test.describe("soak", () => {
   async function enterKnockout(page: import("@playwright/test").Page, checks = 200): Promise<void> {
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await page.getByRole("button", { name: "The chalkboard" }).click();
     await page.locator(".tournament-row").filter({ hasText: "The Tuesday Knockout" }).getByRole("button", { name: /Enter/ }).click();
@@ -311,7 +311,7 @@ test.describe("soak", () => {
     expectNoErrors(log);
   });
 
-  const BASE_PUB = { checks: 0, totalWins: 0, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] as string[], pawnbrokerPurchasedToday: [] as string[], pawnbrokerPurchaseDate: null };
+  const BASE_PUB = { checks: 0, totalWins: 0, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] as string[], pawnbrokerPurchasedToday: [] as string[], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN };
 
   test("the back room across two days: Lost & Found, the Pawnbroker, and the Tinker's Bench", async ({ page }) => {
     const log = watchErrors(page);

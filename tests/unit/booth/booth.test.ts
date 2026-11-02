@@ -2,7 +2,8 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { chooseArcana, isUnlocked, performReading, readingDoneToday, unlockedArcana } from "../../../src/booth/booth.ts";
+import { PIXIE_HOST_ID, chooseArcana, isUnlocked, performReading, readingDoneToday, unlockedArcana } from "../../../src/booth/booth.ts";
+import { hostMet, updateHostsMet } from "../../../src/events/arrivals.ts";
 import { TAROT, TAROT_BY_ID } from "../../../src/booth/tarot.ts";
 import { defaultPubState, type PubState } from "../../../src/pub/pubState.ts";
 import { defaultLedger } from "../../../src/save/ledger.ts";
@@ -151,7 +152,45 @@ describe("performReading", () => {
 
   it("grants Pixie's card on the first reading only when it resolves, and skips safely when it doesn't", () => {
     const r = performReading(pubLaunchedOn("2026-11-01"), d(2026, 11, 14), () => SALT)!;
-    // N-D authors the card; until it does, the grant is skipped without error.
-    expect(r.grantedCardId === null || r.next.collection.includes("pamela-colman-smith")).toBe(true);
+    // N-D authors the card, so it resolves and the first reading hands it over.
+    expect(r.grantedCardId).toBe("pamela-colman-smith");
+    expect(r.next.collection.filter((id) => id === "pamela-colman-smith")).toHaveLength(1);
+  });
+
+  it("grants pamela-colman-smith exactly once across every later reading", () => {
+    let pub = pubLaunchedOn("2026-11-01");
+    let grants = 0;
+    for (let day = 14; day <= 30; day++) {
+      const r = performReading(pub, d(2026, 11, day), () => SALT)!;
+      if (r.grantedCardId === "pamela-colman-smith") grants++;
+      pub = r.next;
+    }
+    expect(grants).toBe(1);
+    expect(pub.collection.filter((id) => id === "pamela-colman-smith")).toHaveLength(1);
+    const dec = performReading(pub, d(2026, 12, 1), () => SALT)!;
+    expect(dec.grantedCardId).toBeNull();
+    expect(dec.next.collection.filter((id) => id === "pamela-colman-smith")).toHaveLength(1);
+  });
+});
+
+describe("the Booth on Dec 1 (host permanence)", () => {
+  it("keeps Pixie met once she has arrived, so the hub still offers the Booth after the window closes", () => {
+    let pub = pubLaunchedOn("2026-11-01");
+    pub = updateHostsMet(pub, d(2026, 11, 13));
+    expect(hostMet(pub, PIXIE_HOST_ID)).toBe(true);
+    pub = updateHostsMet(pub, d(2026, 12, 1));
+    expect(hostMet(pub, PIXIE_HOST_ID)).toBe(true);
+  });
+
+  it("does not meet a player who first launches on Dec 1 until next year's 13 November", () => {
+    const pub = pubLaunchedOn("2026-12-01");
+    expect(hostMet(updateHostsMet(pub, d(2026, 12, 1)), PIXIE_HOST_ID)).toBe(false);
+    expect(hostMet(updateHostsMet(pub, d(2027, 11, 13)), PIXIE_HOST_ID)).toBe(true);
+  });
+
+  it("still reads on Dec 1, drawing from the larger unlocked set including the High Priestess", () => {
+    const pub = pubLaunchedOn("2026-11-01");
+    expect(unlockedArcana(pub.ledger.firstLaunch, d(2026, 12, 1)).map((a) => a.id)).toContain(PRIESTESS.id);
+    expect(performReading(pub, d(2026, 12, 1), () => SALT)).not.toBeNull();
   });
 });

@@ -14,7 +14,7 @@ async function seedReturningPlayer(page: import("@playwright/test").Page): Promi
     localStorage.clear();
     localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 5, shownHints: ["hub"] }));
     localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
+    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
   });
 }
 

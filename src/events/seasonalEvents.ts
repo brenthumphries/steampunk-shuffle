@@ -11,13 +11,14 @@
 
 import { forEdition, visibleLines, type TaggedLine } from "../edition.ts";
 import { isOnOrAfter, isWithinWindow, type MonthDay } from "./eventClock.ts";
+import { CUNNING_FOLK } from "./packs/cunningFolk.ts";
 import { HALLOWEEN } from "./packs/halloween.ts";
 import { TEST_PACK, testPackRequested } from "./packs/testPack.ts";
 
 // Content packs (docs/plans/monthly/00-monthly-content-plan.md §4.1): each
 // month is one file under ./packs/ exporting a SeasonalEvent. This file keeps
 // only the types, the registry and the date predicates.
-export { HALLOWEEN };
+export { HALLOWEEN, CUNNING_FOLK };
 
 export interface EventVisitor {
   opponentId: string;
@@ -104,7 +105,7 @@ export interface SeasonalEvent {
 }
 
 /** Every month's pack, in calendar order. One event is live at a time: tests/unit/events/packs.test.ts asserts no two windows overlap. */
-const PACKS: readonly SeasonalEvent[] = [HALLOWEEN];
+const PACKS: readonly SeasonalEvent[] = [HALLOWEEN, CUNNING_FOLK];
 
 function urlSearch(): string {
   try {

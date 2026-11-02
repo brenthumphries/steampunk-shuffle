@@ -17,6 +17,10 @@ const ART = join(PUBLIC, "art");
 /** Ids that are known not to have a file yet, each with the PLAYTEST.md item that tracks it. When one gets art, this test fails until it is removed from here. */
 const KNOWN_MISSING: Record<string, string> = {
   "desk-sergeant": "PT-37",
+  // November's deck-local bodies (Mother Shipton's and Dr John Dee's decks): no art yet, tracked in docs/logs/2026-11-02.md.
+  "knaresborough-seer": "docs/logs/2026-11-02.md",
+  "dale-carter": "docs/logs/2026-11-02.md",
+  "galvanic-mechanic": "docs/logs/2026-11-02.md",
 };
 
 const hasArt = (id: string): boolean => existsSync(join(ART, `${id}.webp`));

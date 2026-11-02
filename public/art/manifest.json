@@ -15,6 +15,22 @@
     "sourceFile": "art/inbox/afternoon-tea.jpeg",
     "width": 600
   },
+  "almanack-sagittarius": {
+    "category": "almanack",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:53+00:00",
+    "sourceFile": "art/inbox/almanack-sagittarius.png",
+    "width": 600
+  },
+  "almanack-scorpio": {
+    "category": "almanack",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:52+00:00",
+    "sourceFile": "art/inbox/almanack-scorpio.png",
+    "width": 600
+  },
   "amateur-sleuth": {
     "category": "character",
     "family": "salon",
@@ -77,6 +93,14 @@
     "height": 1430,
     "ingestedAt": "2026-09-12T16:10:00+00:00",
     "sourceFile": "art/inbox/background-the-taproom.jpeg",
+    "width": 804
+  },
+  "background-the-taproom-cunning-folk": {
+    "category": "background",
+    "family": null,
+    "height": 1430,
+    "ingestedAt": "2026-11-02T15:32:47+00:00",
+    "sourceFile": "art/inbox/background-the-taproom-cunning-folk.png",
     "width": 804
   },
   "background-the-taproom-halloween": {
@@ -231,6 +255,14 @@
     "sourceFile": "art/inbox/cracksman.jpeg",
     "width": 600
   },
+  "cunning-woman": {
+    "category": "character",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:51+00:00",
+    "sourceFile": "art/inbox/cunning-woman.png",
+    "width": 600
+  },
   "dame-agatha": {
     "category": "character",
     "family": "salon",
@@ -359,6 +391,14 @@
     "sourceFile": "art/inbox/grave-robber.jpeg",
     "width": 600
   },
+  "hedge-witch": {
+    "category": "character",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:51+00:00",
+    "sourceFile": "art/inbox/hedge-witch.png",
+    "width": 600
+  },
   "hercule-poirot": {
     "category": "character",
     "family": "yard",
@@ -381,6 +421,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T17:33:30+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll-inbox/sheet2/inspectors-warrant.jpeg",
+    "width": 600
+  },
+  "john-dee": {
+    "category": "character",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:49+00:00",
+    "sourceFile": "art/inbox/john-dee.png",
     "width": 600
   },
   "lamplighter-at-dusk": {
@@ -413,6 +461,22 @@
     "height": 800,
     "ingestedAt": "2026-09-12T00:37:39+00:00",
     "sourceFile": "art/inbox/miss-hollis-authoress.jpeg",
+    "width": 600
+  },
+  "mother-red-cap": {
+    "category": "character",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:50+00:00",
+    "sourceFile": "art/inbox/mother-red-cap.png",
+    "width": 600
+  },
+  "mother-shipton": {
+    "category": "character",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:48+00:00",
+    "sourceFile": "art/inbox/mother-shipton.png",
     "width": 600
   },
   "mr-edward-hyde": {
@@ -471,6 +535,22 @@
     "sourceFile": "art/inbox/night-watchman.jpeg",
     "width": 600
   },
+  "old-moores-almanack": {
+    "category": "gadget",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:54+00:00",
+    "sourceFile": "art/inbox/old-moores-almanack.png",
+    "width": 600
+  },
+  "pamela-colman-smith": {
+    "category": "character",
+    "family": "salon",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:51+00:00",
+    "sourceFile": "art/inbox/pamela-colman-smith.png",
+    "width": 600
+  },
   "parlour-guest": {
     "category": "character",
     "family": "salon",
@@ -485,6 +565,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T18:55:08+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll2-inbox/sheet3/party-time-excellent.jpeg",
+    "width": 600
+  },
+  "penny-for-the-guy": {
+    "category": "character",
+    "family": "irregulars",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:55+00:00",
+    "sourceFile": "art/inbox/penny-for-the-guy.png",
     "width": 600
   },
   "persistent-ally": {
@@ -615,6 +703,14 @@
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll-inbox/sheet1/portrait-irene-adler.jpeg",
     "width": 640
   },
+  "portrait-john-dee": {
+    "category": "portrait",
+    "family": "coven",
+    "height": 640,
+    "ingestedAt": "2026-11-02T15:32:49+00:00",
+    "sourceFile": "art/inbox/portrait-john-dee.png",
+    "width": 640
+  },
   "portrait-mary-shelley": {
     "category": "portrait",
     "family": "foundry",
@@ -631,6 +727,22 @@
     "sourceFile": "art/inbox/portrait-miss-prudence-hollis.jpeg",
     "width": 640
   },
+  "portrait-mother-red-cap": {
+    "category": "portrait",
+    "family": "coven",
+    "height": 640,
+    "ingestedAt": "2026-11-02T15:32:49+00:00",
+    "sourceFile": "art/inbox/portrait-mother-red-cap.png",
+    "width": 640
+  },
+  "portrait-mother-shipton": {
+    "category": "portrait",
+    "family": "coven",
+    "height": 640,
+    "ingestedAt": "2026-11-02T15:32:48+00:00",
+    "sourceFile": "art/inbox/portrait-mother-shipton.png",
+    "width": 640
+  },
   "portrait-mr-griffin": {
     "category": "portrait",
     "family": "irregulars",
@@ -645,6 +757,14 @@
     "height": 640,
     "ingestedAt": "2026-09-12T17:33:29+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll-inbox/sheet1/portrait-old-nell-ashby.jpeg",
+    "width": 640
+  },
+  "portrait-pamela-colman-smith": {
+    "category": "portrait",
+    "family": "salon",
+    "height": 640,
+    "ingestedAt": "2026-11-02T15:32:50+00:00",
+    "sourceFile": "art/inbox/portrait-pamela-colman-smith.png",
     "width": 640
   },
   "portrait-professor-moriarty": {
@@ -701,6 +821,14 @@
     "height": 800,
     "ingestedAt": "2026-09-12T19:06:16+00:00",
     "sourceFile": "../../../private/tmp/claude-501/-Users-weatheredleathr-steampunk-shuffle/1a5f115b-13ef-4e20-a16a-615c8df3fec2/scratchpad/reroll3-inbox/regs-ledger.jpeg",
+    "width": 600
+  },
+  "remember-remember": {
+    "category": "headline",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:53+00:00",
+    "sourceFile": "art/inbox/remember-remember.png",
     "width": 600
   },
   "renfield": {
@@ -823,6 +951,14 @@
     "sourceFile": "art/inbox/steam-hammer.jpeg",
     "width": 600
   },
+  "stir-up-pudding": {
+    "category": "gadget",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:53+00:00",
+    "sourceFile": "art/inbox/stir-up-pudding.png",
+    "width": 600
+  },
   "street-informant": {
     "category": "character",
     "family": "irregulars",
@@ -845,6 +981,22 @@
     "height": 800,
     "ingestedAt": "2026-09-12T16:10:01+00:00",
     "sourceFile": "art/inbox/street-sweeper.jpeg",
+    "width": 600
+  },
+  "tarot-the-fool": {
+    "category": "tarot",
+    "family": null,
+    "height": 900,
+    "ingestedAt": "2026-11-02T15:32:55+00:00",
+    "sourceFile": "art/inbox/tarot-the-fool.png",
+    "width": 600
+  },
+  "tarot-the-magician": {
+    "category": "tarot",
+    "family": null,
+    "height": 900,
+    "ingestedAt": "2026-11-02T15:32:55+00:00",
+    "sourceFile": "art/inbox/tarot-the-magician.png",
     "width": 600
   },
   "telegraph-boy": {
@@ -951,6 +1103,14 @@
     "sourceFile": "art/inbox/the-parsonage-snug.jpeg",
     "width": 600
   },
+  "the-petrifying-well": {
+    "category": "location",
+    "family": "neutral",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:54+00:00",
+    "sourceFile": "art/inbox/the-petrifying-well.png",
+    "width": 600
+  },
   "the-photograph": {
     "category": "scheme",
     "family": "rookery",
@@ -1021,6 +1181,14 @@
     "height": 800,
     "ingestedAt": "2026-10-11T19:12:15+00:00",
     "sourceFile": "art/inbox/turnip-lantern.jpeg",
+    "width": 600
+  },
+  "witch-bottle": {
+    "category": "gadget",
+    "family": "coven",
+    "height": 800,
+    "ingestedAt": "2026-11-02T15:32:52+00:00",
+    "sourceFile": "art/inbox/witch-bottle.png",
     "width": 600
   }
 }

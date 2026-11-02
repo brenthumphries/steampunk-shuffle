@@ -1,0 +1,164 @@
+{
+  "_readme": "November (Cunning Folk) art, sheet 9. Prompts live in docs/plans/monthly/01-november.md §9 (the Gemini one-shot), so each row's prompt points there. Asset ids and categories follow that section; the seed mirrors sheet-7. Written by the N-D content agent on 2026-11-02.",
+  "seed": {
+    "alwaysAttach": [
+      "art/reference/The_Wheatstone_Bridge_taproom.jpeg"
+    ],
+    "byFamily": {
+      "yard": "public/art/portrait-constable-tobias-mudd.webp",
+      "irregulars": "public/art/portrait-old-nell-ashby.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp",
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "background-the-taproom-cunning-folk",
+      "category": "background",
+      "family": null,
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Cunning Folk taproom (event dressing.taproomArtId)."
+    },
+    {
+      "assetId": "portrait-mother-shipton",
+      "category": "portrait",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Visitor portrait (Mother Shipton)."
+    },
+    {
+      "assetId": "mother-shipton",
+      "category": "character",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Visitor card art and legendary signature card."
+    },
+    {
+      "assetId": "portrait-john-dee",
+      "category": "portrait",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Visitor portrait (Dr John Dee)."
+    },
+    {
+      "assetId": "john-dee",
+      "category": "character",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Visitor card art and legendary signature card."
+    },
+    {
+      "assetId": "portrait-mother-red-cap",
+      "category": "portrait",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Almanack Stakes boss portrait (Mother Red Cap)."
+    },
+    {
+      "assetId": "mother-red-cap",
+      "category": "character",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Almanack Stakes boss card art and legendary signature card."
+    },
+    {
+      "assetId": "portrait-pamela-colman-smith",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Booth host portrait (Pixie). Not an opponent."
+    },
+    {
+      "assetId": "pamela-colman-smith",
+      "category": "character",
+      "family": "salon",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Booth host's signature card, granted on her first reading."
+    },
+    {
+      "assetId": "hedge-witch",
+      "category": "character",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Coven, November trio (common)."
+    },
+    {
+      "assetId": "cunning-woman",
+      "category": "character",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Coven, November trio (uncommon)."
+    },
+    {
+      "assetId": "witch-bottle",
+      "category": "gadget",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Coven, November trio (uncommon)."
+    },
+    {
+      "assetId": "almanack-scorpio",
+      "category": "almanack",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Almanack headline (Scorpio, glyph in the frame)."
+    },
+    {
+      "assetId": "almanack-sagittarius",
+      "category": "almanack",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Almanack headline (Sagittarius, glyph in the frame)."
+    },
+    {
+      "assetId": "stir-up-pudding",
+      "category": "gadget",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Event card, common."
+    },
+    {
+      "assetId": "remember-remember",
+      "category": "headline",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Event card, uncommon headline (printed look)."
+    },
+    {
+      "assetId": "old-moores-almanack",
+      "category": "gadget",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Event card, uncommon."
+    },
+    {
+      "assetId": "the-petrifying-well",
+      "category": "location",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Event card, rare Location."
+    },
+    {
+      "assetId": "tarot-the-fool",
+      "category": "tarot",
+      "family": null,
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Booth tarot card 0 (2:3, no lettering)."
+    },
+    {
+      "assetId": "tarot-the-magician",
+      "category": "tarot",
+      "family": null,
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Booth tarot card I (2:3, no lettering)."
+    },
+    {
+      "assetId": "penny-for-the-guy",
+      "category": "character",
+      "family": "irregulars",
+      "prompt": "See docs/plans/monthly/01-november.md §9.",
+      "notes": "Event card, uncommon (gifted from Nov 5, 2027)."
+    }
+  ]
+}

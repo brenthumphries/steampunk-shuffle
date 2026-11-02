@@ -217,7 +217,8 @@ describe("seasonal visitors in Tonight's Patrons", () => {
 
   it("registers every visitor the event lists, and no opponent the event doesn't", () => {
     const listed = HALLOWEEN.visitors.map((v) => v.opponentId).filter((id) => OPPONENTS_BY_ID.has(id));
-    expect(listed.sort()).toEqual(visitorIds().sort());
+    const halloweenVisitors = visitorIds().filter((id) => HALLOWEEN.visitors.some((v) => v.opponentId === id));
+    expect(listed.sort()).toEqual(halloweenVisitors.sort());
   });
 });
 

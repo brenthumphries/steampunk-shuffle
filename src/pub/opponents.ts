@@ -37,6 +37,9 @@ import {
   wolfsDeck,
   creaturesDeck,
   jacksDeck,
+  shiptonsDeck,
+  deesDeck,
+  redCapsDeck,
 } from "../cards/data/decks/index.ts";
 
 /**
@@ -170,6 +173,47 @@ export const OPPONENTS: Opponent[] = [
     portraitArtId: "portrait-galvanic-creature",
     line: "She made me. She did not make me welcome.",
     betPool: ["galvanic-battery", "turnip-lantern", "the-witching-hour"],
+  },
+  // The Cunning Folk (November, docs/plans/monthly/01-november.md §2): two
+  // visitors on the seasoned dial, and the Almanack Stakes' boss on the
+  // legend dial, tournament only (so, like Spring-Heeled Jack, never in
+  // Tonight's Patrons). Pixie is the Booth's host and has no entry here.
+  {
+    id: "mother-shipton",
+    name: "Mother Shipton",
+    tier: "visitor",
+    deck: shiptonsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "mother-shipton",
+    unlockWins: 3,
+    portraitArtId: "portrait-mother-shipton",
+    line: "I saw you coming. I see most things coming. Sit.",
+    betPool: ["cunning-woman", "witch-bottle", "old-moores-almanack", "almanack-scorpio"],
+  },
+  {
+    id: "john-dee",
+    name: "Dr John Dee",
+    tier: "visitor",
+    deck: deesDeck,
+    difficulty: "seasoned",
+    rewardCardId: "john-dee",
+    unlockWins: 3,
+    portraitArtId: "portrait-john-dee",
+    line: "The stars said Tuesday. It's Thursday. Someone has been at my mirror.",
+    betPool: ["hedge-witch", "witch-bottle", "stir-up-pudding", "almanack-sagittarius"],
+  },
+  {
+    id: "mother-red-cap",
+    name: "Mother Red Cap",
+    tier: "legend",
+    deck: redCapsDeck,
+    difficulty: "legend",
+    rewardCardId: null,
+    tournamentOnly: true,
+    unlockWins: 0,
+    portraitArtId: "portrait-mother-red-cap",
+    line: "Your cat? No, dear, he's mine. …He isn't? He has the look.",
+    betPool: ["cunning-woman", "old-moores-almanack", "witch-bottle", "almanack-scorpio"],
   },
   {
     id: "spring-heeled-jack",
