@@ -67,7 +67,7 @@ test.describe("soak", () => {
     const log = watchErrors(page);
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks: 100, totalWins: 40, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks: 100, totalWins: 40, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
 
@@ -128,7 +128,7 @@ test.describe("soak", () => {
     const log = watchErrors(page);
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks: 50, totalWins: 0, opponents: {}, collection: ["sergeant-pike", "nells-basket"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks: 50, totalWins: 0, opponents: {}, collection: ["sergeant-pike", "nells-basket"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await page.getByRole("button", { name: "Build a deck" }).click();
     const slot = page.locator(".deck-slot-row").nth(2);
@@ -222,7 +222,7 @@ test.describe("soak", () => {
   async function enterKnockout(page: import("@playwright/test").Page, checks = 200): Promise<void> {
     await openWithSave(page, {
       tutorialDone: true,
-      pub: { checks, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null },
+      pub: { checks, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN },
     });
     await page.getByRole("button", { name: "The chalkboard" }).click();
     await page.locator(".tournament-row").filter({ hasText: "The Tuesday Knockout" }).getByRole("button", { name: /Enter/ }).click();
