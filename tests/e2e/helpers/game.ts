@@ -62,6 +62,12 @@ export function expectNoErrors(log: ErrorLog): void {
   expect(log.failedRequests, "failed same-origin requests").toEqual([]);
 }
 
+/** Pub-state fields that mark November's Cunning Folk arrival gifts as claimed and its banner as seen, so a clock in November 2026 lands on the plain hub instead of the beer mats. */
+export const CUNNING_FOLK_SEEN = {
+  giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } },
+  bannersSeen: { "cunning-folk": [2026] },
+};
+
 export interface SeedOptions {
   tutorialDone?: boolean;
   dedicationSeen?: boolean;

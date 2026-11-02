@@ -53,6 +53,7 @@ test.describe("seasonal events: Hallowe'en at the Bridge", () => {
 
     await openHubOn(page, "2026-11-01", 30);
     await expect(page.getByText("Mr Griffin, the Unseen")).toHaveCount(0);
+    await expect(page.locator(".patron-notice")).toHaveCount(0);
     // November's own pub dressing (the Cunning Folk) has taken over the taproom from Nov 1.
     expect(await sceneBackground(page)).toContain("background-the-taproom-cunning-folk.webp");
   });

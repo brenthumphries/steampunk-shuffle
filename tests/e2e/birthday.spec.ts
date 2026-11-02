@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { EVENT_CARDS } from "../../src/cards/data/eventCards";
-import { expectNoErrors, leaveTable, noonOn, openWithSave, playMatchToEnd, readBracket, readKey, readPub, resumeFinishedTournamentMatch, START, watchErrors } from "./helpers/game";
+import { CUNNING_FOLK_SEEN, expectNoErrors, leaveTable, noonOn, openWithSave, playMatchToEnd, readBracket, readKey, readPub, resumeFinishedTournamentMatch, START, watchErrors } from "./helpers/game";
 
 // ATT-26: the birthday itself, and the day Hallowe'en switches off. The clock
 // is Playwright's (`page.clock.setFixedTime`), so the app reads the date the
@@ -20,7 +20,7 @@ test.describe.configure({ timeout: 300_000 });
 test.use({ serviceWorkers: "block" });
 
 
-const PUB = { checks: 100, totalWins: 12, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null };
+const PUB = { checks: 100, totalWins: 12, opponents: {}, collection: [] as string[], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [], pawnbrokerPurchasedToday: [], pawnbrokerPurchaseDate: null, ...CUNNING_FOLK_SEEN };
 
 const sceneBackground = (page: Page): Promise<string> => page.locator(".pub-hub").evaluate((el) => (el as HTMLElement).style.getPropertyValue("--scene-bg"));
 
