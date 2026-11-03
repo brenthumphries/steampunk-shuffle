@@ -48,7 +48,7 @@ describe("abilityLines", () => {
     const f = face({
       abilities: [{ trigger: "continuous", effects: [{ effect: "buff", target: { side: "each", filter: {} }, amount: 1 }] }],
     });
-    expect(abilityLines(f)).toEqual(["Give each card +1."]);
+    expect(abilityLines(f)).toEqual(["Give each face-up card +1."]);
   });
 });
 
