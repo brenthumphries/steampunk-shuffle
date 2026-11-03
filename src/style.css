@@ -1614,6 +1614,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .pub-hub-title {
@@ -1653,6 +1655,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .checks-badge {

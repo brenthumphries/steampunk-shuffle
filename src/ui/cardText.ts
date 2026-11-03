@@ -3,6 +3,7 @@
 // abilities and flavor text, not authored rules prose, so this generates it
 // generically from design.md §5's keyword/effect vocabulary.
 
+import { EVERY_BOARD_CARD } from "../cards/data/almanack.ts";
 import type { Ability, CardFace, Effect, Target, TargetFilter } from "../cards/cardTypes.ts";
 
 const TRIGGER_LABEL: Record<Ability["trigger"], string | undefined> = {
@@ -18,7 +19,7 @@ export function keywordChips(face: CardFace): string[] {
   if (kw?.persist) chips.push("Persist");
   if (kw?.elusive) chips.push("Elusive");
   if (kw?.return) chips.push("Return");
-  if (kw?.friend !== undefined) chips.push(`Friend +${kw.friend}`);
+  if (kw?.friend !== undefined) chips.push(`Friend ${signed(kw.friend)}`);
   if (kw?.undying) chips.push("Undying");
   if (kw?.moonrise !== undefined) chips.push(`Moonrise +${kw.moonrise}`);
   // Scry is an effect, not a static keyword, but reads as one on the card (design.md §5.16).
@@ -43,21 +44,35 @@ function describeSide(side: Target["side"]): string {
   return "each";
 }
 
-function describeFilter(filter: TargetFilter | undefined): string {
+function capitalised(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/** Words that sit before the noun: "highest-point", "Gadget", "Friend". */
+function filterAdjectives(filter: TargetFilter | undefined): string {
   if (!filter) return "";
   const bits: string[] = [];
   if (filter.highestPoints) bits.push("highest-point");
   if (filter.lowestPoints) bits.push("lowest-point");
-  if (filter.family) bits.push(filter.family);
-  if (filter.cardType) bits.push(filter.cardType);
+  if (filter.family) bits.push(capitalised(filter.family));
+  if (filter.cardType) bits.push(capitalised(filter.cardType));
   if (filter.hasKeyword) bits.push(KEYWORD_LABEL[filter.hasKeyword]);
-  const worth =
-    filter.maxPoints !== undefined
-      ? ` worth ${filter.maxPoints} or less`
-      : filter.minPoints !== undefined
-        ? ` worth ${filter.minPoints} or more`
-        : "";
-  return (bits.length > 0 ? ` ${bits.join(" ")}` : "") + worth;
+  return bits.join(" ");
+}
+
+function worthClause(filter: TargetFilter | undefined): string {
+  if (filter?.maxPoints !== undefined) return ` worth ${filter.maxPoints} or less`;
+  if (filter?.minPoints !== undefined) return ` worth ${filter.minPoints} or more`;
+  return "";
+}
+
+/** A count at or above a whole pair of boards is "every card", not a number to print (almanack.ts). */
+function isEveryCard(count: number | undefined): boolean {
+  return count !== undefined && count >= EVERY_BOARD_CARD;
+}
+
+function signed(amount: number): string {
+  return amount < 0 ? `-${-amount}` : `+${amount}`;
 }
 
 function describeCount(count: number | undefined): string {
@@ -65,26 +80,34 @@ function describeCount(count: number | undefined): string {
   return `${count} cards`;
 }
 
-function describeTarget(target: Target): string {
-  const side = describeSide(target.side);
-  return `${side} ${describeCount(target.count)}${describeFilter(target.filter)}`;
+function describeTarget(target: Target, state?: "face-up" | "face-down"): string {
+  const adjectives = [state, filterAdjectives(target.filter)].filter(Boolean).join(" ");
+  const adj = adjectives ? `${adjectives} ` : "";
+  const worth = worthClause(target.filter);
+  if (isEveryCard(target.count)) {
+    if (target.side === "self") return `each of your ${adj}cards${worth}`;
+    return `each ${target.side === "opponent" ? "opposing " : ""}${adj}card${worth}`;
+  }
+  const count = target.count && target.count > 1 ? `${target.count} cards` : "card";
+  return `${describeSide(target.side)} ${adj}${count}${worth}`;
 }
 
 function describeEffect(effect: Effect): string {
   switch (effect.effect) {
     case "flip":
-      return `Flip ${describeTarget(effect.target)}.`;
+      return `Flip ${describeTarget(effect.target, isEveryCard(effect.target.count) ? "face-up" : undefined)}.`;
     case "unflip": {
       // "Up to N": `Target.count` is a ceiling (the engine takes as many as
       // exist), which the generic "your 2 cards" phrasing would misstate.
       const count = effect.target.count ?? 1;
-      if (count > 1 && effect.target.side === "self") return `Turn up to ${count} of your face-down${describeFilter(effect.target.filter)} cards face-up.`;
+      if (isEveryCard(count)) return `Turn ${describeTarget(effect.target, "face-down")} face-up.`;
+      if (count > 1 && effect.target.side === "self") return `Turn up to ${count} of your face-down${filterAdjectives(effect.target.filter) ? ` ${filterAdjectives(effect.target.filter)}` : ""} cards face-up.`;
       return `Turn ${describeTarget(effect.target)} face-up.`;
     }
     case "return":
       return `Return ${describeTarget(effect.target)} to hand.`;
     case "buff":
-      return `Give ${describeTarget(effect.target)} +${effect.amount}.`;
+      return `Give ${describeTarget(effect.target, "face-up")} ${signed(effect.amount)}.`;
     case "draw":
       return `Draw ${effect.amount}.`;
     case "discardRandom":
@@ -92,7 +115,7 @@ function describeEffect(effect: Effect): string {
     case "discardLocation":
       return "Discard the active Location.";
     case "reveal":
-      return `Reveal ${describeTarget(effect.target)}'s hand.`;
+      return effect.target.side === "opponent" ? "Reveal your opponent's hand." : `Reveal ${describeTarget(effect.target)}'s hand.`;
     case "steal":
       return `Steal ${describeTarget(effect.target)}.`;
     case "scry":
@@ -164,7 +187,7 @@ export function describeAutoTarget(effect: Effect, targetNames: readonly string[
     case "return":
       return `Returns ${names} to hand.`;
     case "buff":
-      return `Gives ${names} +${effect.amount}.`;
+      return `Gives ${names} ${signed(effect.amount)}.`;
     default:
       return `Targets ${names}.`;
   }

@@ -150,3 +150,21 @@ test.describe("pub hub (plan step 2.3)", () => {
     await expect(page.getByRole("button", { name: "Stake Charlotte" })).toHaveCount(0);
   });
 });
+
+test("PT-43: the mute toggle sits inside the 402px viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 402, height: 874 });
+  await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
+  await page.goto("/steampunk-shuffle/");
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+    localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+  });
+  await page.reload();
+  const toggle = page.locator(".pub-hub-header .mute-toggle");
+  await expect(toggle).toBeVisible();
+  const box = await toggle.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(402);
+});
