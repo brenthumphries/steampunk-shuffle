@@ -25,6 +25,24 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Next:** ask Brent which opponent and board it was (the Hypnofrog is the first suspect). No rule or copy changed.
 - **Likely location:** `src/engine/matchEngine.ts` flip resolution (guess; unconfirmed)
 
+### PT-41: Card text reads "+-1" for a negative buff (Cunning Woman)
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Any date in Nov with Cunning Woman owned (gifted Nov 13). Deck builder, Coven filter: the tile says "On Play: Give an opposing card +-1." In a match, staging her shows the same text.
+- **Context:** `describeEffect` and `describeAutoTarget` (`src/ui/cardText.ts`) print `+${amount}` unconditionally; Cunning Woman's buff is `amount: -1`. Should read "-1" (design brief: "-1").
+- **Likely location:** `src/ui/cardText.ts` `case "buff"` (two places)
+
+### PT-42: Scorpio's text reads "Turn each 40 cards face-up."
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Deck builder, Neutral filter, Scorpio tile and zoom; also in the Scry overlay and the hand. REMEMBER, REMEMBER will print "Flip each 40 cards ..." the same way (not opened).
+- **Context:** the card uses `count: EVERY_BOARD_CARD` (`DECK_SIZE * 2` = 40, 2026-11-02 log) so the engine reaches every card; `describeCount` (`src/ui/cardText.ts`) prints the number. Should read "each card" (and "each face-up card").
+- **Likely location:** `src/ui/cardText.ts` `describeCount`/`unflip` case
+
+### PT-43: The mute toggle sits off the right edge of the pub hub header at 402px
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Chromium, 402x874, deviceScaleFactor 3, the hub on any date (also 2026-09-22): the Checks badge is flush right and only an arc of the speaker button shows at the screen edge. Measured: mute-toggle spans x 373-416 on a 402px viewport. Match topbar is fine.
+- **Context:** not November-specific. Headless Chromium, so confirm on the phone before treating it as a regression; if real, the mute is unreachable from the hub.
+- **Likely location:** `.pub-hub-header` / `.pub-hub-header-actions` (`src/style.css` near line 1606)
+
 ## P3 — Balance / polish / idea
 
 ### PT-37: Desk Sergeant has no illustration (note 18)
@@ -39,6 +57,25 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Note:** "Seasonal Characters: Headless Horseman, Ichabod Crane, The Great Pumpkin, Krampus, St. Nick, etc."
 - **Design call for Brent**, not a bug. The seasonal layer (`seasonal-events-plan.md`) already supports more events as data. Flag for the call: Headless Horseman and Ichabod Crane (Irving, 1820) are public domain; The Great Pumpkin is a Peanuts character and not safe to use, which `seasonal-events-plan.md` §3 already avoids for the film-protected monsters.
 
+### PT-44: Mudd's November line is cut off with an ellipsis
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Nov 20-30, hub: Mudd's tile reads "There's a lady with a cat who says she's from Camden. Camden's not m..." The punchline ("...my beat. I've checked.") never shows.
+- **Likely location:** the patron line clamp in `src/ui/pubHubScreen.ts` / `.patron-line` CSS; or shorten the `lineOverrides` text in `src/events/packs/cunningFolk.ts`.
+
+### PT-45: Text on Almanack and legendary full-art cards is hard to read over the art
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Deck builder > Neutral > Scorpio zoom; Mother Shipton's first-win reveal. The name, type, ability and italic flavour print straight over the armillary or the window with no backing; the flavour line crosses the gold ring and is close to illegible.
+- **Likely location:** the Almanack frame and full-art card text layer in `src/style.css`
+
+### PT-46: The Almanack Stakes show as a Locked row on Nov 19, with the prize spoiled
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** 2026-11-19, 3+ wins, chalkboard: a Locked "The Almanack Stakes" row lists "Win: 150 Checks + Mother Red Cap" and the field, a day before it opens. The runbook's check says "no Almanack Stakes on the chalkboard"; `tests/e2e/cunningFolk.spec.ts` pins the Locked row. Same pattern as the other locked tournaments, so likely intended; the call for Brent is whether the boss/prize should stay a surprise until Nov 20. (Related: the Nov 12 banner says Pixie "has hung a curtain" a day before the Booth tile exists.)
+
+### PT-47: The arrival gifts repeat every year, still described as "belated"
+- **Seen:** 2026-11-03, N-SHIP playtest (x1)
+- **Repro:** Play Nov 2026, then open on 2027-11-04: the same beer mat ("...For the Landlady, belated. Born under the Scorpion...") grants Scorpio, 2 x Hedge Witch and Witch Bottle again (collection now holds duplicates), plus the banner. Probably intended (gifts are keyed by year), but the "belated" wording only fits 2026. Design call: year-one wording or a short repeat line.
+- **Also checked, fine:** 2027-11-04 no Penny for the Guy; 2027-11-05 gifted once, with its line; Sagittarius Nov 22 once; Pixie's card once on the first reading.
+
 ## Known / already flagged (not filed as new)
 
 ### All nine tutorial turns are forced (design.md §13.1 says six of nine)
@@ -49,6 +86,9 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 
 ### Auto-save as an app, and skip the tutorial on re-plays (note 8)
 - **Seen:** 2026-10-11 — a feature request, not a bug; `wheatstone-bridge-bugfix-plan.md` scope line already excludes both, deferring them to plan 4.2's Capacitor wrap (Preferences storage) and the tutorial work. A fresh PWA install starts with an empty `localStorage`, which is why the tutorial plays again.
+
+### N-SHIP playtest, 2026-11-03 (November, deployed build, 402x874 Chromium)
+- Checked Nov 12/13/19/20/22/30, Dec 1, 2027-11-04/05: visitors, Booth, arrival gifts, Scry overlay, Coven frames, Stakes entry rule and first-match Well, first-win payouts. 0 P1. New items PT-41 to PT-47. Known art gaps (knaresborough-seer, dale-carter, galvanic-mechanic) 404 as expected and were not refiled. No console errors other than those three 404s.
 
 ## Resolved
 
