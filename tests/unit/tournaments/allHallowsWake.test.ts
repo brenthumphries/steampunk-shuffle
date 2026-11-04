@@ -91,7 +91,7 @@ describe("listing (isTournamentListed)", () => {
 
   it("lists every tournament in some month of the year", () => {
     for (const tournament of TOURNAMENTS) {
-      const listedSomewhere = Array.from({ length: 12 }, (_, m) => isTournamentListed(tournament, true, new Date(2026, m, 15), false)).some(Boolean);
+      const listedSomewhere = Array.from({ length: 12 }, (_, m) => isTournamentListed(tournament, true, new Date(2026, m, 20), false)).some(Boolean);
       expect(listedSomewhere, tournament.id).toBe(true);
     }
   });

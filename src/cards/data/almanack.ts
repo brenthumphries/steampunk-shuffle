@@ -58,4 +58,24 @@ export const almanackSagittarius: Card = {
   ],
 };
 
-export const almanackCards: Card[] = [almanackScorpio, almanackSagittarius];
+// December (02-december.md §4, overview §5.2): "each face-up Persist card
+// gets +1". Buffs every face-up Persist card on both boards (`each`).
+export const almanackCapricorn: Card = {
+  id: "almanack-capricorn",
+  rarity: "rare",
+  faces: [
+    {
+      name: "Capricorn",
+      type: "headline",
+      family: "neutral",
+      points: 0,
+      frame: "almanack",
+      glyph: "\u2651",
+      abilities: [{ trigger: "onPlay", effects: [{ effect: "buff", target: { side: "each", count: EVERY_BOARD_CARD, filter: { hasKeyword: "persist" } }, amount: 1 }] }],
+      flavor: "A goat with a fish's tail. Climbs anything, and gets there in the end.",
+      artId: "almanack-capricorn",
+    },
+  ],
+};
+
+export const almanackCards: Card[] = [almanackScorpio, almanackSagittarius, almanackCapricorn];

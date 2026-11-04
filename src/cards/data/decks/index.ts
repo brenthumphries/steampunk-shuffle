@@ -27,6 +27,9 @@ import { jacksDeck } from "./jack.ts";
 import { shiptonsDeck } from "./shipton.ts";
 import { deesDeck } from "./dee.ts";
 import { redCapsDeck } from "./redCap.ts";
+import { mrPocketts } from "./mrPockett.ts";
+import { ghostOfChristmasPresentsDeck } from "./ghostOfChristmasPresent.ts";
+import { ghostOfChristmasYetToComesDeck } from "./ghostOfChristmasYetToCome.ts";
 import type { Deck } from "../../cardTypes.ts";
 
 export * from "./starterDeck.ts";
@@ -54,6 +57,9 @@ export * from "./jack.ts";
 export * from "./shipton.ts";
 export * from "./dee.ts";
 export * from "./redCap.ts";
+export * from "./mrPockett.ts";
+export * from "./ghostOfChristmasPresent.ts";
+export * from "./ghostOfChristmasYetToCome.ts";
 
 export const KNOWN_DECKS: { name: string; deck: Deck }[] = [
   { name: "Starter (Village Constable)", deck: starterDeck },
@@ -81,6 +87,9 @@ export const KNOWN_DECKS: { name: string; deck: Deck }[] = [
   { name: "Mother Shipton", deck: shiptonsDeck },
   { name: "Dr John Dee", deck: deesDeck },
   { name: "Mother Red Cap", deck: redCapsDeck },
+  { name: "Mr Pockett, Toymaker", deck: mrPocketts },
+  { name: "The Ghost of Christmas Present", deck: ghostOfChristmasPresentsDeck },
+  { name: "The Ghost of Christmas Yet to Come", deck: ghostOfChristmasYetToComesDeck },
 ];
 
 /** Regular-tier decks (design.md §9.1), for the starter-vs-Regular check (§12.2). */
@@ -90,13 +99,16 @@ export const REGULAR_DECK_NAMES = ["Constable Tobias Mudd", "Old Nell Ashby", '"
 export const SEASONED_DECK_NAMES = ["Inspector Bucket", "Ada Lovelace", "Irene Adler", "Charles Dickens"];
 
 /** Seasonal visitor decks (seasonal-events-plan.md §3), balanced against Seasoned-tier intent (design.md §9.2). */
-export const VISITOR_DECK_NAMES = ["Mr Griffin", "The Clockwork Pharaoh", "The Carpathian Count", "The Hampstead Wolf", "The Galvanic Creature", "Mother Shipton", "Dr John Dee"];
+export const VISITOR_DECK_NAMES = ["Mr Griffin", "The Clockwork Pharaoh", "The Carpathian Count", "The Hampstead Wolf", "The Galvanic Creature", "Mother Shipton", "Dr John Dee", "Mr Pockett, Toymaker", "The Ghost of Christmas Present"];
 
 /** The All Hallows' Wake's own legend (seasonal-events-plan.md §3.3): Legend dial, tournament only, so not part of the Legend-vs-starter check (§9.3). */
 export const WAKE_LEGEND_DECK_NAME = "Spring-Heeled Jack";
 
 /** The Almanack Stakes boss (01-november.md §5): legend dial, tournament only, like Spring-Heeled Jack. */
 export const STAKES_BOSS_DECK_NAME = "Mother Red Cap";
+
+/** The Fireside Circle boss (02-december.md §6): legend dial, tournament only, like the Stakes boss. */
+export const FIRESIDE_BOSS_DECK_NAME = "The Ghost of Christmas Yet to Come";
 
 /** Legend-tier decks (design.md §9.3). */
 export const LEGEND_DECK_NAMES = [

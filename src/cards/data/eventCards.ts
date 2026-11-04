@@ -13,13 +13,15 @@ import { nightfallCards } from "./nightfall.ts";
 import { cunningFolkCards } from "./cunningFolk.ts";
 import { almanackCards } from "./almanack.ts";
 import { covenCards } from "./families/coven.ts";
+import { ghostStoryCards } from "./ghostStory.ts";
 
 export * from "./halloween.ts";
 export * from "./nightfall.ts";
 export * from "./cunningFolk.ts";
 export * from "./almanack.ts";
 export * from "./families/coven.ts";
+export * from "./ghostStory.ts";
 
-export const EVENT_CARDS: Card[] = [...halloweenSignatureCards, ...nightfallCards, ...cunningFolkCards, ...almanackCards, ...covenCards];
+export const EVENT_CARDS: Card[] = [...halloweenSignatureCards, ...nightfallCards, ...cunningFolkCards, ...almanackCards, ...covenCards, ...ghostStoryCards];
 
 export const EVENT_CARDS_BY_ID: ReadonlyMap<string, Card> = new Map(EVENT_CARDS.map((c) => [c.id, c]));

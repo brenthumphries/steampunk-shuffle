@@ -25,6 +25,7 @@ const OCT_15 = new Date(2026, 9, 15);
 const OCT_31 = new Date(2026, 9, 31);
 const NOV_1 = new Date(2026, 10, 1);
 const DEC_1 = new Date(2026, 11, 1);
+const JAN_1 = new Date(2027, 0, 1);
 
 describe("registry invariants", () => {
   it("gives every event a unique id and a window that doesn't span New Year", () => {
@@ -59,7 +60,8 @@ describe("activeEvents / isEventLive (Hallowe'en window, Oct 1 - Oct 31 local)",
     expect(activeEvents(SEP_30)).toEqual([]);
     expect(activeEvents(OCT_15)).toEqual([HALLOWEEN]);
     expect(activeEvents(NOV_1).map((e) => e.id)).toEqual(["cunning-folk"]);
-    expect(activeEvents(DEC_1)).toEqual([]);
+    expect(activeEvents(DEC_1).map((e) => e.id)).toEqual(["ghost-story"]);
+    expect(activeEvents(JAN_1)).toEqual([]);
   });
 
   it("recurs every year", () => {
@@ -114,12 +116,12 @@ describe("dressing", () => {
   it("swaps in the event's taproom art only while live", () => {
     expect(eventTaproomArtId(OCT_15)).toBe("background-the-taproom-halloween");
     expect(eventTaproomArtId(SEP_30)).toBeUndefined();
-    expect(eventTaproomArtId(DEC_1)).toBeUndefined();
+    expect(eventTaproomArtId(JAN_1)).toBeUndefined();
   });
 
   it("adds the event's Sir Charles lines only while live", () => {
     expect(eventSirCharlesLines(OCT_15)).toEqual(HALLOWEEN.dressing.sirCharlesLines);
-    expect(eventSirCharlesLines(DEC_1)).toEqual([]);
+    expect(eventSirCharlesLines(JAN_1)).toEqual([]);
   });
 
   it("applies Mary Shelley's line override only while live and only once the Galvanic Creature has arrived", () => {
@@ -135,6 +137,6 @@ describe("eventCardPoolIds", () => {
   it("lists the event's card pool only while live", () => {
     expect(eventCardPoolIds(OCT_15)).toEqual(HALLOWEEN.cardPool);
     expect(eventCardPoolIds(SEP_30)).toEqual([]);
-    expect(eventCardPoolIds(DEC_1)).toEqual([]);
+    expect(eventCardPoolIds(JAN_1)).toEqual([]);
   });
 });

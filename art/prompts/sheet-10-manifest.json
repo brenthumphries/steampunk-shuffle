@@ -1,0 +1,127 @@
+{
+  "_readme": "December (A Ghost Story for Christmas) art, sheet 10. Prompts live in docs/plans/monthly/02-december.md §9 (the Gemini one-shot), so each row's prompt points there. Asset ids and categories follow that section. Written by the D-B content agent on 2026-11-04.",
+  "seed": {
+    "alwaysAttach": [
+      "art/reference/The_Wheatstone_Bridge_taproom.jpeg"
+    ],
+    "byFamily": {
+      "foundry": "public/art/portrait-ada-lovelace.webp",
+      "salon": "public/art/portrait-miss-prudence-hollis.webp",
+      "rookery": "public/art/portrait-dodgy-reg-farrow.webp"
+    }
+  },
+  "rows": [
+    {
+      "assetId": "background-the-taproom-ghost-story",
+      "category": "background",
+      "family": null,
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Ghost Story taproom (event dressing.taproomArtId, weather snow)."
+    },
+    {
+      "assetId": "portrait-mr-pockett",
+      "category": "portrait",
+      "family": "foundry",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Visitor portrait (Mr Pockett, giftOnly allusion). No lettering."
+    },
+    {
+      "assetId": "mr-pockett",
+      "category": "character",
+      "family": "foundry",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Visitor card art and legendary signature card (giftOnly)."
+    },
+    {
+      "assetId": "portrait-ghost-of-christmas-present",
+      "category": "portrait",
+      "family": "salon",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Visitor portrait (The Ghost of Christmas Present)."
+    },
+    {
+      "assetId": "ghost-of-christmas-present",
+      "category": "character",
+      "family": "salon",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Visitor card art and legendary signature card."
+    },
+    {
+      "assetId": "portrait-ghost-of-christmas-yet-to-come",
+      "category": "portrait",
+      "family": "rookery",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Tournament boss portrait (The Ghost of Christmas Yet to Come). Not an opponent in Tonight's Patrons."
+    },
+    {
+      "assetId": "ghost-of-christmas-yet-to-come",
+      "category": "character",
+      "family": "rookery",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Tournament boss card art and legendary signature card (Fireside Circle prize)."
+    },
+    {
+      "assetId": "wassail-bowl",
+      "category": "gadget",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Event card, common gadget."
+    },
+    {
+      "assetId": "yule-log",
+      "category": "gadget",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Event card, uncommon gadget."
+    },
+    {
+      "assetId": "a-whistle-on-the-shingle",
+      "category": "scheme",
+      "family": "irregulars",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Event card, uncommon scheme (Suffolk ruin, bronze whistle, no face on the shape)."
+    },
+    {
+      "assetId": "the-fireside-tale",
+      "category": "location",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Event card, rare Location (also the Fireside Circle house Location)."
+    },
+    {
+      "assetId": "salt-at-the-threshold",
+      "category": "scheme",
+      "family": "coven",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Event card, uncommon scheme (also the Dec 1 arrival gift; Coven card)."
+    },
+    {
+      "assetId": "almanack-capricorn",
+      "category": "almanack",
+      "family": "neutral",
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Almanack headline (Capricorn, glyph in the frame; Dec 22 arrival gift)."
+    },
+    {
+      "assetId": "tarot-the-high-priestess",
+      "category": "tarot",
+      "family": null,
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Booth tarot card II (2:3, no lettering)."
+    },
+    {
+      "assetId": "tarot-the-hermit",
+      "category": "tarot",
+      "family": null,
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "Booth tarot card IX (2:3, no lettering)."
+    },
+    {
+      "assetId": "advent-cabinet",
+      "category": "location",
+      "family": null,
+      "prompt": "See docs/plans/monthly/02-december.md §9.",
+      "notes": "The Advent Cabinet object (3:4, front-on, no numbers). Category 'location' is the nearest 3:4 framing; the cabinet is not a card."
+    }
+  ]
+}

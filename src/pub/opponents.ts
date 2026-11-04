@@ -16,6 +16,9 @@ import type { MatchState } from "../engine/matchEngine.ts";
 import { visibleInEdition } from "../edition.ts";
 import { eventLineOverride, eventSirCharlesLines, isVisitorInTown } from "../events/seasonalEvents.ts";
 import {
+  mrPocketts,
+  ghostOfChristmasPresentsDeck,
+  ghostOfChristmasYetToComesDeck,
   houseDeck,
   muddsDeck,
   nellsDeck,
@@ -201,6 +204,46 @@ export const OPPONENTS: Opponent[] = [
     portraitArtId: "portrait-john-dee",
     line: "The stars said Tuesday. It's Thursday. Someone has been at my mirror.",
     betPool: ["hedge-witch", "witch-bottle", "stir-up-pudding", "almanack-sagittarius"],
+  },
+  // A Ghost Story for Christmas (December, docs/plans/monthly/02-december.md §2).
+  // Mr Pockett is a fan allusion (giftOnly), so a public build never seats him.
+  {
+    id: "mr-pockett",
+    name: "Mr Pockett, Toymaker",
+    tier: "visitor",
+    deck: mrPocketts,
+    difficulty: "seasoned",
+    rewardCardId: "mr-pockett",
+    giftOnly: true,
+    unlockWins: 3,
+    portraitArtId: "portrait-mr-pockett",
+    line: "Don't touch the toys. Don't ask about the wolf thing. Deal.",
+    betPool: ["yule-log", "a-whistle-on-the-shingle", "salt-at-the-threshold", "wassail-bowl"],
+  },
+  {
+    id: "ghost-of-christmas-present",
+    name: "The Ghost of Christmas Present",
+    tier: "visitor",
+    deck: ghostOfChristmasPresentsDeck,
+    difficulty: "seasoned",
+    rewardCardId: "ghost-of-christmas-present",
+    unlockWins: 3,
+    portraitArtId: "portrait-ghost-of-christmas-present",
+    line: "Come in! And know me better, man!",
+    betPool: ["wassail-bowl", "the-fireside-tale", "salt-at-the-threshold", "yule-log"],
+  },
+  {
+    id: "ghost-of-christmas-yet-to-come",
+    name: "The Ghost of Christmas Yet to Come",
+    tier: "legend",
+    deck: ghostOfChristmasYetToComesDeck,
+    difficulty: "legend",
+    rewardCardId: null,
+    tournamentOnly: true,
+    unlockWins: 0,
+    portraitArtId: "portrait-ghost-of-christmas-yet-to-come",
+    line: "It says nothing. It points at your deck.",
+    betPool: ["salt-at-the-threshold", "a-whistle-on-the-shingle", "yule-log", "the-fireside-tale"],
   },
   {
     id: "mother-red-cap",

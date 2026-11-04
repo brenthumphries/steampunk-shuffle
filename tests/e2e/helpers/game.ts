@@ -68,6 +68,18 @@ export const CUNNING_FOLK_SEEN = {
   bannersSeen: { "cunning-folk": [2026] },
 };
 
+/** A Ghost Story for Christmas, seen: the Dec 1 salt and Dec 22 Capricorn gifts and the banner (src/events/packs/ghostStory.ts). Spread it into any save whose clock can land in December. */
+export const GHOST_STORY_SEEN = {
+  giftsClaimed: { "ghost-story": { "2026": ["salt-on-the-step", "almanack-seller"] } },
+  bannersSeen: { "ghost-story": [2026] },
+};
+
+/** Both seasons seen at once: spread this, not the two above (a second spread would overwrite the first's giftsClaimed). */
+export const SEASONS_SEEN = {
+  giftsClaimed: { ...CUNNING_FOLK_SEEN.giftsClaimed, ...GHOST_STORY_SEEN.giftsClaimed },
+  bannersSeen: { ...CUNNING_FOLK_SEEN.bannersSeen, ...GHOST_STORY_SEEN.bannersSeen },
+};
+
 export interface SeedOptions {
   tutorialDone?: boolean;
   dedicationSeen?: boolean;

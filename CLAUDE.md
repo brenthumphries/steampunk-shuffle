@@ -360,7 +360,7 @@ the entry it means is now in `docs/logs/`.
   gets added later.
 - `public/art/` (processed WebP + `manifest.json`) is genuinely deployed —
   it's under Vite's `public/`, copied verbatim to the Pages build. Note for
-  whoever does 3.6 (asset budget <25 MB as of 2026-10-11, was 15 MB; service-worker precache):
+  whoever does 3.6 (asset budget <50 MB as of 2026-11-04 (Brent raised it from 25 MB for the monthly art), was 15 MB; service-worker precache):
   `vite.config.ts`'s workbox `globPatterns` doesn't include `webp` yet, so
   none of this is precached for offline until that's added — deliberately
   left alone here since 3.6 owns the offline/perf pass, not 1.7.
