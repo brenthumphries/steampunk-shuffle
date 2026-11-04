@@ -54,6 +54,8 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
+- **Event lines can wait for a date (2026-11-04):** a Sir Charles line in a pack's `sirCharlesLines` may be `{ text, from: MonthDay }` (held until that day; reuse the visitor's arrival constant, as `cunningFolk.ts` does with `RED_CAP_ARRIVES`), and `LineOverride.from` does the same for opponent lines. Dates come from `today()`; e2e clocks are pinned with `page.clock.setFixedTime` and seeded with `CUNNING_FOLK_SEEN` / `GHOST_STORY_SEEN` where a date lands in a pack window. Almanack Sagittarius now reads "draw 1; your highest face-up card gets +1" (Brent's call; the engine can't do "each player").
+
 - **TestFlight from CI (S-5b): `.github/workflows/testflight.yml` is manual-only (`workflow_dispatch`, input `upload` default true; false is an archive-and-export dry run).** It runs `npm run cap:sync`, archives scheme `App` unsigned (`CODE_SIGNING_ALLOWED=NO`; a signed archive minted an "Apple Development: Created via API" cert per fresh runner until Apple's cap blocked uploads on Nov 3) on `macos-15` with Xcode 26.0.1, then signs at export with cloud-managed distribution via the App Store Connect API key (secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID`; the .p8 lives in `$RUNNER_TEMP` and is deleted in an `always()` step). It overrides `CURRENT_PROJECT_VERSION` on the command line to 4 + run number rather than editing the pbxproj. First real upload: build 9, Nov 3.
 
 - **Privacy and review (2026-10-13, ATT-33/34): the privacy answer is "Data Not Collected", and a test holds it

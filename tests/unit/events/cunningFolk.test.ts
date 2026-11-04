@@ -124,8 +124,23 @@ describe("Tonight's Patrons in November", () => {
   });
 
   it("gives Sir Charles the three November lines while the event is live", () => {
-    expect(eventSirCharlesLines(day(2026, 11, 2))).toHaveLength(3);
+    expect(eventSirCharlesLines(day(2026, 11, 20))).toHaveLength(3);
     expect(eventSirCharlesLines(day(2027, 1, 2))).toEqual([]);
+  });
+});
+
+describe("the Hiawatha line", () => {
+  const LINE = /Hiawatha has been on Mother Red Cap's lap/;
+
+  it("is held until Mother Red Cap appears on Nov 20, then stays to the window end", () => {
+    expect(eventSirCharlesLines(day(2026, 11, 2))).toHaveLength(2);
+    expect(eventSirCharlesLines(day(2026, 11, 19)).some((l) => LINE.test(l))).toBe(false);
+    for (const d of [20, 25, 30]) expect(eventSirCharlesLines(day(2026, 11, d)).some((l) => LINE.test(l)), `Nov ${d}`).toBe(true);
+  });
+
+  it("opens on the same day Mother Red Cap arrives", () => {
+    expect(visitorArrived(CUNNING_FOLK, "mother-red-cap", day(2026, 11, 19))).toBe(false);
+    expect(visitorArrived(CUNNING_FOLK, "mother-red-cap", day(2026, 11, 20))).toBe(true);
   });
 });
 

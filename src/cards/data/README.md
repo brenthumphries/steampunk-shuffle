@@ -120,9 +120,10 @@ punch list:
    `count` cards from the pooled candidates of its side, so
    `side: "each"` with `count: 2` and `highestPoints` picks the two
    highest across both boards, not one per player. Affects
-   `Sagittarius` (November, almanack): its "each player draws 1, and each
-   player's highest face-up card gets +1" is written for the controller
-   only (`draw` and a `self` buff). The Scorpio and REMEMBER, REMEMBER
+   `Sagittarius` (November, almanack): the "each player draws 1, and each
+   player's highest face-up card gets +1" draft was reworded (Brent, Nov 4)
+   to what the engine does: "draw 1; your highest face-up card gets +1"
+   (`draw` and a `self` buff). The Scorpio and REMEMBER, REMEMBER
    "each player's / each face-up" effects are fine, since they take every
    matching card on both boards (`count` = two boards' worth).
 

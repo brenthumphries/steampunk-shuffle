@@ -116,7 +116,7 @@ Neutral rare Headlines with the Almanack frame, after *Old Moore's Almanack* (pu
 | Month | Sign | Draft text |
 |---|---|---|
 | Nov | ♏ **Scorpio** (gift on first November launch; it's the Landlady's sign) | On Play: each player turns all of their face-down cards face-up. *(Death and rebirth, and nothing stays buried.)* |
-| Nov | ♐ Sagittarius | On Play: each player draws 1. Each player's highest face-up card gets +1. |
+| Nov | ♐ Sagittarius | On Play: draw 1. Your highest face-up card gets +1. |
 | Dec | ♑ Capricorn | On Play: each face-up Persist card gets +1. |
 | Jan | ♒ Aquarius | On Play: each player returns their lowest face-up card to hand. |
 | Feb | ♓ Pisces | On Play: each player turns one of their face-down cards face-up. |
