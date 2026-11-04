@@ -76,6 +76,20 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Repro:** Play Nov 2026, then open on 2027-11-04: the same beer mat ("...For the Landlady, belated. Born under the Scorpion...") grants Scorpio, 2 x Hedge Witch and Witch Bottle again (collection now holds duplicates), plus the banner. Probably intended (gifts are keyed by year), but the "belated" wording only fits 2026. Design call: year-one wording or a short repeat line.
 - **Also checked, fine:** 2027-11-04 no Penny for the Guy; 2027-11-05 gifted once, with its line; Sagittarius Nov 22 once; Pixie's card once on the first reading.
 
+### PT-48: Snowfall drifts over the whole viewport, across the patron list and buttons
+- **Seen:** 2026-11-04, D-SHIP playtest (x1)
+- **Repro:** `?now=2026-12-01&preview=1`, scroll the hub: flakes fall over the patron cards, text and the Advent Cabinet tile, not just the window area at the top (a dot lands on "Sir Charles", on the Checks badge). The month plan (§5) says "over the hub windows only, never over interactive UI". Reduce Motion is right: static frost, no flakes.
+- **Likely location:** `.hub-snow` positioning in `src/style.css` (fixed to the viewport rather than the header scene).
+
+### PT-49: Beer mats double the parentheses around a foil card name
+- **Seen:** 2026-11-04, D-SHIP playtest (x1)
+- **Repro:** 2026-12-25, Advent Cabinet, open door 25: the mat reads "...They didn't wrap it. (Bramwell (foil))". The Dec 24 mat is "(50 Checks)", the arrival gifts "(Salt at the Threshold)"; only foil names nest.
+- **Likely location:** the reward suffix in the beer-mat builder (`src/ui/beerMat.ts` / `adventScreen.ts`); drop the inner parentheses or use "Bramwell, foil".
+
+### PT-50: A missed Dec 22 Capricorn gift is still handed over on Jan 1, "next month's page"
+- **Seen:** 2026-11-04, D-SHIP playtest (x1)
+- **Repro:** Seed a save that claimed the Dec 1 salt but not Capricorn, open 2027-01-01: the beer mat "Longest night of the year. The almanack-seller came in for the fire and left next month's page. (Capricorn)" appears with the event over. Probably intended (late claim, as in November), but the line reads wrong in January. Compare PT-47.
+
 ## Known / already flagged (not filed as new)
 
 ### All nine tutorial turns are forced (design.md §13.1 says six of nine)
@@ -89,6 +103,9 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 
 ### N-SHIP playtest, 2026-11-03 (November, deployed build, 402x874 Chromium)
 - Checked Nov 12/13/19/20/22/30, Dec 1, 2027-11-04/05: visitors, Booth, arrival gifts, Scry overlay, Coven frames, Stakes entry rule and first-match Well, first-win payouts. 0 P1. New items PT-41 to PT-47. Known art gaps (knaresborough-seer, dale-carter, galvanic-mechanic) 404 as expected and were not refiled. No console errors other than those three 404s.
+
+### D-SHIP playtest, 2026-11-04 (December, deployed build c4ea737, 402x874 Chromium)
+- Checked 2026-11-30, 12-01, 12-03, 12-11, 12-12, 12-17, 12-18, 12-22, 12-25, 2027-01-01, 01-06, 01-07: Pockett and Ghost of Present arrivals and art, Advent Cabinet (door states, grid at 402px, door 1/24/25 claims, foil Bramwell and the exact Christmas line), snow and Reduce Motion frost, December taproom, salt and banner mats once, Capricorn mat Dec 22, Fireside Circle gate (Dec 17 none, Dec 18 open, The Fireside Tale in play), Yet to Come absent from Tonight's Patrons, Dickens and Holmes (from Dec 18) overrides, Booth and Tarot album (High Priestess and Hermit locked Nov 30, unlocked Dec 1), cabinet claimable Jan 1 and Jan 6 and gone Jan 7. Played pickup matches against Mr Pockett (loss +7) and the Ghost of Christmas Present (loss +7; win +20 and first-win card). 0 P1. New items PT-48 to PT-50 (P3). The Dec 25 foil reveal shows only "(foil)" in the title; no distinct foil look. The mute toggle (PT-43) and Mudd's line (PT-44) both fit at 402px on this run. No console errors, no 404s. Pockett's Moonrise card shows 5 in round 2, as intended.
 
 ## Resolved
 
