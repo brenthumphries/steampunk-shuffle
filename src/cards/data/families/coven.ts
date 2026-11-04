@@ -54,4 +54,30 @@ export const witchBottle: Card = {
   ],
 };
 
-export const covenCards: Card[] = [hedgeWitch, cunningWoman, witchBottle];
+// December (02-december.md §4): a scheme that turns one face-down card over,
+// then Scry 1. Scry is the Coven's own keyword.
+export const saltAtTheThreshold: Card = {
+  id: "salt-at-the-threshold",
+  rarity: "uncommon",
+  faces: [
+    {
+      name: "Salt at the Threshold",
+      type: "scheme",
+      family: "coven",
+      points: 0,
+      abilities: [
+        {
+          trigger: "onPlay",
+          effects: [
+            { effect: "unflip", target: { side: "self", count: 1 } },
+            { effect: "scry", amount: 1 },
+          ],
+        },
+      ],
+      flavor: "A line of salt across the doorstep. Whatever's outside can wait outside.",
+      artId: "salt-at-the-threshold",
+    },
+  ],
+};
+
+export const covenCards: Card[] = [hedgeWitch, cunningWoman, witchBottle, saltAtTheThreshold];

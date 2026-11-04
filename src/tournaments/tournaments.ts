@@ -7,10 +7,11 @@
 import { visibleInEdition } from "../edition.ts";
 import type { Deck, Family } from "../cards/cardTypes.ts";
 import { isWithinWindow, type MonthDay } from "../events/eventClock.ts";
-import { CUNNING_FOLK, HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
+import { CUNNING_FOLK, GHOST_STORY, HALLOWEEN, isEventLive, SEASONAL_EVENTS_BY_ID } from "../events/seasonalEvents.ts";
+import { isPublicEdition } from "../edition.ts";
 import type { Opponent } from "../pub/opponents.ts";
 
-export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational" | "all-hallows-wake" | "almanack-stakes";
+export type TournamentId = "tuesday-knockout" | "peelers-cup" | "reichenbach-open" | "birthday-invitational" | "all-hallows-wake" | "almanack-stakes" | "fireside-circle";
 
 export interface EntryCheck {
   valid: boolean;
@@ -51,6 +52,8 @@ export interface Tournament {
    * `isUnlocked` may narrow that further to a sub-window.
    */
   eventId?: string;
+  /** A sub-window of the event (the Fireside Circle, Dec 18-31): the chalkboard lists it only inside it. */
+  listWindow?: { start: MonthDay; end: MonthDay };
   eligiblePool: (opponents: readonly Opponent[]) => Opponent[];
   /**
    * Opponents who are always seated (chosen from `eligiblePool`'s result)
@@ -100,6 +103,13 @@ const isWakeVisitor = (o: Opponent): boolean => HALLOWEEN.visitors.some((v) => v
 
 /** The Almanack Stakes' field (01-november.md §5): the three Cunning Folk, always seated; the other four seats are Seasoned. */
 export const ALMANACK_STAKES_FIELD_IDS: readonly string[] = ["mother-shipton", "john-dee", "mother-red-cap"];
+
+/** The Fireside Circle's field (02-december.md §6): four fixed seats, the rest drawn from the Seasoned. */
+export const FIRESIDE_CIRCLE_FIELD_IDS: readonly string[] = ["ghost-of-christmas-present", "mr-pockett", "dickens", "ghost-of-christmas-yet-to-come"];
+
+/** The Fireside Circle runs Dec 18-31, inside the Ghost Story window. */
+const FIRESIDE_START: MonthDay = { month: 12, day: 18 };
+const FIRESIDE_END: MonthDay = { month: 12, day: 31 };
 
 /** The Stakes open for the last ten days of the Cunning Folk window, with the event's own minWins. */
 const STAKES_START: MonthDay = { month: 11, day: 20 };
@@ -224,6 +234,29 @@ const ALL_TOURNAMENTS: Tournament[] = [
         : { valid: false, reason: `The Almanack Stakes needs at least ${ALMANACK_STAKES_MIN_COVEN} Coven cards in the deck.` };
     },
   },
+  // A Ghost Story for Christmas (02-december.md §6): Dec 18-31, after 3 wins.
+  // The Yet to Come is the prize and sits here by id (`tournamentOnly` keeps
+  // him out of every other field); Mr Pockett is a giftOnly seat.
+  {
+    id: "fireside-circle",
+    name: "The Fireside Circle",
+    eventId: GHOST_STORY.id,
+    listWindow: { start: FIRESIDE_START, end: FIRESIDE_END },
+    whenLabel: "Dec 18 – Dec 31, after 3 wins",
+    fieldLabel: "The Ghost of Christmas Present, Mr Pockett, Dickens, the Ghost of Christmas Yet to Come + 3 random Seasoned",
+    entryRuleLabel: "Any legal deck",
+    entryChecks: 13,
+    consolationChecks: 13,
+    prizeChecks: 150,
+    prizeCard: { kind: "fixed", cardId: "ghost-of-christmas-yet-to-come" },
+    houseLocationId: "the-fireside-tale",
+    // The public build's field is one seat short (see FIRESIDE_CIRCLE_FIELD_IDS): it is not offered there until a fourth Seasoned or another filler exists.
+    isUnlocked: (totalWins, _invitationalTriggered, date) =>
+      !isPublicEdition() && totalWins >= (SEASONAL_EVENTS_BY_ID.get(GHOST_STORY.id)?.minWins ?? 0) && isEventLive(GHOST_STORY.id, date) && isWithinWindow(date, FIRESIDE_START, FIRESIDE_END),
+    eligiblePool: (opponents) => opponents.filter((o) => FIRESIDE_CIRCLE_FIELD_IDS.includes(o.id) || o.tier === "seasoned"),
+    fixedSeats: (pool) => pool.filter((o) => FIRESIDE_CIRCLE_FIELD_IDS.includes(o.id)),
+    checkEntryDeck: anyLegalDeck,
+  },
 ];
 
 /**
@@ -248,5 +281,6 @@ export function isTournamentListed(tournament: Tournament, invitationalTriggered
   if (hasActiveBracket) return true;
   if (tournament.id === "birthday-invitational" && !invitationalTriggered) return false;
   if (tournament.eventId !== undefined && !isEventLive(tournament.eventId, date)) return false;
+  if (tournament.listWindow && !isWithinWindow(date, tournament.listWindow.start, tournament.listWindow.end)) return false;
   return true;
 }

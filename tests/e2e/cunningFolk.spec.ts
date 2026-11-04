@@ -15,7 +15,7 @@ async function openHubOn(page: Page, date: string, totalWins: number, checks = 1
       localStorage.clear();
       localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
       localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
+      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] }, "ghost-story": { "2026": ["salt-on-the-step", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026], "ghost-story": [2026] } }));
     },
     { wins: totalWins, checks },
   );

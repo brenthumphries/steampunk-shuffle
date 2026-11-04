@@ -125,7 +125,7 @@ describe("Tonight's Patrons in November", () => {
 
   it("gives Sir Charles the three November lines while the event is live", () => {
     expect(eventSirCharlesLines(day(2026, 11, 2))).toHaveLength(3);
-    expect(eventSirCharlesLines(day(2026, 12, 2))).toEqual([]);
+    expect(eventSirCharlesLines(day(2027, 1, 2))).toEqual([]);
   });
 });
 

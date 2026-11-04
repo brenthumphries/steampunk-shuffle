@@ -13,13 +13,14 @@ import { forEdition, visibleLines, type TaggedLine } from "../edition.ts";
 import type { AdventConfig } from "./advent.ts";
 import { isOnOrAfter, isWithinWindow, type MonthDay } from "./eventClock.ts";
 import { CUNNING_FOLK } from "./packs/cunningFolk.ts";
+import { GHOST_STORY } from "./packs/ghostStory.ts";
 import { HALLOWEEN } from "./packs/halloween.ts";
 import { TEST_PACK, testPackRequested } from "./packs/testPack.ts";
 
 // Content packs (docs/plans/monthly/00-monthly-content-plan.md §4.1): each
 // month is one file under ./packs/ exporting a SeasonalEvent. This file keeps
 // only the types, the registry and the date predicates.
-export { HALLOWEEN, CUNNING_FOLK };
+export { HALLOWEEN, CUNNING_FOLK, GHOST_STORY };
 
 export interface EventVisitor {
   opponentId: string;
@@ -34,6 +35,8 @@ export interface LineOverride {
   giftOnly?: boolean;
   /** Apply only once this visitor has arrived, e.g. Mary Shelley reacting to the Creature. */
   whenArrived?: string;
+  /** Apply only from this day of the year (inclusive), e.g. Holmes reacting to the Yet to Come from Dec 18. */
+  from?: MonthDay;
 }
 
 /**
@@ -110,7 +113,7 @@ export interface SeasonalEvent {
 }
 
 /** Every month's pack, in calendar order. One event is live at a time: tests/unit/events/packs.test.ts asserts no two windows overlap. */
-const PACKS: readonly SeasonalEvent[] = [HALLOWEEN, CUNNING_FOLK];
+const PACKS: readonly SeasonalEvent[] = [HALLOWEEN, CUNNING_FOLK, GHOST_STORY];
 
 function urlSearch(): string {
   try {
@@ -191,6 +194,7 @@ export function eventLineOverride(opponentId: string, date: Date): string | null
     for (const override of forEdition(event.dressing.lineOverrides)) {
       if (override.opponentId !== opponentId) continue;
       if (override.whenArrived && !visitorArrived(event, override.whenArrived, date)) continue;
+      if (override.from && !isOnOrAfter(date, override.from)) continue;
       return override.line;
     }
   }

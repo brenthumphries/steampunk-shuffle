@@ -19,8 +19,8 @@ import { OPPONENTS } from "../../../src/pub/opponents.ts";
 const ART = resolve(__dirname, "../../../public/art");
 
 describe("the Coven", () => {
-  it("is the November trio, all in the Coven family, and each validates", () => {
-    expect(covenCards.map((c) => c.id)).toEqual(["hedge-witch", "cunning-woman", "witch-bottle"]);
+  it("is the November trio and the December salt, all in the Coven family, and each validates", () => {
+    expect(covenCards.map((c) => c.id)).toEqual(["hedge-witch", "cunning-woman", "witch-bottle", "salt-at-the-threshold"]);
     for (const card of covenCards) {
       expect(card.faces[0].family).toBe("coven");
       expect(validateCard(card).errors, card.id).toEqual([]);

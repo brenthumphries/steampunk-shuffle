@@ -24,9 +24,12 @@
 | The Hampstead Wolf (Hallowe'en visitor) | `wolf.ts` | Yard | done |
 | The Galvanic Creature (Hallowe'en visitor) | `creature.ts` | Foundry | done |
 | Spring-Heeled Jack (All Hallows' Wake only) | `jack.ts` | Rookery | done |
+| Mr Pockett, Toymaker (December visitor, giftOnly) | `mrPockett.ts` | Foundry + Irregulars | done |
+| The Ghost of Christmas Present (December visitor) | `ghostOfChristmasPresent.ts` | Salon + Yard | done |
+| The Ghost of Christmas Yet to Come (Fireside Circle boss) | `ghostOfChristmasYetToCome.ts` | Rookery + Coven | done |
 
-The six seasonal decks (seasonal-events-plan.md §3) are listed after the
-16 year-round ones. Each uses its family's v1 cards plus its visitor's
+The six seasonal decks (seasonal-events-plan.md §3) and the three December
+decks (`02-december.md` §2) are listed after the 16 year-round ones. Each uses its family's v1 cards plus its visitor's
 signature card (`../halloween.ts`) and Nightfall cards (`../nightfall.ts`),
 all event cards outside the labeled 60 (see `../README.md`). They're
 balanced with `npm run curve -- visitor seasoned` (target: starter wins
