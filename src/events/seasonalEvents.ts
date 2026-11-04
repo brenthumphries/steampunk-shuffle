@@ -10,6 +10,7 @@
 // adding data — this file's shape doesn't change.
 
 import { forEdition, visibleLines, type TaggedLine } from "../edition.ts";
+import type { AdventConfig } from "./advent.ts";
 import { isOnOrAfter, isWithinWindow, type MonthDay } from "./eventClock.ts";
 import { CUNNING_FOLK } from "./packs/cunningFolk.ts";
 import { HALLOWEEN } from "./packs/halloween.ts";
@@ -90,6 +91,8 @@ export interface SeasonalEvent {
     /** Added to Sir Charles's own line pool while the event is live. */
     sirCharlesLines: TaggedLine[];
     lineOverrides: LineOverride[];
+    /** Weather drawn over the hub's window area while the event is live (design.md §17.3). */
+    weather?: "snow";
   };
   /** Non-playing characters who arrive during the window and stay year-round afterwards. */
   hosts?: EventHost[];
@@ -102,6 +105,8 @@ export interface SeasonalEvent {
   sleeveId?: string;
   /** A one-time "new this month" beer mat on the first hub visit inside the window, once per event per year. */
   banner?: string;
+  /** The Advent Cabinet: numbered doors that open a day at a time (src/events/advent.ts, design.md §17.3). */
+  advent?: AdventConfig;
 }
 
 /** Every month's pack, in calendar order. One event is live at a time: tests/unit/events/packs.test.ts asserts no two windows overlap. */
@@ -163,6 +168,14 @@ export function lockedVisitorHint(totalWins: number, date: Date): string | null 
 export function eventTaproomArtId(date: Date): string | undefined {
   for (const event of activeEvents(date)) {
     if (event.dressing.taproomArtId) return event.dressing.taproomArtId;
+  }
+  return undefined;
+}
+
+/** The live event's weather, if any ("snow"). */
+export function eventWeather(date: Date): "snow" | undefined {
+  for (const event of activeEvents(date)) {
+    if (event.dressing.weather) return event.dressing.weather;
   }
   return undefined;
 }

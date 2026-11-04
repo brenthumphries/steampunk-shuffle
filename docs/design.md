@@ -581,3 +581,13 @@ A curtained booth in the snug, run by Pamela Colman Smith ("Pixie"), a host in t
 
 6. **Hub chip.** While an omen is live the hub shows it as a small chip under the header.
 7. **Tarot album.** 22 slots in order, reached from the Booth and from the deck builder. Drawn shows the art, unlocked but undrawn a face-down back, locked a silhouette. Missing art falls back to parchment carrying the arcana's numeral. Tapping a drawn slot shows its name, Pixie's line and the omen.
+
+### 17.3 Advent cabinet and weather
+
+Two generic event features (content plan `docs/plans/monthly/02-december.md` §5, §7). Both are data on a `SeasonalEvent`; the code is `src/events/advent.ts`, `src/events/adventState.ts`, `src/ui/adventScreen.ts`, `src/ui/adventCabinet.ts`.
+
+1. **The data.** `advent?: { opensFrom, lastClaim, doors: { day, reward: { checks?, cardId?, token?, foilOf? }, line? }[] }`. `token` is `"lostAndFoundUncommon"` or `"tinkerFree"`. `lastClaim` earlier in the year than `opensFrom` means the next calendar year (Jan 6 after December); a claim made in January belongs to the December year it opened in.
+2. **The rules.** The cabinet is visible from `opensFrom` to `lastClaim` inclusive. Door N opens N-1 days after `opensFrom` (day N of the month when it opens on the 1st) and stays claimable until `lastClaim`; future doors are shut. A claimed door stays open and shows what it held. Claims are in `pub.advent.claims[eventId][year]`, inside the existing `pub-state` key, so a door is never granted twice and the privacy key list is unchanged.
+3. **Tokens** wait in `pub.advent.tokens` until used. `lostAndFoundUncommon` makes the next Lost & Found pull at least uncommon (spent by that pull). `tinkerFree` makes a fusing free; when the Booth's `tinkerFree` omen is also live, the omen is spent first (it lapses at midnight, a token does not), never both on one fusing. `foilOf` adds a `foil:<id>` entry, plus the card itself if the player does not own it.
+4. **UI.** While the cabinet is live the hub shows a brass cabinet button behind the patron list (art id `advent-cabinet`, drawn as an SVG brass grid until the image loads or if it is missing). It opens a 5x5 grid: 24 numbered doors and a larger 25th. An openable door glints; tapping it swings open (a short cross-fade under Reduce Motion), pays out, plays the card unwrap for any card and shows a beer mat with the door's line.
+5. **Weather.** `dressing.weather: "snow"` draws light CSS snow (22 transform-animated flakes) over a fixed strip across the top of the hub, the window area, with `pointer-events: none`. Under Reduce Motion the flakes are hidden and a still frost overlay shows instead.

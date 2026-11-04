@@ -15,7 +15,8 @@ import { pawnbrokerWindow, canAfford, buyFromPawnbroker, type PawnbrokerSlot } f
 import { canFuse, fuseChoicesFor, fuse, TINKER_FEE_CHECKS, TINKERS_BENCH_UNLOCK_WINS, type FuseChoice } from "../pub/tinkersBench.ts";
 import { claimLostAndFound, countInCollection, hasClaimedLostAndFoundToday, loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
 import { playSound } from "../audio/soundEngine.ts";
-import { lostAndFoundExtraAvailable, lostAndFoundUpgradeActive, markOneShotUsed, tinkerFee } from "../booth/omens.ts";
+import { spendToken, tokenCount } from "../events/advent.ts";
+import { lostAndFoundExtraAvailable, lostAndFoundUpgradeActive, markOneShotUsed, spendFreeFuse, tinkerFee } from "../booth/omens.ts";
 import { today } from "../events/eventClock.ts";
 
 export interface AcquisitionScreenOptions {
@@ -62,8 +63,11 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
   function claimToday(): void {
     const now = today();
     const upgrade = lostAndFoundUpgradeActive(pub, now);
-    const card = rollLostAndFound(pub.collection, now, { upgrade });
-    persist(claimLostAndFound(pub, card.id, now));
+    // An Advent Cabinet token makes this pull at least uncommon, and is spent by it.
+    const useToken = tokenCount(pub, "lostAndFoundUncommon") > 0;
+    const card = rollLostAndFound(pub.collection, now, { upgrade, atLeastUncommon: useToken });
+    const claimed = claimLostAndFound(pub, card.id, now);
+    persist(useToken ? spendToken(claimed, "lostAndFoundUncommon") : claimed);
     revealCardId = card.id;
     // The Booth's lostAndFoundExtra omen: a second card in the same box, once.
     if (lostAndFoundExtraAvailable(pub, now)) takeExtra(card.id);
@@ -100,8 +104,8 @@ export function mountAcquisitionScreen(root: HTMLElement, options: AcquisitionSc
     const now = today();
     const fee = tinkerFee(pub, now, TINKER_FEE_CHECKS);
     const { next, resultCardId } = fuse(pub, cardId, choice, Date.now(), fee);
-    // The Booth's tinkerFree omen waives one fusing's fee.
-    persist(fee < TINKER_FEE_CHECKS ? markOneShotUsed(next, now, "tinkerFree") : next);
+    // The Booth's tinkerFree omen, or an Advent Cabinet token, waives one fusing's fee (the omen first).
+    persist(fee < TINKER_FEE_CHECKS ? spendFreeFuse(next, now) : next);
     fuseSelection = null;
     revealCardId = resultCardId;
     playSound("brassHit");

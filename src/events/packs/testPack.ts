@@ -19,6 +19,7 @@ export const TEST_PACK: SeasonalEvent = {
     lockedHint: "Test pack hint.",
     sirCharlesLines: ["Test pack Sir Charles line.", { text: "Test pack gift-only line.", giftOnly: true }],
     lineOverrides: [],
+    weather: "snow",
   },
   hosts: [{ id: "test-host", arrives: { month: 1, day: 11 } }],
   arrivalGifts: [
@@ -26,6 +27,16 @@ export const TEST_PACK: SeasonalEvent = {
     { id: "later", cardIds: [{ id: "test-card-b", qty: 1 }], line: "A card from the future.", fromYear: 2027 },
   ],
   banner: "Test pack banner: new this month.",
+  // Doors open one a day from Jan 10 (door 2 on Jan 11) and stay claimable to Jan 12.
+  advent: {
+    opensFrom: { month: 1, day: 10 },
+    lastClaim: { month: 1, day: 12 },
+    doors: [
+      { day: 1, reward: { checks: 10 } },
+      { day: 2, reward: { checks: 15 }, line: "Test pack door two." },
+      { day: 3, reward: { token: "tinkerFree" } },
+    ],
+  },
 };
 
 /** True when the URL asks for the test pack and the dev-clock gate (`allowed`) is open. */

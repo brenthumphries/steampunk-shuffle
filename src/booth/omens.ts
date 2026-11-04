@@ -9,6 +9,7 @@ import { stepRandom } from "../engine/rng.ts";
 import { localDayIndex } from "../pub/opponents.ts";
 import { localDateKey, type PubState } from "../pub/pubState.ts";
 import type { OneShotOmenKind } from "./boothState.ts";
+import { spendToken } from "../events/advent.ts";
 import { recordChecksEarned } from "../save/ledger.ts";
 import { TAROT, TAROT_BY_ID, type TarotArcana } from "./tarot.ts";
 
@@ -164,9 +165,22 @@ export function lostAndFoundExtraAvailable(pub: PubState, date: Date): boolean {
   return liveOmen(pub, date, "lostAndFoundExtra") !== null && !oneShotUsed(pub, date, "lostAndFoundExtra");
 }
 
-/** The Tinker's fee today: 0 for the first fusing under `tinkerFree`, otherwise `baseFee`. */
+/** Whether the Booth's tinkerFree omen would waive a fusing right now. */
+function tinkerOmenFree(pub: PubState, date: Date): boolean {
+  return liveOmen(pub, date, "tinkerFree") !== null && !oneShotUsed(pub, date, "tinkerFree");
+}
+
+/** The Tinker's fee today: 0 for a free fusing (today's `tinkerFree` omen, or an Advent Cabinet token), otherwise `baseFee`. */
 export function tinkerFee(pub: PubState, date: Date, baseFee: number): number {
-  return liveOmen(pub, date, "tinkerFree") !== null && !oneShotUsed(pub, date, "tinkerFree") ? 0 : baseFee;
+  return tinkerOmenFree(pub, date) || pub.advent.tokens.tinkerFree > 0 ? 0 : baseFee;
+}
+
+/**
+ * Pays for a free fusing: today's omen goes first (it lapses at midnight, a token keeps),
+ * otherwise one token. Never both, so the two don't double-spend. Call once per fusing whose fee was 0.
+ */
+export function spendFreeFuse(pub: PubState, date: Date): PubState {
+  return tinkerOmenFree(pub, date) ? markOneShotUsed(pub, date, "tinkerFree") : spendToken(pub, "tinkerFree");
 }
 
 /** Extra opening-hand cards for the player's next fresh match (0 once today's has been used). */

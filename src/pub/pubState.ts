@@ -7,6 +7,7 @@
 // first-win rewards at all.
 
 import { today } from "../events/eventClock.ts";
+import { defaultAdventState, parseAdventState, type AdventState } from "../events/adventState.ts";
 import { defaultBoothState, parseBoothState, type BoothState } from "../booth/boothState.ts";
 import { defaultLedger, parseLedger, type Ledger } from "../save/ledger.ts";
 import type { OpponentTier } from "./opponents.ts";
@@ -81,6 +82,8 @@ export interface PubState {
   ledger: Ledger;
   /** The Fortune-teller's Booth: the daily-draw salt and today's one-shot omen flags (src/booth). */
   booth: BoothState;
+  /** The Advent Cabinet: doors opened per event per year, and tokens held (src/events/advent.ts). */
+  advent: AdventState;
 }
 
 export function defaultPubState(): PubState {
@@ -99,6 +102,7 @@ export function defaultPubState(): PubState {
     bannersSeen: {},
     ledger: defaultLedger(),
     booth: defaultBoothState(),
+    advent: defaultAdventState(),
   };
 }
 
@@ -321,6 +325,7 @@ export function loadPubState(): PubState {
       // Save version 2 migration: a save with no ledger gets one whose first launch is the day it was migrated.
       ledger: parseLedger(parsed.ledger, localDateKey(today())),
       booth: parseBoothState(parsed.booth),
+      advent: parseAdventState(parsed.advent),
     };
   } catch {
     return defaultPubState();

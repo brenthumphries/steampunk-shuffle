@@ -26,6 +26,8 @@ import { ACQUIRABLE_CARDS_BY_ID } from "./pub/acquirableCards.ts";
 import { applyTournamentPayout, deductChecks, grantChecks, loadPubState, localDateKey, recordPickupResult, recordTournamentMatchResult, savePubState, type PubState } from "./pub/pubState.ts";
 import { resolveBarBet } from "./pub/barBet.ts";
 import { applyWinOmen, barBetInsuranceAvailable, markOneShotUsed, openingHandExtra, winOmenBonus } from "./booth/omens.ts";
+import { mountAdventScreen } from "./ui/adventScreen.ts";
+import { liveAdvent } from "./events/advent.ts";
 import { mountBoothScreen } from "./ui/boothScreen.ts";
 import { PIXIE_HOST_ID } from "./booth/booth.ts";
 import { mountTarotAlbumScreen } from "./ui/tarotAlbumScreen.ts";
@@ -182,10 +184,18 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     onOpenSaveData: showSaveScreen,
     onOpenHouseRules: showHouseRules,
     onOpenBooth: hostMet(pubNow, PIXIE_HOST_ID) ? showBooth : undefined,
+    onOpenAdvent: liveAdvent(date) ? showAdvent : undefined,
     pendingReveals,
     notices,
     hint,
   });
+}
+
+function showAdvent(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountAdventScreen(app!, { onBack: () => showPubHub() });
 }
 
 function showBooth(): void {
