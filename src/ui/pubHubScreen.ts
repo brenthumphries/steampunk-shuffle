@@ -9,13 +9,15 @@
 import { abilityLines, keywordChips } from "./cardText.ts";
 import { patronLine, tonightsPatrons, type Opponent, type OpponentTier } from "../pub/opponents.ts";
 import { today } from "../events/eventClock.ts";
-import { eventTaproomArtId, lockedVisitorHint } from "../events/seasonalEvents.ts";
+import { eventTaproomArtId, eventWeather, lockedVisitorHint } from "../events/seasonalEvents.ts";
 import { loadPubState } from "../pub/pubState.ts";
 import { titleForWins } from "../pub/progression.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { canOfferBarBet, stakeableCards } from "../pub/barBet.ts";
 import { clearStakeSelection, selectStakeCard, type StakeSelectionState } from "../pub/barBetSelection.ts";
 import { omenChipText, todaysOmen } from "../booth/omens.ts";
+import { liveAdvent, openableCount } from "../events/advent.ts";
+import { buildCabinetPicture } from "./adventCabinet.ts";
 import { buildBeerMat } from "./beerMat.ts";
 import { buildCardZoomEl } from "./cardZoom.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
@@ -41,6 +43,8 @@ export interface PubHubOptions {
   onOpenHouseRules: () => void;
   /** Set once the Booth host has arrived (hostMet); absent before that, and the hub shows nothing of the Booth. */
   onOpenBooth?: () => void;
+  /** Set while an event's Advent Cabinet is live (src/events/advent.ts); the hub shows the brass cabinet behind the bar. */
+  onOpenAdvent?: () => void;
   pendingReveals?: PendingReveal[];
   /** design.md §13.3's hub hint ("You've enough Checks for the Pawnbroker…"), shown once. */
   hint?: { text: string; onShown: () => void };
@@ -114,6 +118,30 @@ function buildActionTile(title: string, subtitle: string, onClick: () => void): 
   btn.appendChild(el("span", "hub-action-subtitle", subtitle));
   btn.addEventListener("click", onClick);
   return btn;
+}
+
+const SNOWFLAKES = 22;
+
+/**
+ * Light snow over the hub's window area only (design.md §17.3): a fixed strip across the top that
+ * never takes a tap. CSS-animated transforms on a capped number of flakes keep an iPhone at 60fps;
+ * with Reduce Motion the flakes are hidden and a still frost overlay shows instead.
+ */
+function buildSnow(): HTMLElement {
+  const snow = el("div", "hub-snow");
+  snow.setAttribute("aria-hidden", "true");
+  snow.appendChild(el("div", "hub-frost"));
+  for (let i = 0; i < SNOWFLAKES; i++) {
+    const flake = el("span", "hub-snowflake");
+    // Deterministic spread, so a re-render doesn't reshuffle the snow.
+    flake.style.left = `${(i * 37) % 100}%`;
+    flake.style.animationDuration = `${7 + ((i * 5) % 6)}s`;
+    flake.style.animationDelay = `-${(i * 3) % 9}s`;
+    flake.style.setProperty("--flake-size", `${3 + (i % 3)}px`);
+    flake.style.setProperty("--flake-drift", `${(i % 2 === 0 ? 1 : -1) * (8 + (i % 4) * 4)}px`);
+    snow.appendChild(flake);
+  }
+  return snow;
 }
 
 /** Mounts the pub hub into `root` and returns a teardown function. */
@@ -376,6 +404,23 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     }
     screen.appendChild(list);
 
+    if (options.onOpenAdvent) {
+      const live = liveAdvent(today());
+      if (live) {
+        const ready = openableCount(pub, live, today());
+        const cabinet = el("button", `hub-advent${ready > 0 ? " hub-advent--ready" : ""}`);
+        cabinet.type = "button";
+        cabinet.setAttribute("aria-label", `The Advent Cabinet, ${ready} ${ready === 1 ? "door" : "doors"} ready`);
+        cabinet.appendChild(buildCabinetPicture());
+        const label = el("span", "hub-advent-label");
+        label.appendChild(el("span", "hub-action-title", "The Advent Cabinet"));
+        label.appendChild(el("span", "hub-action-subtitle", ready > 0 ? `${ready} ${ready === 1 ? "door" : "doors"} ready to open` : "Nothing new behind the doors"));
+        cabinet.appendChild(label);
+        cabinet.addEventListener("click", options.onOpenAdvent);
+        screen.appendChild(cabinet);
+      }
+    }
+
     const deckRow = el("div", "pub-hub-deck-row");
     deckRow.appendChild(el("span", "taproom-deck", `Deck: ${options.deckName}`));
     const deckBtn = el("button", "taproom-button taproom-button--secondary", "Build a deck");
@@ -406,6 +451,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     screen.appendChild(secondaryRow);
 
     root.appendChild(screen);
+    if (eventWeather(today()) === "snow") root.appendChild(buildSnow());
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
     if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));

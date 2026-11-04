@@ -43,8 +43,8 @@ function pickWeighted<T>(items: readonly T[], weights: readonly number[], seed: 
  * real-world day" via `PubState.lastLostAndFoundDate`
  * (src/pub/pubState.ts's `hasClaimedLostAndFoundToday`/`claimLostAndFound`).
  */
-export function rollLostAndFound(collection: readonly string[], date: Date, options: { upgrade?: boolean } = {}): Card {
-  return rollFrom(collection, date, localDayIndex(date) ^ LOST_AND_FOUND_SALT, options.upgrade ?? false);
+export function rollLostAndFound(collection: readonly string[], date: Date, options: { upgrade?: boolean; atLeastUncommon?: boolean } = {}): Card {
+  return rollFrom(collection, date, localDayIndex(date) ^ LOST_AND_FOUND_SALT, options.upgrade ?? false, options.atLeastUncommon ?? false);
 }
 
 /** The second card of a `lostAndFoundExtra` day: its own seed, and never the same card as the first. */
@@ -58,10 +58,12 @@ export function rollLostAndFoundExtra(collection: readonly string[], date: Date,
   return card;
 }
 
-function rollFrom(collection: readonly string[], date: Date, daySeed: number, upgrade: boolean): Card {
+function rollFrom(collection: readonly string[], date: Date, daySeed: number, upgrade: boolean, atLeastUncommon = false): Card {
   const rolled = pickWeighted(RARITY_ORDER, RARITY_ORDER.map((r) => RARITY_WEIGHT[r]), daySeed);
   // lostAndFoundUpgrade (the Booth's omen): one rarity better, a rare staying rare.
-  const rarity = upgrade ? RARITY_ORDER[Math.min(RARITY_ORDER.indexOf(rolled) + 1, RARITY_ORDER.length - 1)]! : rolled;
+  const bumped = upgrade ? RARITY_ORDER[Math.min(RARITY_ORDER.indexOf(rolled) + 1, RARITY_ORDER.length - 1)]! : rolled;
+  // An Advent Cabinet token (src/events/advent.ts): the pull is at least uncommon.
+  const rarity = atLeastUncommon ? RARITY_ORDER[Math.max(RARITY_ORDER.indexOf(bumped), RARITY_ORDER.indexOf("uncommon"))]! : bumped;
 
   const pool = acquirablePoolFor(date).filter((c) => c.rarity === rarity);
   const weights = pool.map((c) => (ownedCount(collection, c.id) >= 2 ? OWNED_CAP_WEIGHT : 1));
