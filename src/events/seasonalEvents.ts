@@ -9,7 +9,7 @@
 // registry and skips one it can't find, so a later step adds content by
 // adding data — this file's shape doesn't change.
 
-import { forEdition, visibleLines, type TaggedLine } from "../edition.ts";
+import { forEdition, visibleLines } from "../edition.ts";
 import type { AdventConfig } from "./advent.ts";
 import { isOnOrAfter, isWithinWindow, type MonthDay } from "./eventClock.ts";
 import { CUNNING_FOLK } from "./packs/cunningFolk.ts";
@@ -27,6 +27,9 @@ export interface EventVisitor {
   /** First day (inclusive) this visitor is in the pub. They stay until the window ends. */
   arrives: MonthDay;
 }
+
+/** A Sir Charles rotation line; `from` holds it back until that day of the year (inclusive). */
+export type SirCharlesLine = string | { text: string; giftOnly?: boolean; from?: MonthDay };
 
 export interface LineOverride {
   opponentId: string;
@@ -92,7 +95,7 @@ export interface SeasonalEvent {
     /** Sir Charles's line while the event is live but `minWins` hasn't been reached. */
     lockedHint: string;
     /** Added to Sir Charles's own line pool while the event is live. */
-    sirCharlesLines: TaggedLine[];
+    sirCharlesLines: SirCharlesLine[];
     lineOverrides: LineOverride[];
     /** Weather drawn over the hub's window area while the event is live (design.md §17.3). */
     weather?: "snow";
@@ -185,7 +188,9 @@ export function eventWeather(date: Date): "snow" | undefined {
 
 /** Sir Charles's extra lines for today; gift-only lines are dropped in a public build. */
 export function eventSirCharlesLines(date: Date): string[] {
-  return activeEvents(date).flatMap((e) => visibleLines(e.dressing.sirCharlesLines));
+  return activeEvents(date).flatMap((e) =>
+    visibleLines(e.dressing.sirCharlesLines.filter((l) => typeof l === "string" || !l.from || isOnOrAfter(date, l.from))),
+  );
 }
 
 /** An event's replacement pickup line for `opponentId`, if one applies today. */

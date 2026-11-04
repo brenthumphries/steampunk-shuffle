@@ -28,10 +28,10 @@ export const almanackScorpio: Card = {
   ],
 };
 
-// Draft text (overview §5.2): "each player draws 1; each player's highest
-// face-up card gets +1". The engine has no per-player draw and no
-// one-per-side target (src/cards/data/README.md, "Known engine-schema
-// gaps"), so this is written for the controller only.
+// Brent's call (Nov 4): the printed text is what the card does, "draw 1; your
+// highest face-up card gets +1". The engine has no per-player draw and no
+// one-per-side target (src/cards/data/README.md, "Known engine-schema gaps"),
+// so the original "each player" draft was dropped rather than approximated.
 export const almanackSagittarius: Card = {
   id: "almanack-sagittarius",
   rarity: "rare",

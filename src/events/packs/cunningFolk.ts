@@ -6,6 +6,9 @@
 
 import type { SeasonalEvent } from "../seasonalEvents.ts";
 
+// Mother Red Cap's arrival is also the day the Almanack Stakes open.
+const RED_CAP_ARRIVES = { month: 11, day: 20 };
+
 export const CUNNING_FOLK = {
   id: "cunning-folk",
   name: "The Cunning Folk",
@@ -15,7 +18,7 @@ export const CUNNING_FOLK = {
     { opponentId: "john-dee", arrives: { month: 11, day: 13 } },
     // Tournament-only (Opponent.tournamentOnly), so she never joins Tonight's
     // Patrons; listed here so the Mudd line can react to her from Nov 20.
-    { opponentId: "mother-red-cap", arrives: { month: 11, day: 20 } },
+    { opponentId: "mother-red-cap", arrives: RED_CAP_ARRIVES },
   ],
   tournaments: ["almanack-stakes"],
   // Lost & Found and Pawnbroker rolls while live. The Penny for the Guy joins
@@ -75,7 +78,7 @@ export const CUNNING_FOLK = {
     sirCharlesLines: [
       "Mrs Shipton says it'll rain. It's November in London. I didn't need a prophetess.",
       "Remember, remember. I do. The cellar was open in 1605, and I've never got the smell out.",
-      "Hiawatha has been on Mother Red Cap's lap all evening. I've decided not to know.",
+      { text: "Hiawatha has been on Mother Red Cap's lap all evening. I've decided not to know.", from: RED_CAP_ARRIVES },
     ],
     lineOverrides: [
       { opponentId: "lovelace", line: "Dr Dee's mathematics is excellent. His angels are another matter.", whenArrived: "john-dee" },
