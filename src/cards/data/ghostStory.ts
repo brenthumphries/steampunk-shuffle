@@ -130,9 +130,9 @@ export const theGhostOfChristmasPresent: Card = {
   ],
 };
 
-// "Each opposing face-up card gets -1": the buff reaches every opposing card
-// on the board, face-down ones included (the engine has no face-up-only
-// buff target, the same approximation as Cunning Woman's hex).
+// "Each opposing face-up card gets -1": one-shot buffs only ever pick from
+// face-up cards (boardCandidates(..., true) in matchEngine.ts), so this works
+// as printed.
 export const theGhostOfChristmasYetToCome: Card = {
   id: "ghost-of-christmas-yet-to-come",
   rarity: "legendary",

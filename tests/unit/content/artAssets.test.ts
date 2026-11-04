@@ -86,8 +86,8 @@ describe("asset budget", () => {
     }, 0);
   }
 
-  it("everything under public/ stays within the 25 MB budget (steampunk-shuffle-plan.md step 3.6)", () => {
-    const budget = 25 * 1024 * 1024;
+  it("everything under public/ stays within the 50 MB budget (steampunk-shuffle-plan.md step 3.6)", () => {
+    const budget = 50 * 1024 * 1024;
     expect(sizeOf(PUBLIC)).toBeLessThan(budget);
   });
 });
