@@ -54,7 +54,7 @@ and three deck-locals (prompt sheet 7 written, images not yet generated).
 
 ## Gotchas
 
-- **TestFlight from CI (S-5b): `.github/workflows/testflight.yml` is manual-only (`workflow_dispatch`, input `upload` default true; false is an archive-and-export dry run).** It runs `npm run cap:sync`, archives scheme `App` on `macos-15` with Xcode 26.0.1 and cloud-managed signing via the App Store Connect API key (secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID`; the .p8 lives in `$RUNNER_TEMP` and is deleted in an `always()` step). It overrides `CURRENT_PROJECT_VERSION` on the command line to 4 + run number rather than editing the pbxproj. Never run, so unverified until the first dispatch.
+- **TestFlight from CI (S-5b): `.github/workflows/testflight.yml` is manual-only (`workflow_dispatch`, input `upload` default true; false is an archive-and-export dry run).** It runs `npm run cap:sync`, archives scheme `App` unsigned (`CODE_SIGNING_ALLOWED=NO`; a signed archive minted an "Apple Development: Created via API" cert per fresh runner until Apple's cap blocked uploads on Nov 3) on `macos-15` with Xcode 26.0.1, then signs at export with cloud-managed distribution via the App Store Connect API key (secrets `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID`; the .p8 lives in `$RUNNER_TEMP` and is deleted in an `always()` step). It overrides `CURRENT_PROJECT_VERSION` on the command line to 4 + run number rather than editing the pbxproj. First real upload: build 9, Nov 3.
 
 - **Privacy and review (2026-10-13, ATT-33/34): the privacy answer is "Data Not Collected", and a test holds it
   up.** `tests/e2e/privacy.spec.ts` fails on any cross-origin or non-GET request, WebSocket, cookie, or
