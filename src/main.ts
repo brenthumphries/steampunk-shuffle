@@ -18,7 +18,7 @@ import { currentIntroEnvironment, introShouldPlay, mountIntroScreen } from "./ui
 import { computeLegality, slotToDeck } from "./decks/deckSlots.ts";
 import { deckCardsById } from "./decks/cardCatalog.ts";
 import { today } from "./events/eventClock.ts";
-import { dueBanner, grantArrivalGifts, markBannerSeen, updateHostsMet, type DueGift } from "./events/arrivals.ts";
+import { dueBanner, giftLine, grantArrivalGifts, markBannerSeen, updateHostsMet, type DueGift } from "./events/arrivals.ts";
 import { ledgerAfterPickup, ledgerAfterTournamentEnd, ledgerAfterTournamentMatch, recordCardAcquired, recordCardPlay, recordChecksEarned, registerLaunch, type Ledger } from "./save/ledger.ts";
 import { loadDeckSlotsState, saveDeckSlotsState, seedStarterDeckIfMissing } from "./decks/deckStorage.ts";
 import { OPPONENTS, OPPONENTS_BY_ID, type Opponent } from "./pub/opponents.ts";
@@ -123,7 +123,8 @@ function describeGift(due: DueGift): string {
     return name ? (c.qty > 1 ? `${c.qty} x ${name}` : name) : null;
   });
   const list = names.filter((n): n is string => n !== null).join(", ");
-  return list ? `${due.gift.line} (${list})` : due.gift.line;
+  const line = giftLine(due);
+  return list ? `${line} (${list})` : line;
 }
 
 /**

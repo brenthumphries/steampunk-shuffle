@@ -125,8 +125,8 @@ function buildActionTile(title: string, subtitle: string, onClick: () => void): 
 const SNOWFLAKES = 22;
 
 /**
- * Light snow over the hub's window area only (design.md §17.3): a fixed strip across the top that
- * never takes a tap. CSS-animated transforms on a capped number of flakes keep an iPhone at 60fps;
+ * Light snow over the hub's window area only (design.md §17.3): a strip across the top of the hub's own
+ * scrolling content (so it scrolls away with the window, never over the patron list) that never takes a tap. CSS-animated transforms on a capped number of flakes keep an iPhone at 60fps;
  * with Reduce Motion the flakes are hidden and a still frost overlay shows instead.
  */
 function buildSnow(): HTMLElement {
@@ -465,8 +465,8 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     secondaryRow.appendChild(saveDataBtn);
     screen.appendChild(secondaryRow);
 
+    if (eventWeather(today()) === "snow") screen.prepend(buildSnow());
     root.appendChild(screen);
-    if (eventWeather(today()) === "snow") root.appendChild(buildSnow());
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
     if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));
