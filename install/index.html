@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a120b" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="%BASE_URL%icons/icon-192.png" />
+    <title>Install · Steampunk Shuffle</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f2e6d0;
+        --ground: #1a120b;
+        --amber: #c8862c;
+        --panel: #251a11;
+        --rule: rgba(242, 230, 208, 0.22);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--ground);
+      }
+      body {
+        margin: 0;
+        padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+        background: var(--ground);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 1.0625rem;
+        line-height: 1.55;
+      }
+      main {
+        max-width: 32rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0.5rem 0 0.25rem;
+        color: var(--amber);
+        font-size: 1.7rem;
+        line-height: 1.15;
+      }
+      h2 {
+        margin: 0 0 0.5rem;
+        color: var(--amber);
+        font-size: 1.15rem;
+      }
+      p {
+        margin: 0.5rem 0;
+      }
+      .sub {
+        opacity: 0.8;
+      }
+      section {
+        margin: 1.5rem 0 0;
+        padding: 1rem 1.1rem;
+        background: var(--panel);
+        border: 1px solid var(--rule);
+        border-radius: 0.6rem;
+      }
+      section[hidden] {
+        display: none;
+      }
+      ol.steps {
+        margin: 0.5rem 0 0;
+        padding-left: 1.4rem;
+      }
+      ol.steps li {
+        margin: 0.5rem 0;
+      }
+      .picture {
+        display: block;
+        width: 100%;
+        max-width: 16rem;
+        height: auto;
+        margin: 0.75rem auto 0;
+      }
+      .install-button {
+        display: block;
+        width: 100%;
+        margin-top: 0.9rem;
+        padding: 0.75rem 1rem;
+        font: inherit;
+        font-weight: 700;
+        color: var(--ground);
+        background: var(--amber);
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+      .install-button[hidden] {
+        display: none;
+      }
+      .status {
+        min-height: 1.5em;
+        margin: 0.5rem 0 0;
+        font-size: 0.95rem;
+      }
+      .qr {
+        text-align: center;
+      }
+      .qr img {
+        display: block;
+        width: 11rem;
+        height: 11rem;
+        margin: 0.5rem auto;
+        border-radius: 0.4rem;
+      }
+      .url {
+        font-size: 0.85rem;
+        word-break: break-all;
+        opacity: 0.8;
+      }
+      a {
+        color: var(--amber);
+      }
+      .play {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.7rem 1.4rem;
+        color: var(--ground);
+        background: var(--amber);
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Keep the Bridge on your home screen</h1>
+      <p class="sub">Steampunk Shuffle opens from your home screen like any other app, and keeps working without a connection once it has loaded.</p>
+
+      <section data-platform="android" hidden>
+        <h2>On Android</h2>
+        <ol class="steps">
+          <li>Open this page in <strong>Chrome</strong>.</li>
+          <li>Tap <strong>Install app</strong>, below or in Chrome's menu (&#8942;).</li>
+        </ol>
+        <button type="button" class="install-button" id="install-button" hidden>Install app</button>
+        <p class="status" id="install-status" role="status"></p>
+      </section>
+
+      <section data-platform="iphone" hidden>
+        <h2>On iPhone</h2>
+        <ol class="steps">
+          <li>Open this page in <strong>Safari</strong>.</li>
+          <li>Tap the <strong>Share</strong> button (the box with an arrow), then <strong>Add to Home Screen</strong>.</li>
+          <li>Tap <strong>Add</strong>. The icon on your home screen is called Wheatstone.</li>
+        </ol>
+      </section>
+
+      <section data-platform="desktop" hidden>
+        <h2>On a computer</h2>
+        <p>Open this page on your phone. Scan the code below with its camera.</p>
+      </section>
+
+      <section data-platform="installed" hidden>
+        <h2>Already on your home screen</h2>
+        <p>You are playing the installed app. Nothing more to do here.</p>
+      </section>
+
+      <section class="qr">
+        <img src="./qr.svg" width="176" height="176" alt="QR code that opens Steampunk Shuffle" />
+        <p class="url">https://brenthumphries.github.io/steampunk-shuffle/</p>
+      </section>
+
+      <p><a class="play" href="../">Play in your browser</a></p>
+    </main>
+    <script type="module" src="../src/install/installPage.ts"></script>
+  </body>
+</html>

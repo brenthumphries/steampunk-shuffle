@@ -43,6 +43,7 @@ import { TUTORIAL_BEFORE_DEAL, TUTORIAL_HOUSE_DECK, TUTORIAL_MATCH_END_MAT, TUTO
 import { HINT_IDS, HINT_TEXT, hasShownHint, isWithinHintWindow, loadTutorialState, markHintShown, markTutorialCompleted, recordMatchPlayed, saveTutorialState, type HintId } from "./tutorial/tutorialState.ts";
 import { playSound, unlockAudio } from "./audio/soundEngine.ts";
 import { dedicationShouldShow, loadPlayerState, markDedicationSeen, savePlayerState, setPlayerName } from "./player/playerState.ts";
+import { captureInstallPrompt, installOfferDue, markInstallOfferShown, requestPersistentStorageOnce, runInstallPrompt } from "./install/installPrompt.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -143,6 +144,7 @@ function runLaunchTasks(): void {
     if (rarity) pub = withLedger(pub, (l) => recordCardAcquired(l, id, rarity, localDateKey(date)));
   }
   pendingNotices.push(...granted.map(describeGift));
+  void requestPersistentStorageOnce();
   // Always saved: a save that predates the ledger was migrated in memory by loadPubState, and its
   // first-launch day (today) must be written down now or it would drift to each later launch's date.
   savePubState(pub);
@@ -188,6 +190,9 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     pendingReveals,
     notices,
     hint,
+    installOffer: installOfferDue()
+      ? { text: "Keep the Bridge on your home screen?", onShown: markInstallOfferShown, onInstall: () => void runInstallPrompt() }
+      : undefined,
   });
 }
 
@@ -642,6 +647,7 @@ function bootGame(): void {
   }
 }
 
+captureInstallPrompt();
 refreshSelectedDeck();
 // The launch intro film (src/ui/introScreen.ts) plays on every launch, ahead of
 // the dedication and everything else; it is skippable and never blocks the boot.

@@ -28,6 +28,18 @@ const sceneBackground = (page: Page): Promise<string> => page.locator(".pub-hub"
 async function expectArtLoaded(page: Page): Promise<void> {
   const broken = await page.evaluate(async () => {
     const bad: string[] = [];
+    // An <img> inserted a moment ago may still be loading; wait for it to settle rather than judging it mid-flight.
+    await Promise.all(
+      [...document.querySelectorAll("img")].map((img) =>
+        img.complete
+          ? undefined
+          : new Promise<void>((resolve) => {
+              img.addEventListener("load", () => resolve(), { once: true });
+              img.addEventListener("error", () => resolve(), { once: true });
+              setTimeout(resolve, 5000);
+            }),
+      ),
+    );
     for (const img of document.querySelectorAll("img")) {
       if (!img.complete || img.naturalWidth === 0) bad.push(img.src);
     }

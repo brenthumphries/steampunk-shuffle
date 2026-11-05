@@ -2404,6 +2404,19 @@ body {
   line-height: 1.35;
 }
 
+.beer-mat-action {
+  flex: none;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ground);
+  background: var(--amber);
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
 .beer-mat-dismiss {
   flex: none;
   font: inherit;

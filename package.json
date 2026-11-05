@@ -16,6 +16,7 @@
     "art-prompts": "tsx tools/artPrompts.ts",
     "ingest-art": "python3 tools/ingest-art.py",
     "store-screenshots": "tsx tools/store-screenshots.ts",
+    "install-qr": "tsx tools/makeInstallQr.ts",
     "build:native": "tsc --noEmit && vite build --mode native",
     "cap:sync": "npm run build:native && cap sync ios"
   },
@@ -23,7 +24,9 @@
     "@capacitor/cli": "^8.5.3",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.2",
+    "@types/qrcode": "1.5.5",
     "jsdom": "^25.0.1",
+    "qrcode": "1.5.4",
     "tsx": "^4.23.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
