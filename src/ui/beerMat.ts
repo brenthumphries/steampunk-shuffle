@@ -11,9 +11,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
-export function buildBeerMat(text: string, onDismiss: () => void): HTMLElement {
+export function buildBeerMat(text: string, onDismiss: () => void, action?: { label: string; onClick: () => void }): HTMLElement {
   const mat = el("div", "beer-mat");
   mat.appendChild(el("p", "beer-mat-text", text));
+  if (action) {
+    const button = el("button", "beer-mat-action", action.label);
+    button.type = "button";
+    button.addEventListener("click", action.onClick);
+    mat.appendChild(button);
+  }
   const dismiss = el("button", "beer-mat-dismiss", "×");
   dismiss.type = "button";
   dismiss.setAttribute("aria-label", "Dismiss");

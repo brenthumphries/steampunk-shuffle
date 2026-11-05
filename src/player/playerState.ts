@@ -17,6 +17,10 @@ const DEFAULT_NAME = "Sara";
 export interface PlayerState {
   name: string;
   dedicationSeen: boolean;
+  /** The one-time "Keep the Bridge on your home screen?" beer mat has been shown (src/install/installPrompt.ts). */
+  installOfferSeen?: boolean;
+  /** navigator.storage.persist() has been asked for, once, after the web app first ran installed. */
+  storageRequested?: boolean;
 }
 
 export function defaultPlayerState(): PlayerState {
@@ -29,7 +33,10 @@ export function loadPlayerState(): PlayerState {
     if (!raw) return defaultPlayerState();
     const parsed = JSON.parse(raw) as Partial<PlayerState>;
     if (typeof parsed.name !== "string" || typeof parsed.dedicationSeen !== "boolean") return defaultPlayerState();
-    return { name: parsed.name, dedicationSeen: parsed.dedicationSeen };
+    const state: PlayerState = { name: parsed.name, dedicationSeen: parsed.dedicationSeen };
+    if (parsed.installOfferSeen === true) state.installOfferSeen = true;
+    if (parsed.storageRequested === true) state.storageRequested = true;
+    return state;
   } catch {
     return defaultPlayerState();
   }
@@ -69,6 +76,14 @@ export function dedicationShouldShow(date: Date, dedicationSeen: boolean): boole
   const holdFrom = DEDICATION_HOLD_FROM.month * 100 + DEDICATION_HOLD_FROM.day;
   const birthday = BIRTHDAY.month * 100 + BIRTHDAY.day;
   return !(today >= holdFrom && today < birthday);
+}
+
+export function markInstallOfferSeen(state: PlayerState): PlayerState {
+  return { ...state, installOfferSeen: true };
+}
+
+export function markStorageRequested(state: PlayerState): PlayerState {
+  return { ...state, storageRequested: true };
 }
 
 /** Falls back to the default name if the edit is left blank (a settings field with no name isn't useful, and the licence has to say *something*). */

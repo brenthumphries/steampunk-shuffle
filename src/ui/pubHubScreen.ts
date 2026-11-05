@@ -54,6 +54,8 @@ export interface PubHubOptions {
    * §4.1). The caller records them as shown; dismissing here only advances the queue.
    */
   notices?: string[];
+  /** The one-time install beer mat (src/install/installPrompt.ts), shown after the notices and the hint. */
+  installOffer?: { text: string; onInstall: () => void; onShown: () => void };
 }
 
 const CARDS_BY_ID = ACQUIRABLE_CARDS_BY_ID;
@@ -151,11 +153,24 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   let stakePrompt: Opponent | undefined;
   let stakeSelection: StakeSelectionState = clearStakeSelection();
   let hintDismissed = false;
+  let installDismissed = false;
+  let installOfferReported = false;
   let noticeQueue: string[] = [...(options.notices ?? [])];
   let torn = false;
 
   function dismissNotice(): void {
     noticeQueue = noticeQueue.slice(1);
+    render();
+  }
+
+  function dismissInstall(): void {
+    installDismissed = true;
+    render();
+  }
+
+  function acceptInstall(): void {
+    installDismissed = true;
+    options.installOffer?.onInstall();
     render();
   }
 
@@ -456,6 +471,13 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
     if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));
     else if (options.hint && !hintDismissed) root.appendChild(buildBeerMat(options.hint.text, dismissHint));
+    else if (options.installOffer && !installDismissed) {
+      if (!installOfferReported) {
+        installOfferReported = true;
+        options.installOffer.onShown();
+      }
+      root.appendChild(buildBeerMat(options.installOffer.text, dismissInstall, { label: "Install app", onClick: acceptInstall }));
+    }
   }
 
   render();

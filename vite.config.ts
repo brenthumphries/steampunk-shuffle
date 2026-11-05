@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
 import { VitePWA } from "vite-plugin-pwa";
 
 // GitHub Pages serves this repo at /steampunk-shuffle/, so every asset
@@ -17,6 +18,18 @@ export default defineConfig(({ mode }) => {
   return {
     base,
     plugins: native ? [] : [pwa(base)],
+    // The install page (install/, monthly plan 14 §3.1) is a Pages-only entry:
+    // the iOS bundle has no use for it and must not ship it.
+    build: native
+      ? undefined
+      : {
+          rollupOptions: {
+            input: {
+              main: fileURLToPath(new URL("./index.html", import.meta.url)),
+              install: fileURLToPath(new URL("./install/index.html", import.meta.url)),
+            },
+          },
+        },
     test: {
       environment: "jsdom",
       include: ["tests/unit/**/*.test.ts"],
