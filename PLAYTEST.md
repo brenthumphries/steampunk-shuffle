@@ -61,42 +61,42 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Seen:** 2026-11-03, N-SHIP playtest (x1)
 - **Repro:** Nov 20-30, hub: Mudd's tile reads "There's a lady with a cat who says she's from Camden. Camden's not m..." The punchline ("...my beat. I've checked.") never shows.
 - **Likely location:** the patron line clamp in `src/ui/pubHubScreen.ts` / `.patron-line` CSS; or shorten the `lineOverrides` text in `src/events/packs/cunningFolk.ts`.
-- **Fixed:** 2026-11-05, HASH. `.patron-line` (`src/style.css`) was clamped to two lines; Mudd's Nov 20 line needs three at 402px. The clamp is gone and the line wraps inside its row (`overflow-wrap: anywhere`). `tests/e2e/cunningFolk.spec.ts` checks every patron line on Nov 20 fits its row with nothing clipped.
+- **Fixed:** 2026-11-05, 014efbb. `.patron-line` (`src/style.css`) was clamped to two lines; Mudd's Nov 20 line needs three at 402px. The clamp is gone and the line wraps inside its row (`overflow-wrap: anywhere`). `tests/e2e/cunningFolk.spec.ts` checks every patron line on Nov 20 fits its row with nothing clipped.
 
 ### PT-45: Text on Almanack and legendary full-art cards is hard to read over the art
 - **Seen:** 2026-11-03, N-SHIP playtest (x1)
 - **Repro:** Deck builder > Neutral > Scorpio zoom; Mother Shipton's first-win reveal. The name, type, ability and italic flavour print straight over the armillary or the window with no backing; the flavour line crosses the gold ring and is close to illegible.
 - **Likely location:** the Almanack frame and full-art card text layer in `src/style.css`
-- **Fixed:** 2026-11-05, HASH. Zoom and reveal cards (`.card--zoom`, which the reveal card shares) now put the name, ability and flavour text on a translucent dark-parchment panel with a text shadow, and the flavour line is full opacity; the art stays visible around the panels. One shared rule in `src/style.css`, so every card gets it. Checked by the Dec 25 reveal assertion in `tests/e2e/ghostStory.spec.ts`.
+- **Fixed:** 2026-11-05, 014efbb. Zoom and reveal cards (`.card--zoom`, which the reveal card shares) now put the name, ability and flavour text on a translucent dark-parchment panel with a text shadow, and the flavour line is full opacity; the art stays visible around the panels. One shared rule in `src/style.css`, so every card gets it. Checked by the Dec 25 reveal assertion in `tests/e2e/ghostStory.spec.ts`.
 - **Foil look (noted with PT-49):** the game's only foil style is the legendary shimmer sweep, so `.reveal-card--foil` (already set by `revealCard.ts`, previously unstyled) now gets the same sweep (still only with no-preference motion).
 
 ### PT-46: The Almanack Stakes show as a Locked row on Nov 19, with the prize spoiled
 - **Seen:** 2026-11-03, N-SHIP playtest (x1)
 - **Repro:** 2026-11-19, 3+ wins, chalkboard: a Locked "The Almanack Stakes" row lists "Win: 150 Checks + Mother Red Cap" and the field, a day before it opens. The runbook's check says "no Almanack Stakes on the chalkboard"; `tests/e2e/cunningFolk.spec.ts` pins the Locked row. Same pattern as the other locked tournaments, so likely intended; the call for Brent is whether the boss/prize should stay a surprise until Nov 20. (Related: the Nov 12 banner says Pixie "has hung a curtain" a day before the Booth tile exists.)
-- **Fixed:** 2026-11-05, HASH. The Almanack Stakes now carry `listWindow` Nov 20-30 like the Fireside Circle, so the chalkboard does not list them (and so shows no prize or field) before Nov 20. Locked rows for win-count locks are unchanged. `tests/unit/tournaments/almanackStakes.test.ts` and the Nov 19 case in `tests/e2e/cunningFolk.spec.ts` now assert the row is absent.
+- **Fixed:** 2026-11-05, 014efbb. The Almanack Stakes now carry `listWindow` Nov 20-30 like the Fireside Circle, so the chalkboard does not list them (and so shows no prize or field) before Nov 20. Locked rows for win-count locks are unchanged. `tests/unit/tournaments/almanackStakes.test.ts` and the Nov 19 case in `tests/e2e/cunningFolk.spec.ts` now assert the row is absent.
 
 ### PT-47: The arrival gifts repeat every year, still described as "belated"
 - **Seen:** 2026-11-03, N-SHIP playtest (x1)
 - **Repro:** Play Nov 2026, then open on 2027-11-04: the same beer mat ("...For the Landlady, belated. Born under the Scorpion...") grants Scorpio, 2 x Hedge Witch and Witch Bottle again (collection now holds duplicates), plus the banner. Probably intended (gifts are keyed by year), but the "belated" wording only fits 2026. Design call: year-one wording or a short repeat line.
 - **Also checked, fine:** 2027-11-04 no Penny for the Guy; 2027-11-05 gifted once, with its line; Sagittarius Nov 22 once; Pixie's card once on the first reading.
-- **Fixed:** 2026-11-05, HASH. Cause: the gift's one `line` was used every year, and it says "belated". `ArrivalGift` gains `repeatLine`/`repeatFromYear` and `lateLine`; `giftLine()` (`src/events/arrivals.ts`) picks the late wording for a grace-period claim, the repeat line for an on-time claim from 2027, else `line`. The Scorpio gift's 2027 on-time line is "Someone left these on the step again..."; a late 2027 claim still says belated. `tests/unit/events/giftLine.test.ts`.
+- **Fixed:** 2026-11-05, 014efbb. Cause: the gift's one `line` was used every year, and it says "belated". `ArrivalGift` gains `repeatLine`/`repeatFromYear` and `lateLine`; `giftLine()` (`src/events/arrivals.ts`) picks the late wording for a grace-period claim, the repeat line for an on-time claim from 2027, else `line`. The Scorpio gift's 2027 on-time line is "Someone left these on the step again..."; a late 2027 claim still says belated. `tests/unit/events/giftLine.test.ts`.
 
 ### PT-48: Snowfall drifts over the whole viewport, across the patron list and buttons
 - **Seen:** 2026-11-04, D-SHIP playtest (x1)
 - **Repro:** `?now=2026-12-01&preview=1`, scroll the hub: flakes fall over the patron cards, text and the Advent Cabinet tile, not just the window area at the top (a dot lands on "Sir Charles", on the Checks badge). The month plan (§5) says "over the hub windows only, never over interactive UI". Reduce Motion is right: static frost, no flakes.
 - **Likely location:** `.hub-snow` positioning in `src/style.css` (fixed to the viewport rather than the header scene).
-- **Fixed:** 2026-11-05, HASH. `.hub-snow` was `position: fixed` over the viewport. It is now the first child of `.pub-hub`, absolute at the top of the hub's scrolling content, 7.5rem high (the window area above the patron list), so it scrolls away with it; `pointer-events: none` and the Reduce Motion frost are unchanged. `tests/e2e/ghostStory.spec.ts` asserts the snow's bottom edge is above the first patron row.
+- **Fixed:** 2026-11-05, 014efbb. `.hub-snow` was `position: fixed` over the viewport. It is now the first child of `.pub-hub`, absolute at the top of the hub's scrolling content, 7.5rem high (the window area above the patron list), so it scrolls away with it; `pointer-events: none` and the Reduce Motion frost are unchanged. `tests/e2e/ghostStory.spec.ts` asserts the snow's bottom edge is above the first patron row.
 
 ### PT-49: Beer mats double the parentheses around a foil card name
 - **Seen:** 2026-11-04, D-SHIP playtest (x1)
 - **Repro:** 2026-12-25, Advent Cabinet, open door 25: the mat reads "...They didn't wrap it. (Bramwell (foil))". The Dec 24 mat is "(50 Checks)", the arrival gifts "(Salt at the Threshold)"; only foil names nest.
 - **Likely location:** the reward suffix in the beer-mat builder (`src/ui/beerMat.ts` / `adventScreen.ts`); drop the inner parentheses or use "Bramwell, foil".
-- **Fixed:** 2026-11-05, HASH. `withContents()` (`src/ui/adventCabinet.ts`) no longer wraps contents that already carry brackets: the mat reads "They didn't wrap it. Bramwell (foil)". Unit test in `tests/unit/events/giftLine.test.ts`; the Dec 25 e2e asserts it.
+- **Fixed:** 2026-11-05, 014efbb. `withContents()` (`src/ui/adventCabinet.ts`) no longer wraps contents that already carry brackets: the mat reads "They didn't wrap it. Bramwell (foil)". Unit test in `tests/unit/events/giftLine.test.ts`; the Dec 25 e2e asserts it.
 
 ### PT-50: A missed Dec 22 Capricorn gift is still handed over on Jan 1, "next month's page"
 - **Seen:** 2026-11-04, D-SHIP playtest (x1)
 - **Repro:** Seed a save that claimed the Dec 1 salt but not Capricorn, open 2027-01-01: the beer mat "Longest night of the year. The almanack-seller came in for the fire and left next month's page. (Capricorn)" appears with the event over. Probably intended (late claim, as in November), but the line reads wrong in January. Compare PT-47.
-- **Fixed:** 2026-11-05, HASH. The 7-day kindness rule is working as designed, but the line ("Longest night of the year... left next month's page") read wrong in January. The Capricorn gift gets a `lateLine` ("...came in for the fire on the longest night, and you'd gone. He left the new year's page on the bar for you."); the on-time Dec 22 line is unchanged. The Sagittarius gift got a matching `lateLine` for a December claim ("left next month's page early" was equally wrong then). Test in `tests/unit/events/giftLine.test.ts`.
+- **Fixed:** 2026-11-05, 014efbb. The 7-day kindness rule is working as designed, but the line ("Longest night of the year... left next month's page") read wrong in January. The Capricorn gift gets a `lateLine` ("...came in for the fire on the longest night, and you'd gone. He left the new year's page on the bar for you."); the on-time Dec 22 line is unchanged. The Sagittarius gift got a matching `lateLine` for a December claim ("left next month's page early" was equally wrong then). Test in `tests/unit/events/giftLine.test.ts`.
 
 ## Known / already flagged (not filed as new)
 
