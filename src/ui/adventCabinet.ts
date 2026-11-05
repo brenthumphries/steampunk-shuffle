@@ -79,6 +79,11 @@ export function describeReward(reward: AdventReward): string {
   return parts.join(" + ");
 }
 
+/** A door's line followed by its contents in brackets; contents that already carry brackets ("Bramwell (foil)") aren't wrapped again (PT-49). */
+export function withContents(line: string, contents: string): string {
+  return contents.includes("(") ? `${line} ${contents}` : `${line} (${contents})`;
+}
+
 /** A short label for a door tile, which is small: tokens and foils get a word, the rest their text. */
 export function shortReward(reward: AdventReward): string {
   if (reward.token === "lostAndFoundUncommon") return "L&F token";

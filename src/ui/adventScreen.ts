@@ -8,7 +8,7 @@ import { claimDoor, doorStatus, liveAdvent, openableCount, type AdventDoor } fro
 import { today } from "../events/eventClock.ts";
 import { loadPubState, savePubState, type PubState } from "../pub/pubState.ts";
 import { playSound } from "../audio/soundEngine.ts";
-import { buildCabinetPicture, describeReward, shortReward } from "./adventCabinet.ts";
+import { buildCabinetPicture, describeReward, shortReward, withContents } from "./adventCabinet.ts";
 import { buildBeerMat } from "./beerMat.ts";
 import { buildRevealOverlay } from "./revealCard.ts";
 
@@ -42,7 +42,7 @@ export function mountAdventScreen(root: HTMLElement, options: AdventScreenOption
     savePubState(pub);
     reveals = claim.cardIds;
     const contents = describeReward(claim.door.reward);
-    line = claim.door.line ? `${claim.door.line} (${contents})` : contents;
+    line = claim.door.line ? withContents(claim.door.line, contents) : contents;
     swinging = day;
     playSound("brassHit");
     render();

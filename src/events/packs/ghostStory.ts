@@ -64,6 +64,7 @@ export const GHOST_STORY = {
       cardIds: [{ id: "almanack-capricorn", qty: 1 }],
       from: { month: 12, day: 22 },
       line: "Longest night of the year. The almanack-seller came in for the fire and left next month's page.",
+      lateLine: "The almanack-seller came in for the fire on the longest night, and you'd gone. He left the new year's page on the bar for you.",
     },
   ],
   almanackIds: ["almanack-capricorn"],

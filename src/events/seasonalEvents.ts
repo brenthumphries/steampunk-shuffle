@@ -70,7 +70,13 @@ export interface ArrivalGift {
   cardIds: GiftCard[];
   from?: MonthDay;
   fromYear?: number;
+  /** The beer-mat text for a gift handed over on its day. */
   line: string;
+  /** On-time wording from `repeatFromYear` on, for a line that only fits the first year (PT-47). */
+  repeatLine?: string;
+  repeatFromYear?: number;
+  /** Wording for a late claim (the grace period after the window closes) when `line` reads as on-time (PT-47, PT-50). */
+  lateLine?: string;
   giftOnly?: boolean;
 }
 

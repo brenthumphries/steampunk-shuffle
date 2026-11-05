@@ -54,10 +54,22 @@ test.describe("the Cunning Folk: November", () => {
     await expect(row).toContainText("The Petrifying Well");
   });
 
-  test("Nov 19: the Almanack Stakes are still locked", async ({ page }) => {
+  test("Nov 20-30: Mudd's long line shows whole, inside its row (PT-44)", async ({ page }) => {
+    await openHubOn(page, "2026-11-20", 3);
+    const line = page.locator(".patron-line", { hasText: "I've checked." });
+    await expect(line).toBeVisible();
+    const lines = page.locator(".patron-line");
+    for (let i = 0; i < (await lines.count()); i++) {
+      const fits = await lines.nth(i).evaluate((n) => n.scrollHeight <= n.clientHeight + 1 && n.getBoundingClientRect().right <= (n.closest(".patron-row") as HTMLElement).getBoundingClientRect().right);
+      expect(fits, `patron line ${i}`).toBe(true);
+    }
+  });
+
+  test("Nov 19: the Almanack Stakes are not on the chalkboard at all (PT-46)", async ({ page }) => {
     await openHubOn(page, "2026-11-19", 3);
     await page.getByRole("button", { name: "The chalkboard" }).click();
-    const row = page.locator(".tournament-row").filter({ hasText: "The Almanack Stakes" });
-    await expect(row.getByRole("button", { name: "Locked" })).toBeVisible();
+    await expect(page.locator(".tournament-row").first()).toBeVisible();
+    await expect(page.locator(".tournament-row").filter({ hasText: "The Almanack Stakes" })).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText("Mother Red Cap");
   });
 });
