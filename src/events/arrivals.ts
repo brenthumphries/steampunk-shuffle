@@ -79,6 +79,16 @@ export interface DueGift {
   year: number;
   key: string;
   gift: ArrivalGift;
+  /** Claimed in the grace period after the window closed. */
+  late: boolean;
+}
+
+/** The beer-mat line for a due gift: a late claim uses `lateLine`, a later year's on-time claim `repeatLine`, else `line` (PT-47, PT-50). */
+export function giftLine(due: Pick<DueGift, "gift" | "year" | "late">): string {
+  const { gift } = due;
+  if (due.late) return gift.lateLine ?? gift.line;
+  if (gift.repeatLine !== undefined && gift.repeatFromYear !== undefined && due.year >= gift.repeatFromYear) return gift.repeatLine;
+  return gift.line;
 }
 
 function giftKey(gift: ArrivalGift, index: number): string {
@@ -119,7 +129,7 @@ export function dueGifts(pub: Pick<PubState, "giftsClaimed">, date: Date, events
           const giftDayN = Math.max(startN, gift.from ? dayNumber(year, gift.from) : startN);
           if (todayN < giftDayN) return;
         }
-        due.push({ eventId: event.id, year, key, gift });
+        due.push({ eventId: event.id, year, key, gift, late: inGrace });
       });
     }
   }

@@ -50,8 +50,9 @@ describe("unlock window (Nov 20 - Nov 30, 3+ wins)", () => {
     expect(stakes.isUnlocked(3, false, day(11, 25))).toBe(true);
   });
 
-  it("is listed for the whole Cunning Folk window and not after it", () => {
-    expect(isTournamentListed(stakes, false, day(11, 19), false)).toBe(true);
+  it("is listed from Nov 20 (not Nov 19: a Locked row would spoil the prize, PT-46) and not after Nov 30", () => {
+    expect(isTournamentListed(stakes, false, day(11, 19), false)).toBe(false);
+    expect(isTournamentListed(stakes, false, day(11, 20), false)).toBe(true);
     expect(isTournamentListed(stakes, false, day(12, 1), false)).toBe(false);
     expect(isTournamentListed(stakes, false, day(12, 1), true)).toBe(true);
   });

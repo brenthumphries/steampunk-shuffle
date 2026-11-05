@@ -215,6 +215,8 @@ const ALL_TOURNAMENTS: Tournament[] = [
     id: "almanack-stakes",
     name: "The Almanack Stakes",
     eventId: CUNNING_FOLK.id,
+    // Not listed before Nov 20: a Locked row would spoil Mother Red Cap's prize (PT-46).
+    listWindow: { start: STAKES_START, end: STAKES_END },
     whenLabel: "Nov 20 – Nov 30, after 3 wins",
     fieldLabel: "Mother Shipton, Dr John Dee, Mother Red Cap + 4 Seasoned",
     entryRuleLabel: "At least 2 Coven cards",

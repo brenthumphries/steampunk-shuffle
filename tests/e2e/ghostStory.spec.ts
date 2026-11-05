@@ -36,6 +36,14 @@ test("Dec 3: the cabinet and snow are up; doors 1-3 open, door 4 stays shut", as
   await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
   await expect(page.locator(".hub-snowflake").first()).toBeVisible();
 
+  // PT-48: the snow sits in the hub's window area, above the patron list, and takes no taps.
+  const snow = page.locator(".hub-snow");
+  await expect(snow).toHaveCSS("pointer-events", "none");
+  const snowBox = (await snow.boundingBox())!;
+  const firstRow = (await page.locator(".patron-row").first().boundingBox())!;
+  expect(snowBox.y + snowBox.height).toBeLessThanOrEqual(firstRow.y);
+  await expect(page.locator(".pub-hub > .hub-snow")).toHaveCount(1);
+
   await page.locator(".hub-advent").click();
   await expect(page.getByRole("heading", { name: "The Advent Cabinet" })).toBeVisible();
   for (const door of [1, 2, 3]) await expect(page.locator(`.advent-door[data-door="${door}"]`)).toBeEnabled();
@@ -50,8 +58,14 @@ test("Dec 25: door 25 opens with the foil of Bramwell and its beer mat", async (
   await expect(page.locator('.advent-door[data-door="25"]')).toBeEnabled();
   await page.locator('.advent-door[data-door="25"]').click();
   // The foil is a card, so its unwrap comes first; the beer mat follows the Collect.
+  // PT-45: the reveal's text sits on a backing panel, and a foil shimmers (it used to look like any card).
+  await expect(page.locator(".reveal-card .card-name")).toContainText("(foil)");
+  expect(await page.locator(".reveal-card .card-name").evaluate((n) => getComputedStyle(n).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+  expect(await page.locator(".reveal-card--foil").evaluate((n) => getComputedStyle(n, "::after").content)).not.toBe("none");
   await page.getByRole("button", { name: "Collect", exact: true }).click();
-  await expect(page.locator(".beer-mat-text")).toContainText("They didn't wrap it.");
+  // PT-49: no nested brackets around the foil name.
+  await expect(page.locator(".beer-mat-text")).toContainText("They didn't wrap it. Bramwell (foil)");
+  await expect(page.locator(".beer-mat-text")).not.toContainText("(Bramwell (foil))");
   await page.locator(".beer-mat-dismiss").click();
   await expect(page.locator('.advent-door[data-door="25"]')).toBeDisabled();
 });

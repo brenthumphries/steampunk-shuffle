@@ -47,6 +47,8 @@ export const CUNNING_FOLK = {
       ],
       from: { month: 11, day: 1 },
       line: "Someone left these on the step. The note says: 'For the Landlady, belated. Born under the Scorpion: we can tell.'",
+      repeatLine: "Someone left these on the step again. The note says: 'For the Landlady. Born under the Scorpion: we can tell.'",
+      repeatFromYear: 2027,
     },
     {
       id: "cunning-woman",
@@ -66,6 +68,7 @@ export const CUNNING_FOLK = {
       cardIds: [{ id: "almanack-sagittarius", qty: 1 }],
       from: { month: 11, day: 22 },
       line: "The almanack-seller's been. He left next month's page early. He always does.",
+      lateLine: "The almanack-seller came by while you were out. He left the page for you and said he always does.",
     },
   ],
   almanackIds: ["almanack-scorpio", "almanack-sagittarius"],
