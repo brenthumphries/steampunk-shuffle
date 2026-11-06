@@ -4,7 +4,9 @@
 // SaveFile already folds every existing store into the exported blob, so
 // src/save/saveFile.ts also grows this one.
 
-const STORAGE_KEY = "steampunk-shuffle:tutorial-state";
+import { storageKey } from "../save/storageKey.ts";
+
+const KEY_NAME = "tutorial-state";
 
 /** design.md §13.3's four hint chips, each dismissible once, ever. */
 export const HINT_IDS = ["location", "elusive", "return", "headline", "hub"] as const;
@@ -68,7 +70,7 @@ function isValidHint(value: unknown): value is HintId {
 
 export function loadTutorialState(): TutorialState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return defaultTutorialState();
     const parsed = JSON.parse(raw) as Partial<TutorialState>;
     if (typeof parsed.completed !== "boolean" || typeof parsed.matchesPlayed !== "number" || !Array.isArray(parsed.shownHints) || !parsed.shownHints.every(isValidHint)) {
@@ -82,7 +84,7 @@ export function loadTutorialState(): TutorialState {
 
 export function saveTutorialState(state: TutorialState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(state));
   } catch {
     // Safari private mode / storage quota — same tradeoff as pubState.ts.
   }

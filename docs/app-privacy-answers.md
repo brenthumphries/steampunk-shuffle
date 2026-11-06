@@ -79,6 +79,14 @@ Nothing in either build uses `XMLHttpRequest`, `sendBeacon`, `WebSocket` or `Eve
 
 `steampunk-shuffle:` + `active-match`, `audio-muted`, `deck-slots`, `player`, `pub-state`, `tournament-state`, `tutorial-state`.
 
+Release 1.1 (multiple ledgers, `docs/design.md` §12.5) adds three key shapes, all on the device only, and the test accepts exactly these and nothing looser:
+
+- `ws:ledgers`: the registry. Each ledger's id, name, created and last-played times, and a summary (title, wins, cards collected). Also the date of the one-time move of the old save and two flags.
+- `ws:backup:v1`: the "cellar copy", a full copy of the pre-1.1 save, written once when an existing save is moved onto the shelf.
+- `ws:<ledger id>:<name>`, where `<ledger id>` is a random UUID and `<name>` is one of `active-match`, `deck-slots`, `player`, `pub-state`, `tournament-state`, `tutorial-state`: the same six per-game stores as above, one set per ledger. (`audio-muted` stays a single device-wide key.)
+
+For 30 days after the move the original `steampunk-shuffle:*` keys also remain (the first list above), then the game deletes the six per-game ones. Nothing here is sent anywhere; the iPhone app mirrors the same keys into its own settings storage exactly as before.
+
 It ran on Chromium (WebKit could not be installed in the session that wrote it; CI runs it on WebKit and Firefox too).
 
 ## When this stops being true

@@ -12,10 +12,18 @@ async function openHubOn(page: Page, date: string, totalWins: number, checks = 1
   await page.goto(START);
   await page.evaluate(
     ({ wins, checks: c }) => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
       localStorage.clear();
-      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] }, "ghost-story": { "2026": ["salt-on-the-step", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026], "ghost-story": [2026] } }));
+      localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
+      localStorage.setItem(L("pub-state"), JSON.stringify({ checks: c, totalWins: wins, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] }, "ghost-story": { "2026": ["salt-on-the-step", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026], "ghost-story": [2026] } }));
     },
     { wins: totalWins, checks },
   );

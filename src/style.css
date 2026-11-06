@@ -3096,3 +3096,87 @@ body {
     display: block;
   }
 }
+
+/* ---------------------------------------------------------------------
+   The Ledger Shelf (design.md §12.5): one leather-bound book per save.
+--------------------------------------------------------------------- */
+
+.ledger-books {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ledger-book {
+  background: linear-gradient(135deg, #3a2414, #26170d);
+  border: 1px solid #5a3a20;
+  border-left: 0.5rem solid #7a4a22;
+  border-radius: 0.4rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.ledger-book--active {
+  border-color: var(--amber);
+  border-left-color: var(--amber);
+}
+
+.ledger-book-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.ledger-book-name {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.ledger-book-mark {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ledger-book-title,
+.ledger-book-stats,
+.ledger-book-played {
+  margin: 0.15rem 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.ledger-book-warning {
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--amber);
+}
+
+.ledger-book-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ledger-name-input {
+  flex: 1 1 8rem;
+  min-width: 0;
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid #5a3a20;
+  background: #1a110a;
+  color: inherit;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.save-screen-cellar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}

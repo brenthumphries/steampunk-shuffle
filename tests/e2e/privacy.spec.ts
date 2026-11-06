@@ -9,15 +9,14 @@ import { leaveTable, noonOn, openWithSave, playMatchToEnd, START } from "./helpe
 // the privacy page lists. If this ever fails, the privacy page and the App
 // Privacy answers are wrong until someone looks at why.
 
-const DOCUMENTED_KEYS = [
-  "steampunk-shuffle:active-match",
-  "steampunk-shuffle:audio-muted",
-  "steampunk-shuffle:deck-slots",
-  "steampunk-shuffle:player",
-  "steampunk-shuffle:pub-state",
-  "steampunk-shuffle:tournament-state",
-  "steampunk-shuffle:tutorial-state",
-];
+// Device-wide keys, then the per-ledger shape `ws:<uuid>:<name>` (release 1.1,
+// design.md §12.5). A fresh install makes no pre-1.1 `steampunk-shuffle:*`
+// per-game key at all; those exist only on a device that held an old save, for 30 days
+// (public/privacy.html), and the migration test in ledgers.spec.ts covers that path.
+const DOCUMENTED_GLOBAL_KEYS = ["steampunk-shuffle:audio-muted", "ws:ledgers", "ws:backup:v1"];
+const LEDGER_STORES = ["active-match", "deck-slots", "player", "pub-state", "tournament-state", "tutorial-state"];
+const LEDGER_KEY = new RegExp(`^ws:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:(${LEDGER_STORES.join("|")})$`);
+const isDocumentedKey = (key: string): boolean => DOCUMENTED_GLOBAL_KEYS.includes(key) || LEDGER_KEY.test(key);
 
 test.describe.configure({ timeout: 240_000 });
 
@@ -62,7 +61,8 @@ test("a session through every screen sends nothing off the device and stores onl
   await page.getByRole("button", { name: /Play Constable Tobias Mudd/ }).click();
   await playMatchToEnd(page, { seed: 3, stopAfterTaps: 6 });
   await page.reload();
-  await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  // Six autopilot taps can end round 1; the point is that the match resumed after the reload.
+  await expect(page.getByText(/Round [12] of 3/)).toBeVisible();
 
   const offDevice = requests.filter((entry) => !entry.split(" ")[1]!.startsWith(origin) && !entry.split(" ")[1]!.startsWith("data:") && !entry.split(" ")[1]!.startsWith("blob:"));
   expect(offDevice, "requests to any other origin").toEqual([]);
@@ -77,8 +77,9 @@ test("a session through every screen sends nothing off the device and stores onl
   }));
   expect(stored.cookie, "cookies").toBe("");
   expect(stored.session, "sessionStorage keys").toEqual([]);
-  expect(stored.keys.filter((key) => !DOCUMENTED_KEYS.includes(key)), "localStorage keys the privacy page does not list").toEqual([]);
-  expect(stored.keys, "the game does save its progress").toContain("steampunk-shuffle:pub-state");
+  expect(stored.keys.filter((key) => !isDocumentedKey(key)), "localStorage keys the privacy page does not list").toEqual([]);
+  expect(stored.keys.some((key) => key.endsWith(":pub-state") && LEDGER_KEY.test(key)), "the game does save its progress").toBe(true);
+  expect(stored.keys, "and keeps its ledger registry").toContain("ws:ledgers");
   void START;
 });
 

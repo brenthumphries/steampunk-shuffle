@@ -16,8 +16,9 @@ import type { Deck } from "../cards/cardTypes.ts";
 import type { MatchState, PlayerState } from "../engine/matchEngine.ts";
 import { isValidTournamentId } from "../tournaments/tournamentState.ts";
 import type { TournamentId } from "../tournaments/tournaments.ts";
+import { storageKey } from "./storageKey.ts";
 
-const STORAGE_KEY = "steampunk-shuffle:active-match";
+const KEY_NAME = "active-match";
 
 export type MatchContext =
   | { kind: "pickup"; opponentId: string; stakedCardId: string | null }
@@ -82,7 +83,7 @@ function isPlausibleContext(value: unknown): value is MatchContext {
 /** Reads the saved in-progress match, or null if there isn't one or the saved data doesn't parse. */
 export function loadActiveMatch(): ActiveMatchSave | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<ActiveMatchSave>;
     if (
@@ -108,7 +109,7 @@ export function loadActiveMatch(): ActiveMatchSave | null {
 
 export function saveActiveMatch(save: ActiveMatchSave): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(save));
   } catch {
     // Safari private mode / storage quota — same tradeoff as pubState.ts;
     // worst case a killed app just can't resume this particular match.
@@ -117,7 +118,7 @@ export function saveActiveMatch(save: ActiveMatchSave): void {
 
 export function clearActiveMatch(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKey(KEY_NAME));
   } catch {
     // ignore — same tradeoff as above.
   }

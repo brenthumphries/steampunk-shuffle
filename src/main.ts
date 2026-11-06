@@ -11,6 +11,8 @@ import { mountTournamentsScreen } from "./ui/tournamentsScreen.ts";
 import { mountBracketScreen, type BracketOutcome } from "./ui/bracketScreen.ts";
 import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { mountSaveScreen } from "./ui/saveScreen.ts";
+import { mountLedgerShelfScreen } from "./ui/ledgerShelfScreen.ts";
+import { takeCellarNotice } from "./save/ledgers.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
@@ -144,6 +146,8 @@ function runLaunchTasks(): void {
     const rarity = ACQUIRABLE_CARDS_BY_ID.get(id)?.rarity;
     if (rarity) pub = withLedger(pub, (l) => recordCardAcquired(l, id, rarity, localDateKey(date)));
   }
+  const cellarNotice = takeCellarNotice();
+  if (cellarNotice) pendingNotices.push(cellarNotice);
   pendingNotices.push(...granted.map(describeGift));
   void requestPersistentStorageOnce();
   // Always saved: a save that predates the ledger was migrated in memory by loadPubState, and its
@@ -185,6 +189,7 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
     onOpenTournaments: showTournaments,
     onOpenBackRoom: showBackRoom,
     onOpenSaveData: showSaveScreen,
+    onOpenLedgers: showLedgerShelf,
     onOpenHouseRules: showHouseRules,
     onOpenBooth: hostMet(pubNow, PIXIE_HOST_ID) ? showBooth : undefined,
     onOpenAdvent: liveAdvent(date) ? showAdvent : undefined,
@@ -229,7 +234,14 @@ function showSaveScreen(): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
-  teardownScreen = mountSaveScreen(app!, { onBack: () => showPubHub() });
+  teardownScreen = mountSaveScreen(app!, { onBack: () => showPubHub(), onOpenLedgers: showLedgerShelf, onRestored: () => window.location.reload() });
+}
+
+function showLedgerShelf(): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountLedgerShelfScreen(app!, { onBack: () => showPubHub(), onReload: () => window.location.reload() });
 }
 
 function showHouseRules(): void {

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { hydrateStorage, mirrorWrites, type PreferencesLike } from "../../../src/native/storageMirror.ts";
+import { hydrateStorage, isMirroredKey, mirrorWrites, type PreferencesLike } from "../../../src/native/storageMirror.ts";
+import { createLedger, initLedgers, loadRegistry, switchLedger } from "../../../src/save/ledgers.ts";
+import { savePubState, loadPubState, defaultPubState } from "../../../src/pub/pubState.ts";
 
 function fakePrefs(initial: Record<string, string> = {}): PreferencesLike & { data: Map<string, string> } {
   const data = new Map(Object.entries(initial));
@@ -87,5 +89,53 @@ describe("native storage mirror (plan step 4.2)", () => {
     await flush();
     expect(localStorage.getItem("steampunk-shuffle:pub")).toBe("x");
     uninstall();
+  });
+
+  describe("ledger keys (release 1.1)", () => {
+    const ID = "0b8f6b1e-3c1c-4c8e-9a43-2f7d0f2a1b11";
+
+    it("mirrors the registry, the cellar backup and namespaced per-game keys, and not other keys", () => {
+      expect(isMirroredKey("ws:ledgers")).toBe(true);
+      expect(isMirroredKey("ws:backup:v1")).toBe(true);
+      expect(isMirroredKey(`ws:${ID}:pub-state`)).toBe(true);
+      expect(isMirroredKey("steampunk-shuffle:pub-state")).toBe(true);
+      expect(isMirroredKey("capacitor:something")).toBe(false);
+    });
+
+    it("hydrates a wiped localStorage from Preferences, then the app reads the same ledger", async () => {
+      const prefs = fakePrefs();
+      const uninstall = mirrorWrites(prefs);
+      initLedgers();
+      const mum = createLedger("Mum").id!;
+      savePubState({ ...defaultPubState(), totalWins: 4, checks: 12 });
+      switchLedger(mum);
+      savePubState({ ...defaultPubState(), totalWins: 1 });
+      await flush();
+      uninstall();
+      const registryBefore = localStorage.getItem("ws:ledgers");
+      expect(prefs.data.has("ws:ledgers")).toBe(true);
+      expect([...prefs.data.keys()].filter((k) => k.endsWith(":pub-state"))).toHaveLength(2);
+
+      localStorage.clear(); // iOS clears WKWebView storage under pressure
+      await hydrateStorage(prefs);
+
+      expect(localStorage.getItem("ws:ledgers")).toBe(registryBefore);
+      expect(loadRegistry()!.activeId).toBe(mum);
+      expect(loadPubState().totalWins).toBe(1);
+      switchLedger(loadRegistry()!.ledgers.find((l) => l.id !== mum)!.id);
+      expect(loadPubState().totalWins).toBe(4);
+    });
+
+    it("mirrors a ledger's deletion and the 30-day cleanup of the old keys as removals", async () => {
+      const prefs = fakePrefs({ "steampunk-shuffle:pub-state": "old", [`ws:${ID}:pub-state`]: "new" });
+      const uninstall = mirrorWrites(prefs);
+      localStorage.setItem("steampunk-shuffle:pub-state", "old");
+      localStorage.setItem(`ws:${ID}:pub-state`, "new");
+      localStorage.removeItem("steampunk-shuffle:pub-state");
+      localStorage.removeItem(`ws:${ID}:pub-state`);
+      await flush();
+      uninstall();
+      expect(prefs.data.size).toBe(0);
+    });
   });
 });

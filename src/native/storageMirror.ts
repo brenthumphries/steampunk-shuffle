@@ -1,9 +1,18 @@
 // The iOS app keeps its save in WKWebView localStorage, which iOS can clear
-// under storage pressure. This mirrors every steampunk-shuffle:* key into
-// Capacitor Preferences (native UserDefaults) so a cleared localStorage is
-// restored on the next launch. Only ever installed in the native build.
+// under storage pressure. This mirrors every game key into Capacitor
+// Preferences (native UserDefaults) so a cleared localStorage is restored on
+// the next launch: the pre-1.1 `steampunk-shuffle:*` keys (still kept for the
+// cellar window), and the ledger keys `ws:*` (the registry `ws:ledgers`, the
+// cellar backup `ws:backup:v1`, and every ledger's `ws:<id>:<name>`).
+// Only ever installed in the native build.
 
 export const STORAGE_PREFIX = "steampunk-shuffle:";
+export const LEDGER_PREFIX = "ws:";
+export const MIRRORED_PREFIXES: readonly string[] = [STORAGE_PREFIX, LEDGER_PREFIX];
+
+export function isMirroredKey(key: string): boolean {
+  return MIRRORED_PREFIXES.some((prefix) => key.startsWith(prefix));
+}
 
 export interface PreferencesLike {
   keys(): Promise<{ keys: string[] }>;
@@ -16,7 +25,7 @@ function ownKeys(storage: Storage): string[] {
   const keys: string[] = [];
   for (let i = 0; i < storage.length; i += 1) {
     const key = storage.key(i);
-    if (key?.startsWith(STORAGE_PREFIX)) keys.push(key);
+    if (key && isMirroredKey(key)) keys.push(key);
   }
   return keys;
 }
@@ -28,7 +37,7 @@ function ownKeys(storage: Storage): string[] {
  * localStorage wins, since it is the copy the app has been writing to.
  */
 export async function hydrateStorage(prefs: PreferencesLike, storage: Storage = localStorage): Promise<void> {
-  const stored = (await prefs.keys()).keys.filter((key) => key.startsWith(STORAGE_PREFIX));
+  const stored = (await prefs.keys()).keys.filter(isMirroredKey);
   for (const key of stored) {
     if (storage.getItem(key) !== null) continue;
     const { value } = await prefs.get({ key });
@@ -51,11 +60,11 @@ export function mirrorWrites(prefs: PreferencesLike, storage: Storage = localSto
 
   proto.setItem = function (this: Storage, key: string, value: string): void {
     setItem.call(this, key, value);
-    if (this === storage && key.startsWith(STORAGE_PREFIX)) quiet(prefs.set({ key, value: String(value) }));
+    if (this === storage && isMirroredKey(key)) quiet(prefs.set({ key, value: String(value) }));
   };
   proto.removeItem = function (this: Storage, key: string): void {
     removeItem.call(this, key);
-    if (this === storage && key.startsWith(STORAGE_PREFIX)) quiet(prefs.remove({ key }));
+    if (this === storage && isMirroredKey(key)) quiet(prefs.remove({ key }));
   };
   proto.clear = function (this: Storage): void {
     const doomed = this === storage ? ownKeys(this) : [];

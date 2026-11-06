@@ -42,7 +42,17 @@ test.describe("dedication screen (plan step 3.5, design.md §14.1)", () => {
   });
 
   test("a returning player (dedication already seen) skips straight to the tutorial", async ({ page }) => {
-    await page.evaluate(() => localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true })));
+    await page.evaluate(() => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
+    });
     await page.reload();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
     await expect(page.getByText("Licensed to")).toHaveCount(0);
@@ -53,11 +63,19 @@ test.describe("tutorial (plan step 2.7, design.md §13)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
       localStorage.clear();
       // The dedication screen (design.md §14.1, plan step 3.5) is covered by
       // its own describe block above — seed it already seen so these tests
       // still land straight in the tutorial.
-      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
   });

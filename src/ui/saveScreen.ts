@@ -7,9 +7,14 @@
 // as the other screens.
 
 import { applySaveFile, buildSaveFile } from "../save/saveFile.ts";
+import { cellarCopyAvailable, restoreCellarCopy } from "../save/ledgers.ts";
+import { exportSaveFile, saveFileName } from "./saveExport.ts";
 
 export interface SaveScreenOptions {
   onBack: () => void;
+  onOpenLedgers: () => void;
+  /** After "Restore the cellar copy" has put the old save back: the app reloads into it. */
+  onRestored: () => void;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -19,45 +24,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
-function fileNameFor(now: Date): string {
-  return `steampunk-shuffle-save-${now.toISOString().slice(0, 10)}.json`;
-}
-
-type ShareNavigator = Navigator & {
-  canShare?: (data: { files?: File[] }) => boolean;
-  share?: (data: { files?: File[]; title?: string }) => Promise<void>;
-};
-
 /** Mounts the save/data screen into `root` and returns a teardown function. */
 export function mountSaveScreen(root: HTMLElement, options: SaveScreenOptions): () => void {
   let status: string | null = null;
   let torn = false;
+  let confirmingRestore = false;
 
   async function handleExport(): Promise<void> {
-    const file = buildSaveFile();
-    const name = fileNameFor(new Date());
-    const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
-
-    const shareFile = new File([blob], name, { type: "application/json" });
-    const nav = navigator as ShareNavigator;
-    if (nav.share && nav.canShare?.({ files: [shareFile] })) {
-      try {
-        await nav.share({ files: [shareFile], title: "Steampunk Shuffle save" });
-        status = "Shared.";
-        render();
-        return;
-      } catch {
-        // Cancelled, or the share sheet failed mid-flight — fall through to a download.
-      }
-    }
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    link.click();
-    URL.revokeObjectURL(url);
-    status = `Downloaded ${name}.`;
+    const now = new Date();
+    status = (await exportSaveFile(buildSaveFile(now), saveFileName(now))).status;
     render();
   }
 
@@ -117,6 +92,45 @@ export function mountSaveScreen(root: HTMLElement, options: SaveScreenOptions): 
     actions.appendChild(importLabel);
 
     screen.appendChild(actions);
+
+    const shelfBtn = el("button", "action-button action-button--secondary", "The Ledger Shelf");
+    shelfBtn.type = "button";
+    shelfBtn.addEventListener("click", options.onOpenLedgers);
+    screen.appendChild(shelfBtn);
+
+    if (cellarCopyAvailable()) {
+      const cellar = el("div", "save-screen-cellar");
+      cellar.appendChild(el("p", "save-screen-copy", "There is a copy of your save from before the ledgers were put on a shelf, kept in the cellar for 30 days. Restoring it puts that copy back and replaces what you have played since."));
+      const restoreBtn = el("button", "action-button action-button--secondary", "Restore the cellar copy");
+      restoreBtn.type = "button";
+      restoreBtn.addEventListener("click", () => {
+        confirmingRestore = true;
+        render();
+      });
+      if (!confirmingRestore) cellar.appendChild(restoreBtn);
+      else {
+        cellar.appendChild(el("p", "save-screen-status", "Anything played since the move is replaced. Restore it?"));
+        const yes = el("button", "action-button", "Yes, restore it");
+        yes.type = "button";
+        yes.addEventListener("click", () => {
+          const result = restoreCellarCopy();
+          if (result.ok) options.onRestored();
+          else {
+            status = result.error;
+            confirmingRestore = false;
+            render();
+          }
+        });
+        const no = el("button", "action-button action-button--secondary", "Leave it");
+        no.type = "button";
+        no.addEventListener("click", () => {
+          confirmingRestore = false;
+          render();
+        });
+        cellar.append(yes, no);
+      }
+      screen.appendChild(cellar);
+    }
 
     if (status) screen.appendChild(el("p", "save-screen-status", status));
 

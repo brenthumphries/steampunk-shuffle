@@ -15,9 +15,17 @@ test.describe("tournaments (plan step 2.4)", () => {
     await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
       localStorage.clear();
-      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+      localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
   });
@@ -58,7 +66,15 @@ test.describe("tournaments (plan step 2.4)", () => {
     await expect(knockoutRow.getByText(/Need 20 Checks/)).toBeVisible();
 
     await page.evaluate(() => {
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"), JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
     });
     await page.reload();
     await page.getByRole("button", { name: "The chalkboard" }).click();
@@ -68,7 +84,15 @@ test.describe("tournaments (plan step 2.4)", () => {
 
   test("entering a tournament creates a resumable 3-stage bracket and starts the first match", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"), JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
     });
     await page.reload();
 
@@ -103,7 +127,15 @@ test.describe("tournaments (plan step 2.4)", () => {
 
     // Faking the clock (design.md's exit check) by writing the triggered flag directly, same as seeding pub-state above for Checks/wins.
     await page.evaluate(() => {
-      localStorage.setItem("steampunk-shuffle:tournament-state", JSON.stringify({ invitationalTriggered: true, active: null }));
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("tournament-state"), JSON.stringify({ invitationalTriggered: true, active: null }));
     });
     await page.reload();
     await page.getByRole("button", { name: "The chalkboard" }).click();

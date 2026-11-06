@@ -75,12 +75,9 @@ test("plays out against Spring-Heeled Jack, seated in The All Hallows' Wake", as
   await page.getByRole("button", { name: "The chalkboard" }).click();
   await page.locator(".tournament-row").filter({ hasText: "The All Hallows' Wake" }).getByRole("button", { name: /Enter/ }).click();
   // Seat Jack in the quarterfinal: the bracket draws him at random otherwise.
-  await page.evaluate(() => {
-    const key = "steampunk-shuffle:tournament-state";
-    const state = JSON.parse(localStorage.getItem(key)!);
-    state.active.playerMatches[0].opponentId = "spring-heeled-jack";
-    localStorage.setItem(key, JSON.stringify(state));
-  });
+  const state = (await readKey<{ active: { playerMatches: { opponentId: string }[] } }>(page, "tournament-state"))!;
+  state.active.playerMatches[0]!.opponentId = "spring-heeled-jack";
+  await writeKey(page, "tournament-state", state);
   await page.reload();
   await page.getByRole("button", { name: "The chalkboard" }).click();
   await page.getByRole("button", { name: "Resume" }).click();

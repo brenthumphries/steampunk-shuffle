@@ -7,8 +7,9 @@
 
 import type { Card, Deck } from "../cards/cardTypes.ts";
 import { computeLegality, createEmptySlots, DECK_SLOT_COUNT, loadDeckInto, renameSlot, slotTotalCards, type DeckSlot, type DeckSlotEntry } from "./deckSlots.ts";
+import { storageKey } from "../save/storageKey.ts";
 
-const STORAGE_KEY = "steampunk-shuffle:deck-slots";
+const KEY_NAME = "deck-slots";
 
 export interface DeckSlotsState {
   slots: DeckSlot[];
@@ -31,7 +32,7 @@ function isSlot(value: unknown): value is DeckSlot {
 /** Reads the saved deck slots, falling back to 13 empty slots if nothing is saved or the saved data doesn't parse (a different app version, manual tampering, etc.) rather than crashing the builder. */
 export function loadDeckSlotsState(): DeckSlotsState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as Partial<DeckSlotsState>;
     if (!Array.isArray(parsed.slots) || parsed.slots.length !== DECK_SLOT_COUNT || !parsed.slots.every(isSlot)) {
@@ -67,7 +68,7 @@ export function seedStarterDeckIfMissing(state: DeckSlotsState, starter: Deck, c
 
 export function saveDeckSlotsState(state: DeckSlotsState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(state));
   } catch {
     // Safari private mode / storage quota — the builder still works for the
     // rest of the session, it just won't persist across reloads.

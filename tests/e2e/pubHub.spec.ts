@@ -14,9 +14,17 @@ test.describe("pub hub (plan step 2.3)", () => {
     await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
       localStorage.clear();
-      localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+      localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
   });
@@ -39,7 +47,15 @@ test.describe("pub hub (plan step 2.3)", () => {
 
   test("Seasoned and Legend opponents appear once win thresholds are met", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 10, opponents: {}, collection: [], lastDailyBonusDate: null }));
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"), JSON.stringify({ checks: 0, totalWins: 10, opponents: {}, collection: [], lastDailyBonusDate: null }));
     });
     await page.reload();
 
@@ -58,8 +74,15 @@ test.describe("pub hub (plan step 2.3)", () => {
   // offered once there's something in the collection to stake.
   test("PT-21: an eligible patron shows an opt-in Bar Bet chip naming what's on offer, not an automatic prompt", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem(
-        "steampunk-shuffle:pub-state",
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"),
         JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
       );
     });
@@ -80,8 +103,15 @@ test.describe("pub hub (plan step 2.3)", () => {
 
   test("PT-21: tapping a patron row directly starts the match, without interposing a Bar Bet prompt", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem(
-        "steampunk-shuffle:pub-state",
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"),
         JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
       );
     });
@@ -97,8 +127,15 @@ test.describe("pub hub (plan step 2.3)", () => {
   // detail) → a separate confirm action.
   test("cluster A: staking a card requires selecting it for preview, then a separate confirm", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem(
-        "steampunk-shuffle:pub-state",
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"),
         JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
       );
     });
@@ -129,8 +166,15 @@ test.describe("pub hub (plan step 2.3)", () => {
 
   test("cluster A: canceling the stake prompt returns to the hub with no bet placed", async ({ page }) => {
     await page.evaluate(() => {
-      localStorage.setItem(
-        "steampunk-shuffle:pub-state",
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
+      localStorage.setItem(L("pub-state"),
         JSON.stringify({ checks: 0, totalWins: 3, opponents: {}, collection: ["charlotte"], lastDailyBonusDate: null, lastLostAndFoundDate: null, pawnedCards: [] }),
       );
     });
@@ -156,9 +200,17 @@ test("PT-43: the mute toggle sits inside the 402px viewport", async ({ page }) =
   await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
   await page.goto("/steampunk-shuffle/");
   await page.evaluate(() => {
+    const L = (n: string): string => {
+      let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+      if (!r) {
+        r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+        localStorage.setItem("ws:ledgers", JSON.stringify(r));
+      }
+      return `ws:${r.activeId}:${n}`;
+    };
     localStorage.clear();
-    localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-    localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+    localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+    localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
   });
   await page.reload();
   const toggle = page.locator(".pub-hub-header .mute-toggle");

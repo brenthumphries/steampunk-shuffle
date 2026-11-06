@@ -45,11 +45,18 @@ test.describe("match screen: choosing a face-down card to turn face-up (PT-35)",
     const matchState = buildMatchState();
     await page.evaluate(
       ({ matchState }) => {
+        const L = (n: string): string => {
+          let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+          if (!r) {
+            r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+            localStorage.setItem("ws:ledgers", JSON.stringify(r));
+          }
+          return `ws:${r.activeId}:${n}`;
+        };
         localStorage.clear();
-        localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-        localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-        localStorage.setItem(
-          "steampunk-shuffle:active-match",
+        localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+        localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
+        localStorage.setItem(L("active-match"),
           JSON.stringify({
             matchState,
             aiSeed: 1,

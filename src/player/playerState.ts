@@ -11,7 +11,9 @@
 // final") — that gift message never changes regardless of what the player
 // later renames herself to here.
 
-const STORAGE_KEY = "steampunk-shuffle:player";
+import { storageKey } from "../save/storageKey.ts";
+
+const KEY_NAME = "player";
 const DEFAULT_NAME = "Sara";
 
 export interface PlayerState {
@@ -29,7 +31,7 @@ export function defaultPlayerState(): PlayerState {
 
 export function loadPlayerState(): PlayerState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return defaultPlayerState();
     const parsed = JSON.parse(raw) as Partial<PlayerState>;
     if (typeof parsed.name !== "string" || typeof parsed.dedicationSeen !== "boolean") return defaultPlayerState();
@@ -44,7 +46,7 @@ export function loadPlayerState(): PlayerState {
 
 export function savePlayerState(state: PlayerState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(state));
   } catch {
     // Safari private mode / storage quota — the name/flag just won't persist across reloads this session.
   }

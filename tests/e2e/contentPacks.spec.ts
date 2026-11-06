@@ -11,10 +11,18 @@ const BANNER = "Test pack banner: new this month.";
 async function seedReturningPlayer(page: import("@playwright/test").Page): Promise<void> {
   await page.goto(START);
   await page.evaluate(() => {
+    const L = (n: string): string => {
+      let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+      if (!r) {
+        r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+        localStorage.setItem("ws:ledgers", JSON.stringify(r));
+      }
+      return `ws:${r.activeId}:${n}`;
+    };
     localStorage.clear();
-    localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 5, shownHints: ["hub"] }));
-    localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-    localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 0, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
+    localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 5, shownHints: ["hub"] }));
+    localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
+    localStorage.setItem(L("pub-state"), JSON.stringify({ checks: 0, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null, giftsClaimed: { "cunning-folk": { "2026": ["left-on-the-step", "cunning-woman", "almanack-seller"] } }, bannersSeen: { "cunning-folk": [2026] } }));
   });
 }
 
