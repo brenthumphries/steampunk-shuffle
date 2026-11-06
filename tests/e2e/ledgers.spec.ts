@@ -17,6 +17,8 @@ async function playScriptedTutorialCard(page: Page): Promise<void> {
 
 /** Stands in for finishing the tutorial, which is far too long to play here: marks it done and reloads into the hub. */
 async function finishTutorial(page: Page, pub: Record<string, unknown>): Promise<void> {
+  // "Start ledger" reloads the app; write only once the new ledger's tutorial is up.
+  await expect(page.getByText("Round 1 of 3")).toBeVisible();
   await writeKey(page, "tutorial-state", { completed: true, matchesPlayed: 0, shownHints: [] });
   await writeKey(page, "pub-state", pub);
   await page.reload();
