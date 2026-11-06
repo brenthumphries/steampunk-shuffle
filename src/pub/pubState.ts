@@ -11,8 +11,9 @@ import { defaultAdventState, parseAdventState, type AdventState } from "../event
 import { defaultBoothState, parseBoothState, type BoothState } from "../booth/boothState.ts";
 import { defaultLedger, parseLedger, type Ledger } from "../save/ledger.ts";
 import type { OpponentTier } from "./opponents.ts";
+import { storageKey } from "../save/storageKey.ts";
 
-const STORAGE_KEY = "steampunk-shuffle:pub-state";
+const KEY_NAME = "pub-state";
 
 const SEASONED_WIN_CHECKS = 15;
 
@@ -294,7 +295,7 @@ function isOpponentRecord(value: unknown): value is OpponentRecord {
 /** Reads the saved pub state, falling back to the default if nothing is saved or the saved data doesn't parse. */
 export function loadPubState(): PubState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return defaultPubState();
     const parsed = JSON.parse(raw) as Partial<PubState>;
     if (
@@ -334,7 +335,7 @@ export function loadPubState(): PubState {
 
 export function savePubState(state: PubState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(state));
   } catch {
     // Safari private mode / storage quota — same tradeoff as deckStorage.ts.
   }

@@ -40,6 +40,8 @@ export interface PubHubOptions {
   onOpenTournaments: () => void;
   onOpenBackRoom: () => void;
   onOpenSaveData: () => void;
+  /** Opens the Ledger Shelf (design.md §12.5). */
+  onOpenLedgers?: () => void;
   onOpenHouseRules: () => void;
   /** Set once the Booth host has arrived (hostMet); absent before that, and the hub shows nothing of the Booth. */
   onOpenBooth?: () => void;
@@ -463,6 +465,12 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     saveDataBtn.type = "button";
     saveDataBtn.addEventListener("click", options.onOpenSaveData);
     secondaryRow.appendChild(saveDataBtn);
+    if (options.onOpenLedgers) {
+      const ledgersBtn = el("button", "taproom-button taproom-button--tertiary", "Ledgers");
+      ledgersBtn.type = "button";
+      ledgersBtn.addEventListener("click", options.onOpenLedgers);
+      secondaryRow.appendChild(ledgersBtn);
+    }
     screen.appendChild(secondaryRow);
 
     if (eventWeather(today()) === "snow") screen.prepend(buildSnow());

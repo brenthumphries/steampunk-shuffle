@@ -7,8 +7,9 @@
 
 import type { TournamentBracket } from "./bracket.ts";
 import type { TournamentId } from "./tournaments.ts";
+import { storageKey } from "../save/storageKey.ts";
 
-const STORAGE_KEY = "steampunk-shuffle:tournament-state";
+const KEY_NAME = "tournament-state";
 
 /** design.md §14.6: the Birthday Invitational unlocks on October 30 (`Date#getMonth()` is zero-based, so October is 9). */
 const INVITATIONAL_TRIGGER_MONTH_INDEX = 9;
@@ -76,7 +77,7 @@ function isValidBracket(value: unknown): value is TournamentBracket {
 /** Reads the saved tournament state, falling back to the default if nothing is saved or the saved data doesn't parse. */
 export function loadTournamentState(): TournamentState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(KEY_NAME));
     if (!raw) return defaultTournamentState();
     const parsed = JSON.parse(raw) as Partial<TournamentState>;
     if (typeof parsed.invitationalTriggered !== "boolean") return defaultTournamentState();
@@ -89,7 +90,7 @@ export function loadTournamentState(): TournamentState {
 
 export function saveTournamentState(state: TournamentState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(KEY_NAME), JSON.stringify(state));
   } catch {
     // Safari private mode / storage quota — same tradeoff as pubState.ts.
   }

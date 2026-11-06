@@ -205,9 +205,13 @@ async function openSeeded(browser: Browser, size: (typeof SIZES)[number], seed: 
   const page = await context.newPage();
   await page.clock.setFixedTime(SHOT_DATE);
   await page.goto(`${ORIGIN}/`);
+  // Seeded straight into a ledger (design.md §12.5), not as a pre-1.1 save, so the migration's beer mat never reaches a shot.
   await page.evaluate((entries) => {
     localStorage.clear();
-    for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, JSON.stringify(value));
+    const id = "00000000-0000-4000-8000-000000000001";
+    const now = new Date().toISOString();
+    localStorage.setItem("ws:ledgers", JSON.stringify({ activeId: id, ledgers: [{ id, name: "Player", createdAt: now, lastPlayedAt: now, summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] }));
+    for (const [key, value] of Object.entries(entries)) localStorage.setItem(key.replace("steampunk-shuffle:", `ws:${id}:`), JSON.stringify(value));
   }, seed);
   await page.goto(`${ORIGIN}/`);
   return page;

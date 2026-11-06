@@ -85,26 +85,55 @@ export interface SeedOptions {
   dedicationSeen?: boolean;
   name?: string;
   pub?: Record<string, unknown>;
+  /**
+   * Seed the keys the pre-1.1 build wrote (`steampunk-shuffle:*`) instead of a ledger, so the
+   * app's first launch migrates them and shows the cellar beer mat (ledgers.spec.ts).
+   */
+  legacy?: boolean;
 }
+
+/** The ledger every seeded save lives in. */
+export const E2E_LEDGER_ID = "0e2e0000-0000-4000-8000-000000000001";
 
 /** Opens the app, replaces the save with `seed`, and reloads into it. Pass `{}` for a brand-new install. */
 export async function openWithSave(page: Page, seed: SeedOptions | null, url: string = START): Promise<void> {
   await page.goto(url);
-  await page.evaluate((s) => {
-    localStorage.clear();
-    if (!s) return;
-    if (s.tutorialDone) localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-    localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: s.name ?? "Sara", dedicationSeen: s.dedicationSeen ?? true }));
-    if (s.pub) localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify(s.pub));
-  }, seed);
+  await page.evaluate(
+    ({ s, id }) => {
+      localStorage.clear();
+      if (!s) return;
+      if (!s.legacy) {
+        const now = "2026-11-06T00:00:00.000Z";
+        localStorage.setItem("ws:ledgers", JSON.stringify({ activeId: id, ledgers: [{ id, name: s.name ?? "Sara", createdAt: now, lastPlayedAt: now, summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] }));
+      }
+      const key = (name: string): string => (s.legacy ? `steampunk-shuffle:${name}` : `ws:${id}:${name}`);
+      if (s.tutorialDone) localStorage.setItem(key("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+      localStorage.setItem(key("player"), JSON.stringify({ name: s.name ?? "Sara", dedicationSeen: s.dedicationSeen ?? true }));
+      if (s.pub) localStorage.setItem(key("pub-state"), JSON.stringify(s.pub));
+    },
+    { s: seed, id: E2E_LEDGER_ID },
+  );
   await page.goto(url);
 }
 
+/**
+ * Source of an in-page function `ledgerKey(name)`: the active ledger's key for a
+ * per-game store (`ws:<activeId>:<name>`, design.md §12.5). Interpolate it into a
+ * `page.evaluate` string; a function passed to evaluate cannot close over it.
+ */
+export const LEDGER_KEY_SOURCE = `(name) => {
+  const registry = JSON.parse(localStorage.getItem("ws:ledgers") || "null");
+  return registry ? "ws:" + registry.activeId + ":" + name : "steampunk-shuffle:" + name;
+}`;
+
+/** Writes a per-game store of the ACTIVE ledger (the app is already past its first launch, so a registry exists). */
+export async function writeKey(page: Page, key: string, value: unknown): Promise<void> {
+  await page.evaluate(`(() => { const k = (${LEDGER_KEY_SOURCE})(${JSON.stringify(key)}); localStorage.setItem(k, ${JSON.stringify(JSON.stringify(value))}); })()`);
+}
+
 export async function readKey<T = unknown>(page: Page, key: string): Promise<T | null> {
-  return page.evaluate((k) => {
-    const raw = localStorage.getItem(`steampunk-shuffle:${k}`);
-    return raw === null ? null : (JSON.parse(raw) as unknown);
-  }, key) as Promise<T | null>;
+  const raw = (await page.evaluate(`(() => localStorage.getItem((${LEDGER_KEY_SOURCE})(${JSON.stringify(key)})))()`)) as string | null;
+  return raw === null ? null : (JSON.parse(raw) as T);
 }
 
 export interface PubStateSnapshot {
@@ -341,10 +370,7 @@ export async function resumeFinishedTournamentMatch(page: Page, winner: "A" | "B
   const slot = bracket.playerMatches.find((m) => m.outcome === "pending");
   if (!slot) throw new Error("bracket has no pending match");
   const matchState = finishedMatch(slot.opponentId, winner);
-  await page.evaluate(
-    ({ save }) => localStorage.setItem("steampunk-shuffle:active-match", JSON.stringify(save)),
-    { save: { matchState, aiSeed: 1, humanDeck: starterDeck, humanDeckName: "The Village Constable", context: { kind: "tournament", tournamentId: bracket.tournamentId } } },
-  );
+  await writeKey(page, "active-match", { matchState, aiSeed: 1, humanDeck: starterDeck, humanDeckName: "The Village Constable", context: { kind: "tournament", tournamentId: bracket.tournamentId } });
   await page.reload();
   return slot.opponentId;
 }

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { QUIET_PRE_BIRTHDAY } from "./helpers/game";
+import { QUIET_PRE_BIRTHDAY, readKey } from "./helpers/game";
 
 // PT-33: a player had no way to exit a match in progress except finishing
 // it. Adds a "Leave Game" button while a match is in progress — omitted
@@ -30,8 +30,16 @@ test.describe("Leave Game (PT-33)", () => {
   test("the tutorial's match never offers a Leave Game button", async ({ page }) => {
     await page.goto("/steampunk-shuffle/");
     await page.evaluate(() => {
+      const L = (n: string): string => {
+        let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+        if (!r) {
+          r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+          localStorage.setItem("ws:ledgers", JSON.stringify(r));
+        }
+        return `ws:${r.activeId}:${n}`;
+      };
       localStorage.clear();
-      localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+      localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
     });
     await page.reload();
     await expect(page.getByText("Round 1 of 3")).toBeVisible();
@@ -43,9 +51,17 @@ test.describe("Leave Game (PT-33)", () => {
       await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
       await page.goto("/steampunk-shuffle/");
       await page.evaluate(() => {
+        const L = (n: string): string => {
+          let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+          if (!r) {
+            r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+            localStorage.setItem("ws:ledgers", JSON.stringify(r));
+          }
+          return `ws:${r.activeId}:${n}`;
+        };
         localStorage.clear();
-        localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-        localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+        localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+        localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
       });
       await page.reload();
       await page.getByRole("button", { name: "Play Constable Tobias Mudd" }).click();
@@ -72,9 +88,9 @@ test.describe("Leave Game (PT-33)", () => {
       // match that was left, not finished.
       await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
 
-      const pubState = await page.evaluate(() => JSON.parse(localStorage.getItem("steampunk-shuffle:pub-state") ?? "{}"));
-      expect(pubState.opponents.mudd.losses).toBe(1);
-      expect(pubState.opponents.mudd.wins ?? 0).toBe(0);
+      const pubState = (await readKey<{ opponents: Record<string, { losses: number; wins?: number }>; totalWins: number; checks: number }>(page, "pub-state"))!;
+      expect(pubState.opponents.mudd!.losses).toBe(1);
+      expect(pubState.opponents.mudd!.wins ?? 0).toBe(0);
       expect(pubState.totalWins).toBe(0);
       // LOSE_CHECKS (2) + the first-game-of-day bonus (5) — same payout a
       // real loss would pay (src/pub/pubState.ts's recordPickupResult).
@@ -92,10 +108,18 @@ test.describe("Leave Game (PT-33)", () => {
       await page.clock.setFixedTime(QUIET_PRE_BIRTHDAY);
       await page.goto("/steampunk-shuffle/");
       await page.evaluate(() => {
+        const L = (n: string): string => {
+          let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
+          if (!r) {
+            r = { activeId: "0e2e0000-0000-4000-8000-000000000001", ledgers: [{ id: "0e2e0000-0000-4000-8000-000000000001", name: "Sara", createdAt: "2026-11-06T00:00:00.000Z", lastPlayedAt: "2026-11-06T00:00:00.000Z", summary: { title: "Newcomer", wins: 0, collectionCount: 0 } }] };
+            localStorage.setItem("ws:ledgers", JSON.stringify(r));
+          }
+          return `ws:${r.activeId}:${n}`;
+        };
         localStorage.clear();
-        localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
-        localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
-        localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
+        localStorage.setItem(L("tutorial-state"), JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+        localStorage.setItem(L("player"), JSON.stringify({ name: "Sara", dedicationSeen: true }));
+        localStorage.setItem(L("pub-state"), JSON.stringify({ checks: 100, totalWins: 0, opponents: {}, collection: [], lastDailyBonusDate: null }));
       });
       await page.reload();
       await page.getByRole("button", { name: "The chalkboard" }).click();
@@ -118,7 +142,7 @@ test.describe("Leave Game (PT-33)", () => {
       await expect(page.getByText("Out of The Tuesday Knockout")).toBeVisible();
       await expect(page.getByText(/Consolation: \d+ Checks\./)).toBeVisible();
 
-      const tournamentState = await page.evaluate(() => JSON.parse(localStorage.getItem("steampunk-shuffle:tournament-state") ?? "{}"));
+      const tournamentState = (await readKey<{ active: unknown }>(page, "tournament-state"))!;
       expect(tournamentState.active).toBeNull();
     });
   });
