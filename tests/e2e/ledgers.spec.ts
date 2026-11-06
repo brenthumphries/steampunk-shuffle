@@ -76,6 +76,41 @@ test.describe("the Ledger Shelf", () => {
     await expect(page.locator(".checks-badge-value")).toHaveText("40");
   });
 
+  test("a tutorial can be left for the shelf when there are two ledgers, and resumes when the ledger is reopened", async ({ page }) => {
+    // One ledger only: no way out of the tutorial.
+    await openWithSave(page, {});
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ledger Shelf" })).toHaveCount(0);
+    await finishTutorial(page, PUB);
+
+    // A second ledger by mistake: leave its tutorial, go back to Sara.
+    await openShelf(page);
+    await page.getByRole("button", { name: "New ledger" }).click();
+    await page.getByLabel("Name for the new ledger").fill("Mum");
+    await page.getByRole("button", { name: "Start ledger" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await page.getByRole("button", { name: "Ledger Shelf" }).click();
+    await page.getByRole("button", { name: "Go to the shelf" }).click();
+    await expect(page.getByRole("heading", { name: "The Ledger Shelf" })).toBeVisible();
+    expect((await readKey<{ completed: boolean }>(page, "tutorial-state"))?.completed ?? false).toBe(false);
+    await page.locator(".ledger-book", { hasText: "Sara" }).getByRole("button", { name: "Switch" }).click();
+    await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+
+    // Back to Mum: her tutorial deals again.
+    await openShelf(page);
+    await page.locator(".ledger-book", { hasText: "Mum" }).getByRole("button", { name: "Switch" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+
+    // Cancel on the confirm keeps the tutorial; Back from the shelf returns to it.
+    await page.getByRole("button", { name: "Ledger Shelf" }).click();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+    await page.getByRole("button", { name: "Ledger Shelf" }).click();
+    await page.getByRole("button", { name: "Go to the shelf" }).click();
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  });
+
   test("deleting a ledger needs its name typed and saves a backup file first", async ({ page }) => {
     await openWithSave(page, { tutorialDone: true, pub: PUB });
     await openShelf(page);
