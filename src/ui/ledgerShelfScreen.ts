@@ -113,6 +113,12 @@ export function mountLedgerShelfScreen(root: HTMLElement, options: LedgerShelfOp
   async function doDelete(entry: LedgerEntry): Promise<void> {
     const file = exportLedger(entry.id);
     const exported = await exportSaveFile(file, saveFileName(new Date(), entry.name));
+    if (!exported.completed) {
+      // Cancelled or failed: nothing is deleted, and the confirm stays open to try again.
+      status = `${exported.status} ${entry.name} is still on the shelf.`;
+      render();
+      return;
+    }
     const result = deleteLedger(entry.id, { backedUp: true });
     deletingId = null;
     if (!result.ok) status = result.error;

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../src/ui/saveExport.ts", () => ({
   saveFileName: () => "backup.json",
-  exportSaveFile: vi.fn(async () => ({ status: "Downloaded backup.json." })),
+  exportSaveFile: vi.fn(async () => ({ status: "Downloaded backup.json.", completed: true })),
 }));
 
 import { exportSaveFile } from "../../../src/ui/saveExport.ts";
@@ -63,6 +63,22 @@ describe("the Ledger Shelf screen", () => {
     await flush();
     expect(exportSaveFile).toHaveBeenCalledTimes(1);
     expect(loadRegistry()!.ledgers.map((l) => l.id)).not.toContain(mum);
+  });
+
+  it("a cancelled or failed backup deletes nothing and says so", async () => {
+    const mum = createLedger("Mum").id!;
+    vi.mocked(exportSaveFile).mockResolvedValueOnce({ status: "The backup was not saved.", completed: false });
+    const root = document.createElement("div");
+    mountLedgerShelfScreen(root, { onBack: () => {}, onReload: () => {} });
+    const book = () => root.querySelector(`[data-ledger-id="${mum}"]`)!;
+    click(root, "Delete", book());
+    const input = book().querySelector<HTMLInputElement>("input")!;
+    input.value = "Mum";
+    input.dispatchEvent(new Event("input"));
+    book().querySelector<HTMLButtonElement>(".ledger-delete-confirm")!.click();
+    await flush();
+    expect(loadRegistry()!.ledgers.map((l) => l.id)).toContain(mum);
+    expect(root.textContent).toContain("The backup was not saved. Mum is still on the shelf.");
   });
 
   it("the New ledger button is disabled when the shelf is full", () => {

@@ -12,7 +12,7 @@ import { mountBracketScreen, type BracketOutcome } from "./ui/bracketScreen.ts";
 import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { mountSaveScreen } from "./ui/saveScreen.ts";
 import { mountLedgerShelfScreen } from "./ui/ledgerShelfScreen.ts";
-import { takeCellarNotice } from "./save/ledgers.ts";
+import { loadRegistry, takeCellarNotice } from "./save/ledgers.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
@@ -241,7 +241,7 @@ function showLedgerShelf(): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
-  teardownScreen = mountLedgerShelfScreen(app!, { onBack: () => showPubHub(), onReload: () => window.location.reload() });
+  teardownScreen = mountLedgerShelfScreen(app!, { onBack: () => (loadTutorialState().completed ? showPubHub() : startTutorial()), onReload: () => window.location.reload() });
 }
 
 function showHouseRules(): void {
@@ -426,6 +426,8 @@ function startTutorial(): void {
       matchEndMat: TUTORIAL_MATCH_END_MAT,
     },
     onExit: finishTutorial,
+    // Only worth offering when there is another ledger to go to (design.md §12.5).
+    leaveToShelf: (loadRegistry()?.ledgers.length ?? 0) > 1 ? showLedgerShelf : undefined,
   });
 }
 

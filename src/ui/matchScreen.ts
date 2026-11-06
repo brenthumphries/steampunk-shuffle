@@ -129,6 +129,13 @@ export interface MatchScreenOptions {
    * loss, so no separate "player left" payout path was needed.
    */
   leaveGame?: { matchKind: "pickup" | "tournament" };
+  /**
+   * design.md §12.5: a tutorial match on a device with more than one ledger
+   * offers a way out to the Ledger Shelf. Unlike `leaveGame` this is not a
+   * concession: it never calls `onExit`, so the tutorial is not marked done and
+   * that ledger deals it afresh next time it is opened.
+   */
+  leaveToShelf?: () => void;
 }
 
 type Phase =
@@ -1179,7 +1186,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
 
   /** PT-33: opens the confirm dialog rather than leaving directly — see leaveConfirmOpen's own comment. */
   function buildLeaveGameButton(): HTMLElement {
-    const btn = el("button", "leave-game-button", "Leave Game");
+    const btn = el("button", "leave-game-button", options.leaveToShelf ? "Ledger Shelf" : "Leave Game");
     btn.type = "button";
     btn.addEventListener("click", () => {
       leaveConfirmOpen = true;
@@ -1199,9 +1206,10 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   function buildLeaveConfirmOverlay(): HTMLElement {
     const overlay = el("div", "overlay overlay--leave-confirm");
     const box = el("div", "overlay-box");
-    box.appendChild(el("h2", "overlay-title", "Leave the game?"));
-    const consequence =
-      options.leaveGame!.matchKind === "tournament"
+    box.appendChild(el("h2", "overlay-title", options.leaveToShelf ? "Back to the shelf?" : "Leave the game?"));
+    const consequence = options.leaveToShelf
+      ? "This ledger's tutorial starts again from the top when you come back to it."
+      : options.leaveGame!.matchKind === "tournament"
         ? "Leaving now counts as a loss and eliminates you from this tournament."
         : "Leaving now pays out the same as a loss.";
     box.appendChild(el("p", "overlay-score", consequence));
@@ -1213,10 +1221,11 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
       render();
     });
     buttons.appendChild(cancelBtn);
-    const leaveBtn = el("button", "action-button", "Leave anyway");
+    const leaveBtn = el("button", "action-button", options.leaveToShelf ? "Go to the shelf" : "Leave anyway");
     leaveBtn.type = "button";
     leaveBtn.addEventListener("click", () => {
-      options.onExit({ winner: otherPlayer(HUMAN), reason: "conceded" });
+      if (options.leaveToShelf) options.leaveToShelf();
+      else options.onExit({ winner: otherPlayer(HUMAN), reason: "conceded" });
     });
     buttons.appendChild(leaveBtn);
     box.appendChild(buttons);
@@ -1307,7 +1316,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     );
     topbarLabels.appendChild(el("span", "match-rounds-won", `You ${state.roundsWon.A} – ${state.roundsWon.B} ${options.aiName}`));
     topbar.appendChild(topbarLabels);
-    if (options.leaveGame && state.status === "in-progress") topbar.appendChild(buildLeaveGameButton());
+    if ((options.leaveGame || options.leaveToShelf) && state.status === "in-progress") topbar.appendChild(buildLeaveGameButton());
     topbar.appendChild(buildMuteToggle());
     screen.appendChild(topbar);
 
