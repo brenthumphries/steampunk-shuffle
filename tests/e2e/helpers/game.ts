@@ -98,6 +98,9 @@ export const E2E_LEDGER_ID = "0e2e0000-0000-4000-8000-000000000001";
 /** Opens the app, replaces the save with `seed`, and reloads into it. Pass `{}` for a brand-new install. */
 export async function openWithSave(page: Page, seed: SeedOptions | null, url: string = START): Promise<void> {
   await page.goto(url);
+  // boot.ts loads main.ts (and its CSS) after the load event; navigating away mid-preload makes
+  // Firefox report "Unable to preload CSS" as a page error. Wait until the app has mounted.
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate(
     ({ s, id }) => {
       localStorage.clear();

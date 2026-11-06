@@ -61,7 +61,8 @@ test("a session through every screen sends nothing off the device and stores onl
   await page.getByRole("button", { name: /Play Constable Tobias Mudd/ }).click();
   await playMatchToEnd(page, { seed: 3, stopAfterTaps: 6 });
   await page.reload();
-  await expect(page.getByText("Round 1 of 3")).toBeVisible();
+  // Six autopilot taps can end round 1; the point is that the match resumed after the reload.
+  await expect(page.getByText(/Round [12] of 3/)).toBeVisible();
 
   const offDevice = requests.filter((entry) => !entry.split(" ")[1]!.startsWith(origin) && !entry.split(" ")[1]!.startsWith("data:") && !entry.split(" ")[1]!.startsWith("blob:"));
   expect(offDevice, "requests to any other origin").toEqual([]);
