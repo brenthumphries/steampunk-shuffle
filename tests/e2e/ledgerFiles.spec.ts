@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { dismissHubHint, noonOn, openWithSave, readKey, SEASONS_SEEN, START } from "./helpers/game";
+import { dismissHubHint, noonOn, openWithSave, playMatchToEnd, readKey, SEASONS_SEEN, START } from "./helpers/game";
 
 // Release 1.1 (plan 14 §2.2): send a ledger as a .wheatstone file and receive it
 // on a "fresh install", through the real screens. On the web with no file
@@ -93,5 +93,22 @@ test.describe("ledger files", () => {
     await page.evaluate((text) => window.wheatstoneReceiveLedger?.(text), sent.text);
     await expect(page.getByRole("heading", { name: "Receive a ledger" })).toBeVisible();
     await expect(page.getByText("already on the shelf")).toBeVisible();
+  });
+
+  test("a file arriving mid-match: Back returns to the same match", async ({ page }) => {
+    await openWithSave(page, { tutorialDone: true, pub: PUB });
+    await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+    await openSaveScreen(page);
+    const sent = await sendLedger(page);
+    await page.getByRole("button", { name: "Back to the taproom" }).click();
+    await page.getByRole("button", { name: /Play Constable Tobias Mudd/ }).click();
+    await playMatchToEnd(page, { seed: 3, stopAfterTaps: 4 });
+    const before = await readKey(page, "active-match");
+    expect(before).not.toBeNull();
+    await page.evaluate((text) => window.wheatstoneReceiveLedger?.(text), sent.text);
+    await expect(page.getByRole("heading", { name: "Receive a ledger" })).toBeVisible();
+    await page.getByRole("button", { name: "Back" }).first().click();
+    await expect(page.getByText(/Round [123] of 3/)).toBeVisible();
+    expect(await readKey(page, "active-match")).toEqual(before);
   });
 });

@@ -245,7 +245,11 @@ function showReceiveLedger(text: string): void {
   app!.replaceChildren();
   teardownScreen = mountReceiveLedgerScreen(app!, {
     text,
-    onBack: () => (loadTutorialState().completed ? showPubHub() : startTutorial()),
+    // A file can arrive mid-match: going back resumes the saved match rather than leaving it dormant behind the hub.
+    onBack: () => {
+      if (!loadTutorialState().completed) startTutorial();
+      else if (!tryResumeActiveMatch()) showPubHub();
+    },
     onOpenShelf: showLedgerShelf,
     onReload: () => window.location.reload(),
   });
