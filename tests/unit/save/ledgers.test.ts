@@ -167,9 +167,9 @@ describe("migrating the current release's save (plan §2.3)", () => {
     localStorage.clear();
     initLedgers();
     // applySaveFile is covered in saveFile.test.ts; here: the export reflects the migrated data.
-    expect(exported.pub.totalWins).toBe(3);
-    expect(exported.pub.booth.salt).toBe(481516);
-    expect(exported.activeMatch).not.toBeNull();
+    expect(JSON.parse(exported.keys["pub-state"]).totalWins).toBe(3);
+    expect(JSON.parse(exported.keys["pub-state"]).booth.salt).toBe(481516);
+    expect(exported.keys["active-match"]).toBeDefined();
   });
 
   describe("the 30-day window", () => {
@@ -341,8 +341,8 @@ describe("the shelf", () => {
     const mum = createLedger("Mum").id!;
     switchLedger(mum);
     const file = exportLedger(sara);
-    expect(file.pub.totalWins).toBe(3);
-    expect(exportLedger(mum).pub.totalWins).toBe(0);
+    expect(JSON.parse(file.keys["pub-state"]!).totalWins).toBe(3);
+    expect(JSON.parse(exportLedger(mum).keys["pub-state"] ?? "{}").totalWins ?? 0).toBe(0);
     expect(loadRegistry()!.activeId).toBe(mum);
   });
 

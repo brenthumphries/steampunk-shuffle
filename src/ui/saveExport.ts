@@ -3,17 +3,19 @@
 // API's file sharing where the browser has it, a plain download otherwise.
 
 import { Capacitor } from "@capacitor/core";
-import type { SaveFile } from "../save/saveFile.ts";
+import { LEDGER_FILE_EXTENSION, ledgerFileName, type LedgerFile } from "../save/saveFile.ts";
 
 type ShareNavigator = Navigator & {
   canShare?: (data: { files?: File[] }) => boolean;
   share?: (data: { files?: File[]; title?: string }) => Promise<void>;
 };
 
+/** `<name>-<date>.wheatstone` (the ledger's own name, so a file in a chat says whose it is). */
 export function saveFileName(now: Date, label?: string): string {
-  const tag = label ? `-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}` : "";
-  return `steampunk-shuffle-save${tag}-${now.toISOString().slice(0, 10)}.json`;
+  return ledgerFileName(label ?? "ledger", now);
 }
+
+export { LEDGER_FILE_EXTENSION };
 
 export interface NativeShareKit {
   /** Writes `data` to a temporary file and returns its file:// uri. */
@@ -40,11 +42,11 @@ async function capacitorShareKit(): Promise<NativeShareKit> {
  * delete something can rely on it; a cancel or failure never falls back to a
  * download, which a WKWebView cannot do.
  */
-export async function exportViaNativeShare(file: SaveFile, name: string, kit: NativeShareKit): Promise<{ status: string; completed: boolean }> {
+export async function exportViaNativeShare(file: LedgerFile, name: string, kit: NativeShareKit): Promise<{ status: string; completed: boolean }> {
   let uri: string | null = null;
   try {
     uri = await kit.writeFile(name, JSON.stringify(file, null, 2));
-    await kit.share({ title: "Steampunk Shuffle save", files: [uri] });
+    await kit.share({ title: "Wheatstone ledger", files: [uri] });
     return { status: "Shared.", completed: true };
   } catch {
     return { status: "The backup was not saved.", completed: false };
@@ -58,7 +60,7 @@ export async function exportViaNativeShare(file: SaveFile, name: string, kit: Na
  * (`completed`). `native` is a test seam; by default the Capacitor plugins are
  * used in the iOS build only, and the web build never loads them.
  */
-export async function exportSaveFile(file: SaveFile, name: string, native?: NativeShareKit): Promise<{ status: string; completed: boolean }> {
+export async function exportSaveFile(file: LedgerFile, name: string, native?: NativeShareKit): Promise<{ status: string; completed: boolean }> {
   if (native ?? Capacitor.isNativePlatform()) {
     try {
       return await exportViaNativeShare(file, name, native ?? (await capacitorShareKit()));
@@ -71,7 +73,7 @@ export async function exportSaveFile(file: SaveFile, name: string, native?: Nati
   const nav = navigator as ShareNavigator;
   if (nav.share && nav.canShare?.({ files: [shareFile] })) {
     try {
-      await nav.share({ files: [shareFile], title: "Steampunk Shuffle save" });
+      await nav.share({ files: [shareFile], title: "Wheatstone ledger" });
       return { status: "Shared.", completed: true };
     } catch {
       // Cancelled, or the share sheet failed mid-flight — fall through to a download.

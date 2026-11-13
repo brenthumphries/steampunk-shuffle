@@ -12,6 +12,8 @@ import { mountBracketScreen, type BracketOutcome } from "./ui/bracketScreen.ts";
 import { mountAcquisitionScreen } from "./ui/acquisitionScreen.ts";
 import { mountSaveScreen } from "./ui/saveScreen.ts";
 import { mountLedgerShelfScreen } from "./ui/ledgerShelfScreen.ts";
+import { mountReceiveLedgerScreen } from "./ui/receiveLedgerScreen.ts";
+import { initIncomingFiles, setIncomingLedgerHandler } from "./native/incomingFile.ts";
 import { loadRegistry, takeCellarNotice } from "./save/ledgers.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
@@ -234,7 +236,23 @@ function showSaveScreen(): void {
   teardownScreen?.();
   teardownScreen = undefined;
   app!.replaceChildren();
-  teardownScreen = mountSaveScreen(app!, { onBack: () => showPubHub(), onOpenLedgers: showLedgerShelf, onRestored: () => window.location.reload() });
+  teardownScreen = mountSaveScreen(app!, { onBack: () => showPubHub(), onOpenLedgers: showLedgerShelf, onRestored: () => window.location.reload(), onReceive: showReceiveLedger });
+}
+
+function showReceiveLedger(text: string): void {
+  teardownScreen?.();
+  teardownScreen = undefined;
+  app!.replaceChildren();
+  teardownScreen = mountReceiveLedgerScreen(app!, {
+    text,
+    // A file can arrive mid-match: going back resumes the saved match rather than leaving it dormant behind the hub.
+    onBack: () => {
+      if (!loadTutorialState().completed) startTutorial();
+      else if (!tryResumeActiveMatch()) showPubHub();
+    },
+    onOpenShelf: showLedgerShelf,
+    onReload: () => window.location.reload(),
+  });
 }
 
 function showLedgerShelf(): void {
@@ -644,6 +662,8 @@ function bootAfterDedication(): void {
     refreshSelectedDeck();
     if (!tryResumeActiveMatch()) showPubHub();
   }
+  // A file opened from outside the app waits here until there is a screen to show it on.
+  setIncomingLedgerHandler(showReceiveLedger);
 }
 
 function bootGame(): void {
@@ -663,6 +683,7 @@ function bootGame(): void {
 }
 
 captureInstallPrompt();
+initIncomingFiles();
 refreshSelectedDeck();
 // The launch intro film (src/ui/introScreen.ts) plays on every launch, ahead of
 // the dedication and everything else; it is skippable and never blocks the boot.
