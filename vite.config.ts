@@ -50,6 +50,8 @@ function pwa(base: string) {
       scope: base,
       display: "standalone",
       orientation: "portrait",
+      // A .wheatstone file opened from the OS lands in the game's receive screen (src/native/incomingFile.ts).
+      file_handlers: [{ action: base, accept: { "application/json": [".wheatstone"] } }],
       background_color: "#1a120b",
       theme_color: "#1a120b",
       icons: [

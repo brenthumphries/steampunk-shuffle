@@ -50,6 +50,8 @@ grep -rnE "\bfetch\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|navigator\.
 
 Result on 2026-10-13: no matches in app code, apart from `new Image()` and `new Audio()` calls whose URLs are the app's own files (`${import.meta.env.BASE_URL}art/...`, `audio/ambience.mp3`). Same sweep for `analytics|gtag|sentry|firebase|amplitude|mixpanel|segment|posthog|telemetry|googleapis|gstatic|cdnjs|unpkg|jsdelivr|@font-face`: nothing. The only `font-family` is the system stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`), so there are no web fonts. The only absolute URL in `src/` is the SVG namespace `http://www.w3.org/2000/svg`, which is an identifier and is never requested.
 
+Since release 1.1 the grep above does match `navigator.share` and `navigator.canShare` in `src/ui/saveExport.ts`: that is the player sharing a `.wheatstone` ledger file through the operating system's share sheet (the Web Share API on the web, Capacitor Share and Filesystem in the iOS app). The app makes no request; the file goes where the player sends it, and `tests/e2e/privacy.spec.ts` ("sending a ledger") proves the share path makes no request and adds no storage key. Receiving reads a picked or opened file (`src/native/incomingFile.ts`, the web File Handling API and iOS "Open in"); it adds no key beyond the documented ones.
+
 ### 2. Both builds: what the compiled output contains
 
 ```bash

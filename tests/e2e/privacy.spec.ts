@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { leaveTable, noonOn, openWithSave, playMatchToEnd, START } from "./helpers/game";
+import { dismissHubHint, leaveTable, noonOn, openWithSave, playMatchToEnd, START } from "./helpers/game";
 
 // The App Privacy answer is "Data Not Collected" (docs/app-privacy-answers.md,
 // public/privacy.html). This is the runtime half of the proof behind it, run
@@ -41,7 +41,7 @@ test("a session through every screen sends nothing off the device and stores onl
 
   // The hub's other screens.
   await page.getByRole("button", { name: "Save & data" }).click();
-  await expect(page.getByRole("button", { name: "Export save" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send this ledger" })).toBeVisible();
   await page.getByRole("button", { name: "Back to the taproom" }).click();
   await page.getByRole("button", { name: "House Rules" }).click();
   await page.getByRole("button", { name: /Back to the (bar|taproom)/ }).click();
@@ -103,4 +103,42 @@ test("the privacy page is served, readable, and loads nothing from anywhere else
   expect(links.sort()).toEqual(["https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement", "https://github.com/brenthumphries/steampunk-shuffle/issues"]);
   await page.getByRole("link", { name: "Back to the game" }).click();
   await expect(page.locator("#app")).toBeAttached();
+});
+
+test("sending and receiving a ledger touches no network and adds no storage key", async ({ page, context, baseURL }) => {
+  const origin = new URL(baseURL!).origin;
+  const requests: string[] = [];
+  context.on("request", (request) => requests.push(`${request.method()} ${request.url()}`));
+  await page.clock.setFixedTime(noonOn(2026, 11, 10));
+  await openWithSave(page, { tutorialDone: true });
+  await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+  for (let i = 0; i < 4; i += 1) await dismissHubHint(page);
+  await page.getByRole("button", { name: "Save & data" }).click();
+  const keysBefore = await page.evaluate(() => Object.keys(localStorage).sort());
+  requests.length = 0;
+
+  // With the Web Share API present (as on a phone) the file goes to the share sheet; the test records what was handed over.
+  await page.evaluate(() => {
+    const w = window as unknown as { __shared: string[] };
+    w.__shared = [];
+    Object.assign(navigator, {
+      canShare: () => true,
+      share: async (data: { files: File[] }) => void w.__shared.push(...data.files.map((f) => f.name)),
+    });
+  });
+  await page.getByRole("button", { name: "Send this ledger" }).click();
+  await expect(page.getByText("Shared.")).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __shared: string[] }).__shared)).toEqual(["sara-2026-11-10.wheatstone"]);
+
+  // Receiving it back reads the picked file and nothing more.
+  await page.evaluate(async () => {
+    const text = JSON.stringify({ hello: "not a ledger" });
+    window.wheatstoneReceiveLedger?.(text);
+  });
+  await expect(page.getByRole("heading", { name: "Receive a ledger" })).toBeVisible();
+
+  expect(requests.filter((entry) => !entry.split(" ")[1]!.startsWith(origin) && !entry.split(" ")[1]!.startsWith("data:") && !entry.split(" ")[1]!.startsWith("blob:")), "requests to any other origin").toEqual([]);
+  expect(requests.filter((entry) => !entry.startsWith("GET ")), "anything but GET").toEqual([]);
+  expect(await page.evaluate(() => Object.keys(localStorage).sort().filter((k) => !k.startsWith("ws:") && !k.startsWith("steampunk-shuffle:")))).toEqual([]);
+  expect((await page.evaluate(() => Object.keys(localStorage).sort())).length).toBe(keysBefore.length);
 });

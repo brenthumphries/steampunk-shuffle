@@ -6,8 +6,9 @@
 // this is the web equivalent for now. Same DOM-glue/full-rebuild pattern
 // as the other screens.
 
-import { applySaveFile, buildSaveFile } from "../save/saveFile.ts";
-import { cellarCopyAvailable, restoreCellarCopy } from "../save/ledgers.ts";
+import { LEDGER_FILE_EXTENSION } from "../save/saveFile.ts";
+import { cellarCopyAvailable, exportLedger, restoreCellarCopy } from "../save/ledgers.ts";
+import { activeLedgerId } from "../save/storageKey.ts";
 import { exportSaveFile, saveFileName } from "./saveExport.ts";
 
 export interface SaveScreenOptions {
@@ -15,6 +16,8 @@ export interface SaveScreenOptions {
   onOpenLedgers: () => void;
   /** After "Restore the cellar copy" has put the old save back: the app reloads into it. */
   onRestored: () => void;
+  /** A ledger file was picked: show what is in it (the receive screen). */
+  onReceive: (text: string) => void;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -31,23 +34,16 @@ export function mountSaveScreen(root: HTMLElement, options: SaveScreenOptions): 
   let confirmingRestore = false;
 
   async function handleExport(): Promise<void> {
-    const now = new Date();
-    status = (await exportSaveFile(buildSaveFile(now), saveFileName(now))).status;
+    const id = activeLedgerId();
+    if (!id) return;
+    const file = exportLedger(id);
+    status = (await exportSaveFile(file, saveFileName(new Date(), file.ledgerName))).status;
     render();
   }
 
   function handleImportFile(file: File): void {
     const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed: unknown = JSON.parse(String(reader.result));
-        const result = applySaveFile(parsed);
-        status = result.ok ? "Save imported — reopen the app to see everything." : (result.error ?? "That save file couldn't be read.");
-      } catch {
-        status = "That file isn't valid JSON.";
-      }
-      render();
-    };
+    reader.onload = () => options.onReceive(String(reader.result));
     reader.onerror = () => {
       status = "Couldn't read that file.";
       render();
@@ -69,19 +65,19 @@ export function mountSaveScreen(root: HTMLElement, options: SaveScreenOptions): 
     header.appendChild(el("h1", "deck-builder-title", "Save & data"));
     screen.appendChild(header);
 
-    screen.appendChild(el("p", "save-screen-copy", "Export your whole save as one file to keep safe or move to another device, or import one back."));
+    screen.appendChild(el("p", "save-screen-copy", "Send this ledger as a file to keep it safe or move it to another device, or receive one that was sent to you. Each file holds one ledger."));
 
     const actions = el("div", "save-screen-actions");
 
-    const exportBtn = el("button", "action-button", "Export save");
+    const exportBtn = el("button", "action-button", "Send this ledger");
     exportBtn.type = "button";
     exportBtn.addEventListener("click", () => void handleExport());
     actions.appendChild(exportBtn);
 
-    const importLabel = el("label", "action-button action-button--secondary", "Import save");
+    const importLabel = el("label", "action-button action-button--secondary", "Receive a ledger");
     const importInput = document.createElement("input");
     importInput.type = "file";
-    importInput.accept = "application/json";
+    importInput.accept = `${LEDGER_FILE_EXTENSION},.json,application/json`;
     importInput.className = "save-screen-file-input";
     importInput.addEventListener("change", () => {
       const file = importInput.files?.[0];

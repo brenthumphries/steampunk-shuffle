@@ -129,7 +129,7 @@ test.describe("the Ledger Shelf", () => {
     await sara.getByLabel("Type the ledger's name").fill("Sara");
     const download = page.waitForEvent("download");
     await confirm.click();
-    expect((await download).suggestedFilename()).toMatch(/^steampunk-shuffle-save-sara-.*\.json$/);
+    expect((await download).suggestedFilename()).toMatch(/^sara-.*\.wheatstone$/);
     await expect(page.locator(".ledger-book")).toHaveCount(1);
     await expect(page.getByRole("button", { name: "New ledger" })).toBeEnabled();
   });
@@ -191,7 +191,7 @@ test.describe("the move onto the shelf (plan 14 §2.3)", () => {
     expect(left).toEqual([]);
     expect((await readKey<{ totalWins: number }>(page, "pub-state"))!.totalWins).toBe(12);
     await page.getByRole("button", { name: "Save & data" }).click();
-    await expect(page.getByRole("button", { name: "Export save" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Send this ledger" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Restore the cellar copy" })).toHaveCount(0);
   });
 });

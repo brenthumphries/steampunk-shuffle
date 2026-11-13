@@ -8,7 +8,7 @@
 
 import { today } from "../events/eventClock.ts";
 import { titleForWins } from "../pub/progression.ts";
-import { buildSaveFile, type SaveFile } from "./saveFile.ts";
+import { buildLedgerFile, buildSaveFile, type IncomingLedger, type LedgerFile, type SaveFile } from "./saveFile.ts";
 import {
   BACKUP_KEY,
   GLOBAL_KEY_LIST,
@@ -371,9 +371,115 @@ export function deleteLedger(id: string, options: { backedUp: boolean }): Ledger
   return { ok: true, activeChanged: activeId !== registry.activeId };
 }
 
-/** One save file for any ledger (not only the active one), through the same builder "Export save" uses. */
-export function exportLedger(id: string): SaveFile {
-  return withLedgerScope(id, () => buildSaveFile(today()));
+/** One ledger file (.wheatstone) for any ledger, not only the active one. */
+export function exportLedger(id: string): LedgerFile {
+  const entry = requireRegistry().ledgers.find((l) => l.id === id);
+  const keys: Record<string, string> = {};
+  for (const name of PER_GAME_KEY_NAMES) {
+    try {
+      const raw = localStorage.getItem(ledgerKey(id, name));
+      if (raw !== null) keys[name] = raw;
+    } catch {
+      // Unreadable key: leave it out rather than fail the whole export.
+    }
+  }
+  return buildLedgerFile({ id, name: entry?.name ?? DEFAULT_LEDGER_NAME, summary: summaryFor(id), keys }, today());
+}
+
+/** What receiving a file would do (plan 14 §2.2): the screen asks the player only when there is a choice. */
+export type ReceivePlan = { kind: "new" } | { kind: "same-id"; existing: LedgerEntry } | { kind: "full" };
+
+export function planReceive(incoming: IncomingLedger): ReceivePlan {
+  const registry = requireRegistry();
+  const existing = incoming.ledgerId ? registry.ledgers.find((l) => l.id === incoming.ledgerId) : undefined;
+  if (existing) return { kind: "same-id", existing };
+  return registry.ledgers.length >= MAX_LEDGERS ? { kind: "full" } : { kind: "new" };
+}
+
+function uniqueName(name: string, ledgers: readonly LedgerEntry[], exceptId?: string): string {
+  const base = cleanName(name) || DEFAULT_LEDGER_NAME;
+  const taken = (candidate: string): boolean => ledgers.some((l) => l.id !== exceptId && l.name.toLowerCase() === candidate.toLowerCase());
+  if (!taken(base)) return base;
+  for (let n = 2; n < 100; n += 1) {
+    const suffix = ` (${n})`;
+    const candidate = `${base.slice(0, LEDGER_NAME_MAX - suffix.length)}${suffix}`;
+    if (!taken(candidate)) return candidate;
+  }
+  return base;
+}
+
+/** Writes `keys` as ledger `id`'s whole save; on a storage failure, puts back exactly what was there. */
+function writeLedgerKeys(id: string, keys: Record<string, string>): boolean {
+  const before: Record<string, string> = {};
+  for (const key of ledgerStorageKeys(id)) before[key] = localStorage.getItem(key) ?? "";
+  try {
+    for (const key of Object.keys(before)) localStorage.removeItem(key);
+    for (const [name, raw] of Object.entries(keys)) localStorage.setItem(ledgerKey(id, name), raw);
+    return true;
+  } catch {
+    for (const key of ledgerStorageKeys(id)) localStorage.removeItem(key);
+    for (const [key, raw] of Object.entries(before)) {
+      try {
+        localStorage.setItem(key, raw);
+      } catch {
+        // Nothing more can be done; the next launch rebuilds what it can.
+      }
+    }
+    return false;
+  }
+}
+
+export type ReceiveChoice = { mode: "add" } | { mode: "replace-same" } | { mode: "keep-both" } | { mode: "replace-other"; replaceId: string };
+export type ReceiveResult = { ok: true; id: string; name: string; activeReplaced: boolean } | { ok: false; error: string };
+
+const NO_ROOM = "There is no room left on this device to take that ledger.";
+
+/**
+ * Puts a received ledger on the shelf. "replace-same" and "replace-other" delete
+ * a ledger, so the screen has already had a backup of it shared to completion
+ * (src/ui/receiveLedgerScreen.ts); `activeReplaced` tells the caller to reload.
+ * "add" keeps the sender's id (so a later copy of the same ledger is recognised);
+ * "keep-both" gives it a new one.
+ */
+export function receiveLedger(incoming: IncomingLedger, choice: ReceiveChoice): ReceiveResult {
+  const registry = requireRegistry();
+  const plan = planReceive(incoming);
+
+  if (choice.mode === "replace-same") {
+    if (plan.kind !== "same-id") return { ok: false, error: "That ledger is not on the shelf any more." };
+    const id = plan.existing.id;
+    if (!writeLedgerKeys(id, incoming.keys)) return { ok: false, error: NO_ROOM };
+    const name = uniqueName(incoming.name, registry.ledgers, id);
+    saveRegistry({ ...registry, ledgers: registry.ledgers.map((l) => (l.id === id ? { ...l, name, summary: summaryFor(id) } : l)) });
+    return { ok: true, id, name, activeReplaced: id === registry.activeId };
+  }
+
+  let ledgers = [...registry.ledgers];
+  let activeId = registry.activeId;
+  let removed: { entry: LedgerEntry; keys: Record<string, string> } | null = null;
+  if (choice.mode === "replace-other") {
+    const gone = ledgers.find((l) => l.id === choice.replaceId);
+    if (!gone) return { ok: false, error: "That ledger is not on the shelf." };
+    const keys: Record<string, string> = {};
+    for (const key of ledgerStorageKeys(gone.id)) keys[key] = localStorage.getItem(key) ?? "";
+    removed = { entry: gone, keys };
+    ledgers = ledgers.filter((l) => l.id !== gone.id);
+  }
+  if (ledgers.length >= MAX_LEDGERS) return { ok: false, error: `The shelf holds ${MAX_LEDGERS} ledgers. Delete one to make room.` };
+
+  const keepId = choice.mode === "add" || choice.mode === "replace-other" ? incoming.ledgerId : null;
+  const id = keepId && !ledgers.some((l) => l.id === keepId) ? keepId : newLedgerId();
+  const name = uniqueName(incoming.name, ledgers);
+  if (removed) for (const key of Object.keys(removed.keys)) localStorage.removeItem(key);
+  if (!writeLedgerKeys(id, incoming.keys)) {
+    if (removed) for (const [key, raw] of Object.entries(removed.keys)) localStorage.setItem(key, raw);
+    return { ok: false, error: NO_ROOM };
+  }
+  const activeReplaced = removed?.entry.id === registry.activeId;
+  ledgers = [...ledgers, freshEntry(id, name)];
+  if (activeReplaced) activeId = [...ledgers].sort((a, b) => b.lastPlayedAt.localeCompare(a.lastPlayedAt))[0]!.id;
+  saveRegistry({ ...registry, ledgers, activeId });
+  return { ok: true, id, name, activeReplaced };
 }
 
 export function readBackup(): CellarBackup | null {
