@@ -61,6 +61,7 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Seen:** 2026-11-20 (x1), X-T
 - **Repro:** Migrate, then launch with the clock at day 30 (Dec 20): the original `steampunk-shuffle:*` keys are deleted and the Restore button disappears, but `ws:backup:v1` (about 50 KB here: the keys plus the same save again as a v1 export) is never removed. Day 29 still shows the button and keeps all five originals. Harmless on a phone; on the web it is a permanent copy of the old save inside localStorage. Say so if it should be cleared with the originals.
 - **Likely location:** `clearExpiredLegacyKeys` in `src/save/ledgers.ts` (guess)
+- **Status:** Won't fix. Brent decided on 2026-11-06 that the migration backup is kept for good (design.md §12.5, privacy.html).
 
 ### PT-37: Desk Sergeant has no illustration (note 18)
 - **Seen:** 2026-10-11 (x1)
