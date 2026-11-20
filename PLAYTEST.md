@@ -15,6 +15,13 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 
 ## P2 — Bug
 
+### PT-51: The "moved your ledger onto a shelf" beer mat is lost when the first launch resumes a match
+- **Seen:** 2026-11-20 (x1), X-T upgrade playtest, web and Native projects
+- **Repro:** 1. On the last released build (184aa2d) leave a match in progress (any tournament or pickup match). 2. Open the new build (Release 1.1) on the same storage. The match resumes straight away; no mat. 3. Close and reopen: `ws:ledgers.cellarMatShown` is already true, so the mat never appears. With no match in progress (hub on first launch) it appears exactly once, as designed. If she leaves the match in the same session the mat does show on the hub.
+- **Why:** `runLaunchTasks` (`src/main.ts`) calls `takeCellarNotice()`, which sets `cellarMatShown` on read and pushes the line to an in-memory `pendingNotices`; only `showPubHub` drains that list, and a resumed match never calls it. Killing the app mid-match (normal on iOS) drops the line for good. No data is at risk (migration, backup and the Restore button are fine), but this mat is the only explanation of the change plan 14 §2.3 promised.
+- **Suggested fix:** set `cellarMatShown` only when the hub actually shows the line (or re-queue while the flag is unset and the hub has not drained it).
+- **Likely location:** `src/save/ledgers.ts` `takeCellarNotice`, `src/main.ts` `runLaunchTasks` (guess)
+
 ### PT-36: Hiawatha and Hercule Poirot "didn't flip" anything (notes 21, 22)
 - **Seen:** 2026-10-11 (x1, two notes)
 - **Note:** "Opponent's 2 point card did not flip when I played Hiawatha. However, when opponent played Hiawatha, my card was flipped." / "Expected Hercule Poirot card to flip opponent's highest card. No cards were flipped" (tournament game)
@@ -44,6 +51,16 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Likely location:** `.pub-hub-header` / `.pub-hub-header-actions` (`src/style.css` near line 1606)
 
 ## P3 — Balance / polish / idea
+
+### PT-52: Receive screen for the same ledger does not say which copy is newer
+- **Seen:** 2026-11-20 (x1), X-T
+- **Note:** plan 14 §2.1 says the screen shows which copy is newer ("This copy: last played 3 Dec, 41 wins. The one you're receiving: 5 Dec, 44 wins."). The built screen (`webflow-24-receive-same-id.jpg`) shows both summaries and dates under "Which copy do you want?" with Replace (backup first) / Keep both / Cancel, but no newer/older wording and no extra confirm when both copies have been played since the send. Replace does take the backup first. Judgment call for Brent whether the plain dates are enough.
+- **Likely location:** `src/ui/receiveLedgerScreen.ts` (guess)
+
+### PT-53: `ws:backup:v1` stays in storage after the 30-day cellar window
+- **Seen:** 2026-11-20 (x1), X-T
+- **Repro:** Migrate, then launch with the clock at day 30 (Dec 20): the original `steampunk-shuffle:*` keys are deleted and the Restore button disappears, but `ws:backup:v1` (about 50 KB here: the keys plus the same save again as a v1 export) is never removed. Day 29 still shows the button and keeps all five originals. Harmless on a phone; on the web it is a permanent copy of the old save inside localStorage. Say so if it should be cleared with the originals.
+- **Likely location:** `clearExpiredLegacyKeys` in `src/save/ledgers.ts` (guess)
 
 ### PT-37: Desk Sergeant has no illustration (note 18)
 - **Seen:** 2026-10-11 (x1)
