@@ -11,6 +11,7 @@ const URL_JAN_11 = `${START}?now=2027-01-11&preview=1&testpack=1`;
 
 async function seedReturningPlayer(page: Page): Promise<void> {
   await page.goto(START);
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate(() => {
     const L = (n: string): string => {
       let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
