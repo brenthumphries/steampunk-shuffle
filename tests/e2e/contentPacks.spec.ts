@@ -10,6 +10,7 @@ const BANNER = "Test pack banner: new this month.";
 
 async function seedReturningPlayer(page: import("@playwright/test").Page): Promise<void> {
   await page.goto(START);
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate(() => {
     const L = (n: string): string => {
       let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");

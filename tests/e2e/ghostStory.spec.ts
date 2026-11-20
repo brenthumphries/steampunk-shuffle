@@ -11,6 +11,7 @@ const URL_DEC_25 = `${START}?now=2026-12-25&preview=1`;
 
 async function seedReturningPlayer(page: Page, totalWins = 3): Promise<void> {
   await page.goto(START);
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate((wins) => {
     const L = (n: string): string => {
       let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");

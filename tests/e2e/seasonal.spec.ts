@@ -9,6 +9,7 @@ const START = "/steampunk-shuffle/";
 
 async function openHubOn(page: Page, date: string, totalWins: number): Promise<void> {
   await page.goto(START);
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate((wins) => {
     const L = (n: string): string => {
       let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");

@@ -6,7 +6,10 @@ import { expect, test } from "@playwright/test";
 const START = "/steampunk-shuffle/";
 
 async function seed(page: import("@playwright/test").Page, hostMet: boolean): Promise<void> {
+  // Pin the clock before Pixie's arrival so the first, unseeded boot can't meet her on the real date.
+  await page.clock.setFixedTime(new Date(2026, 10, 1, 12));
   await page.goto(START);
+  await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
   await page.evaluate((met) => {
     const L = (n: string): string => {
       let r = JSON.parse(localStorage.getItem("ws:ledgers") ?? "null");
