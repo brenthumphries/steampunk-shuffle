@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { noonOn, openWithSave, readKey, SEASONS_SEEN, START, writeKey } from "./helpers/game";
+import { starterDeck } from "../../src/cards/data/decks/starterDeck";
+import { finishedMatch, leaveTable, noonOn, openWithSave, readKey, SEASONS_SEEN, START, writeKey } from "./helpers/game";
 
 // Release 1.1, design.md §12.5: several ledgers on one device, and the
 // migration that protects the one Sara already has (plan 14 §2.3).
@@ -178,6 +179,45 @@ test.describe("the move onto the shelf (plan 14 §2.3)", () => {
     await page.getByRole("button", { name: "Yes, restore it" }).click();
     await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
     await expect(page.locator(".pub-hub-subtitle")).toHaveText("Seasoned");
+  });
+
+  test("PT-51: a first launch that resumes a match keeps the beer mat for the hub, once", async ({ page }) => {
+    await page.clock.setFixedTime(noonOn(2026, 12, 5));
+    const matchState = finishedMatch("mr-griffin", "A");
+    const activeMatch = { matchState, aiSeed: 1, humanDeck: starterDeck, humanDeckName: "The Village Constable", context: { kind: "pickup", opponentId: "mr-griffin", stakedCardId: null } };
+    await openWithSave(page, null);
+    await page.waitForFunction(() => (document.querySelector("#app")?.childElementCount ?? 0) > 0);
+    await page.evaluate(
+      ({ pub, match }) => {
+        localStorage.clear();
+        localStorage.setItem("steampunk-shuffle:tutorial-state", JSON.stringify({ completed: true, matchesPlayed: 0, shownHints: [] }));
+        localStorage.setItem("steampunk-shuffle:player", JSON.stringify({ name: "Sara", dedicationSeen: true }));
+        localStorage.setItem("steampunk-shuffle:pub-state", JSON.stringify(pub));
+        localStorage.setItem("steampunk-shuffle:active-match", JSON.stringify(match));
+      },
+      { pub: PUB, match: activeMatch },
+    );
+    await page.goto(START);
+
+    // The first launch resumes the match: no hub, no mat, and the mat is still pending.
+    await expect(page.getByText("You took the table")).toBeVisible();
+    await expect(page.locator(".beer-mat")).toHaveCount(0);
+    const registry = await page.evaluate(() => JSON.parse(localStorage.getItem("ws:ledgers")!));
+    expect(registry.cellarMatShown).toBeFalsy();
+
+    // Killed and reopened before leaving the match: still pending.
+    await page.reload();
+    await expect(page.getByText("You took the table")).toBeVisible();
+    await expect(page.locator(".beer-mat")).toHaveCount(0);
+
+    // The first time she reaches the hub, the mat shows.
+    await leaveTable(page);
+    await expect(page.locator(".beer-mat-text")).toContainText("Sir Charles has moved your ledger onto a shelf");
+
+    // Exactly once.
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "The Wheatstone Bridge" })).toBeVisible();
+    await expect(page.locator(".beer-mat")).toHaveCount(0);
   });
 
   test("30 days on, the old keys are deleted and the cellar copy button is gone", async ({ page }) => {

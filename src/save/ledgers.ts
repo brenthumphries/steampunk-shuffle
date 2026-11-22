@@ -502,12 +502,18 @@ export function cellarCopyAvailable(): boolean {
   return readBackup() !== null;
 }
 
-/** The beer mat for the first launch after the migration, once. */
-export function takeCellarNotice(): string | null {
+/** The beer mat for the first launch after the migration, until the hub has shown it. Does not mark it shown. */
+export function peekCellarNotice(): string | null {
   const registry = loadRegistry();
   if (!registry?.migratedAt || registry.cellarMatShown) return null;
-  saveRegistry({ ...registry, cellarMatShown: true });
   return CELLAR_LINE;
+}
+
+/** Call when the hub actually displays the beer mat, so a launch that resumes a match leaves it pending. */
+export function markCellarNoticeShown(): void {
+  const registry = loadRegistry();
+  if (!registry?.migratedAt || registry.cellarMatShown) return;
+  saveRegistry({ ...registry, cellarMatShown: true });
 }
 
 /**

@@ -14,7 +14,7 @@ import { mountSaveScreen } from "./ui/saveScreen.ts";
 import { mountLedgerShelfScreen } from "./ui/ledgerShelfScreen.ts";
 import { mountReceiveLedgerScreen } from "./ui/receiveLedgerScreen.ts";
 import { initIncomingFiles, setIncomingLedgerHandler } from "./native/incomingFile.ts";
-import { loadRegistry, takeCellarNotice } from "./save/ledgers.ts";
+import { loadRegistry, markCellarNoticeShown, peekCellarNotice } from "./save/ledgers.ts";
 import { mountHouseRulesScreen } from "./ui/houseRulesScreen.ts";
 import { mountTutorialRewardScreen } from "./ui/tutorialRewardScreen.ts";
 import { mountDedicationScreen } from "./ui/dedicationScreen.ts";
@@ -115,6 +115,8 @@ const BAR_BET_INSURANCE_LINE = "The Devil's chains slipped: your stake is back i
 
 /** Beer-mat lines waiting for the next hub visit (arrival gifts handed over at launch). Consumed by `showPubHub`. */
 let pendingNotices: string[] = [];
+/** The cellar beer mat is queued but not yet shown on a hub (a resumed match skips the hub). */
+let cellarNoticeQueued = false;
 
 /** Applies `change` to the Ledger inside `pub` (src/save/ledger.ts); the caller saves. */
 function withLedger(pub: PubState, change: (ledger: Ledger) => Ledger): PubState {
@@ -148,8 +150,11 @@ function runLaunchTasks(): void {
     const rarity = ACQUIRABLE_CARDS_BY_ID.get(id)?.rarity;
     if (rarity) pub = withLedger(pub, (l) => recordCardAcquired(l, id, rarity, localDateKey(date)));
   }
-  const cellarNotice = takeCellarNotice();
-  if (cellarNotice) pendingNotices.push(cellarNotice);
+  const cellarNotice = peekCellarNotice();
+  if (cellarNotice) {
+    pendingNotices.push(cellarNotice);
+    cellarNoticeQueued = true;
+  }
   pendingNotices.push(...granted.map(describeGift));
   void requestPersistentStorageOnce();
   // Always saved: a save that predates the ledger was migrated in memory by loadPubState, and its
@@ -162,6 +167,10 @@ function showPubHub(pendingReveals?: PendingReveal[]): void {
   // The "new this month" banner, once per event per year, after any gift lines.
   const notices = pendingNotices;
   pendingNotices = [];
+  if (cellarNoticeQueued) {
+    markCellarNoticeShown();
+    cellarNoticeQueued = false;
+  }
   const date = today();
   const pubNow = loadPubState();
   const banner = dueBanner(pubNow, date);

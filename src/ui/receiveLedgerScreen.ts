@@ -39,13 +39,28 @@ function dateText(iso: string | null): string {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function summaryBook(heading: string, name: string, summary: LedgerFileSummary, dateLabel: string, date: string | null, cls: string): HTMLElement {
+/** Which of two copies was played or sent later, by plain date; null when the dates match or either is unreadable. */
+export function newerCopy(existingIso: string | null, incomingIso: string | null): "existing" | "incoming" | null {
+  const day = (iso: string | null): number | null => {
+    const t = iso ? new Date(iso).getTime() : NaN;
+    if (Number.isNaN(t)) return null;
+    const d = new Date(t);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  };
+  const a = day(existingIso);
+  const b = day(incomingIso);
+  if (a === null || b === null || a === b) return null;
+  return a > b ? "existing" : "incoming";
+}
+
+function summaryBook(heading: string, name: string, summary: LedgerFileSummary, dateLabel: string, date: string | null, cls: string, newer = false): HTMLElement {
   const book = el("article", `ledger-book ${cls}`);
   book.appendChild(el("p", "ledger-book-played", heading));
   book.appendChild(el("h2", "ledger-book-name", name));
   book.appendChild(el("p", "ledger-book-title", summary.title));
   book.appendChild(el("p", "ledger-book-stats", `${summary.wins} ${summary.wins === 1 ? "win" : "wins"} · ${summary.collectionCount} cards collected`));
   book.appendChild(el("p", "ledger-book-played", `${dateLabel} ${dateText(date)}`));
+  if (newer) book.appendChild(el("p", "ledger-book-newer", "Newer"));
   return book;
 }
 
@@ -107,8 +122,9 @@ export function mountReceiveLedgerScreen(root: HTMLElement, options: ReceiveLedg
       if (plan.kind === "same-id") {
         const existing = listLedgers().ledgers.find((l) => l.id === plan.existing.id) ?? plan.existing;
         screen.appendChild(el("p", "save-screen-copy", `A ledger from this file is already on the shelf. Which copy do you want?`));
-        screen.appendChild(summaryBook("On the shelf", existing.name, existing.summary, "Last played", existing.lastPlayedAt, "ledger-book--existing"));
-        screen.appendChild(fileBook);
+        const newer = newerCopy(existing.lastPlayedAt, incoming.exportedAt);
+        screen.appendChild(summaryBook("On the shelf", existing.name, existing.summary, "Last played", existing.lastPlayedAt, "ledger-book--existing", newer === "existing"));
+        screen.appendChild(summaryBook("In the file", incoming.name, incoming.summary, "Sent", incoming.exportedAt, "ledger-book--incoming", newer === "incoming"));
         const row = el("div", "ledger-book-actions");
         row.appendChild(button("Replace (backup first)", "action-button", () => void replaceAfterBackup(incoming, existing, { mode: "replace-same" })));
         row.appendChild(

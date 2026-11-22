@@ -21,6 +21,7 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Why:** `runLaunchTasks` (`src/main.ts`) calls `takeCellarNotice()`, which sets `cellarMatShown` on read and pushes the line to an in-memory `pendingNotices`; only `showPubHub` drains that list, and a resumed match never calls it. Killing the app mid-match (normal on iOS) drops the line for good. No data is at risk (migration, backup and the Restore button are fine), but this mat is the only explanation of the change plan 14 §2.3 promised.
 - **Suggested fix:** set `cellarMatShown` only when the hub actually shows the line (or re-queue while the flag is unset and the hub has not drained it).
 - **Likely location:** `src/save/ledgers.ts` `takeCellarNotice`, `src/main.ts` `runLaunchTasks` (guess)
+- **Status:** Fixed 2026-11-22 (Brent's call: exactly once, first hub visit). `takeCellarNotice` is now `peekCellarNotice` (reads, marks nothing) plus `markCellarNoticeShown`, which `showPubHub` calls only when it drains the queued line, so a launch that resumes a match leaves the mat pending across relaunches. Unit test in `tests/unit/save/ledgers.test.ts`; e2e in `tests/e2e/ledgers.spec.ts` (legacy save with an active match).
 
 ### PT-36: Hiawatha and Hercule Poirot "didn't flip" anything (notes 21, 22)
 - **Seen:** 2026-10-11 (x1, two notes)
@@ -56,6 +57,7 @@ newcomer will hit it and be confused or misled, **P3** = polish.
 - **Seen:** 2026-11-20 (x1), X-T
 - **Note:** plan 14 §2.1 says the screen shows which copy is newer ("This copy: last played 3 Dec, 41 wins. The one you're receiving: 5 Dec, 44 wins."). The built screen (`webflow-24-receive-same-id.jpg`) shows both summaries and dates under "Which copy do you want?" with Replace (backup first) / Keep both / Cancel, but no newer/older wording and no extra confirm when both copies have been played since the send. Replace does take the backup first. Judgment call for Brent whether the plain dates are enough.
 - **Likely location:** `src/ui/receiveLedgerScreen.ts` (guess)
+- **Status:** Fixed 2026-11-22 (Brent: a plain date comparison is enough). The same-ledger screen marks the copy with the later date "Newer" (shelf `lastPlayedAt` against the file's `exportedAt`, by calendar day); same day or an unreadable date marks neither. No extra confirm added. `newerCopy` in `src/ui/receiveLedgerScreen.ts`, covered in `tests/unit/ui/receiveLedgerScreen.test.ts`.
 
 ### PT-53: `ws:backup:v1` stays in storage after the 30-day cellar window
 - **Seen:** 2026-11-20 (x1), X-T

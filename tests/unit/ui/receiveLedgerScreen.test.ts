@@ -6,7 +6,8 @@ vi.mock("../../../src/ui/saveExport.ts", () => ({
 }));
 
 import { exportSaveFile } from "../../../src/ui/saveExport.ts";
-import { mountReceiveLedgerScreen } from "../../../src/ui/receiveLedgerScreen.ts";
+import { ledgerChecksum } from "../../../src/save/saveFile.ts";
+import { mountReceiveLedgerScreen, newerCopy } from "../../../src/ui/receiveLedgerScreen.ts";
 import { exportLedger, initLedgers, listLedgers } from "../../../src/save/ledgers.ts";
 import { loadPubState, savePubState } from "../../../src/pub/pubState.ts";
 
@@ -67,5 +68,32 @@ describe("the receive screen", () => {
     click(root, "Keep both");
     expect(listLedgers().ledgers).toHaveLength(2);
     expect(exportSaveFile).not.toHaveBeenCalled();
+  });
+});
+
+describe("which copy is newer (PT-52)", () => {
+  it("compares plain dates and says nothing when they match or are unreadable", () => {
+    expect(newerCopy("2026-12-03T10:00:00.000Z", "2026-12-05T10:00:00.000Z")).toBe("incoming");
+    expect(newerCopy("2026-12-05T12:00:00.000Z", "2026-12-03T12:00:00.000Z")).toBe("existing");
+    expect(newerCopy("2026-12-05T12:00:00.000Z", "2026-12-05T12:00:00.000Z")).toBeNull();
+    expect(newerCopy(null, "2026-12-05T12:00:00.000Z")).toBeNull();
+    expect(newerCopy("junk", "2026-12-05T12:00:00.000Z")).toBeNull();
+  });
+
+  it("the same-id screen marks exactly the later copy as Newer", () => {
+    const id = initLedgers().activeId;
+    const file = exportLedger(id);
+    const sent = (exportedAt: string) => {
+      const { sha256: _drop, ...rest } = { ...file, exportedAt };
+      return { ...rest, sha256: ledgerChecksum(rest) };
+    };
+    const older = sent("2020-01-01T12:00:00.000Z");
+    let root = mount(JSON.stringify(older));
+    expect(root.querySelectorAll(".ledger-book-newer")).toHaveLength(1);
+    expect(root.querySelector(".ledger-book--existing .ledger-book-newer")).not.toBeNull();
+    const newer = sent("2999-01-01T12:00:00.000Z");
+    root = mount(JSON.stringify(newer));
+    expect(root.querySelectorAll(".ledger-book-newer")).toHaveLength(1);
+    expect(root.querySelector(".ledger-book--incoming .ledger-book-newer")).not.toBeNull();
   });
 });
