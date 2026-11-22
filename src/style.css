@@ -3148,6 +3148,14 @@ body {
   opacity: 0.85;
 }
 
+.ledger-book-newer {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
 .ledger-book-warning {
   margin: 0.4rem 0;
   font-size: 0.85rem;

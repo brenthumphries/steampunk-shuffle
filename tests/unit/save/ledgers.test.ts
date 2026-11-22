@@ -19,7 +19,8 @@ import {
   renameLedger,
   restoreCellarCopy,
   switchLedger,
-  takeCellarNotice,
+  peekCellarNotice,
+  markCellarNoticeShown,
 } from "../../../src/save/ledgers.ts";
 import { BACKUP_KEY, GLOBAL_KEYS, REGISTRY_KEY, storageKey } from "../../../src/save/storageKey.ts";
 import { defaultPubState, loadPubState, savePubState } from "../../../src/pub/pubState.ts";
@@ -71,7 +72,7 @@ describe("a fresh install", () => {
     expect(registry.ledgers[0]!.name).toBe("Sara");
     expect(registry.migratedAt).toBeUndefined();
     expect(localStorage.getItem(BACKUP_KEY)).toBeNull();
-    expect(takeCellarNotice()).toBeNull();
+    expect(peekCellarNotice()).toBeNull();
     expect(cellarCopyAvailable()).toBe(false);
   });
 });
@@ -152,12 +153,16 @@ describe("migrating the current release's save (plan §2.3)", () => {
     expect(initLedgers().activeId).toBe(id);
   });
 
-  it("shows the beer mat once", () => {
+  it("shows the beer mat until the hub marks it shown, then never again", () => {
     initLedgers();
-    expect(takeCellarNotice()).toBe(CELLAR_LINE);
-    expect(takeCellarNotice()).toBeNull();
+    expect(peekCellarNotice()).toBe(CELLAR_LINE);
+    expect(peekCellarNotice()).toBe(CELLAR_LINE);
     initLedgers();
-    expect(takeCellarNotice()).toBeNull();
+    expect(peekCellarNotice()).toBe(CELLAR_LINE);
+    markCellarNoticeShown();
+    expect(peekCellarNotice()).toBeNull();
+    initLedgers();
+    expect(peekCellarNotice()).toBeNull();
   });
 
   it("then exporting and importing into a fresh install gives identical data", () => {
