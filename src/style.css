@@ -1319,6 +1319,31 @@ body {
   display: flex;
 }
 
+.deck-sleeve-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.deck-sleeve-label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.deck-sleeve-preview {
+  width: 1.9rem;
+  height: 2.6rem;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(242, 230, 208, 0.35);
+}
+
+.reveal-card--sleeve {
+  padding: 0;
+  overflow: hidden;
+}
+
 .deck-filters {
   display: flex;
   align-items: center;

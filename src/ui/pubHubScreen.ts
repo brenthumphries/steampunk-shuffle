@@ -19,6 +19,7 @@ import { omenChipText, todaysOmen } from "../booth/omens.ts";
 import { liveAdvent, openableCount } from "../events/advent.ts";
 import { buildCabinetPicture } from "./adventCabinet.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { SLEEVES_BY_ID, setSleeveImage, type Sleeve } from "../cosmetics/sleeves.ts";
 import { buildCardZoomEl } from "./cardZoom.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
@@ -27,6 +28,8 @@ import { playSound } from "../audio/soundEngine.ts";
 export interface PendingReveal {
   title: string;
   cardId: string;
+  /** Set for a card-sleeve unwrap (design.md §17.5): the sleeve's back is shown instead of a card face (`cardId` is ignored). */
+  sleeveId?: string;
 }
 
 export interface PubHubOptions {
@@ -335,7 +338,30 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     return overlay;
   }
 
+  function buildSleeveRevealOverlay(pending: PendingReveal, sleeve: Sleeve): HTMLElement {
+    const overlay = el("div", "overlay overlay--reveal overlay--reveal-sleeve");
+    const box = el("div", "overlay-box reveal-box");
+    box.appendChild(el("h2", "overlay-title", pending.title));
+    const cardEl = el("div", "card card--zoom reveal-card reveal-card--sleeve");
+    cardEl.dataset.sleeve = sleeve.id;
+    const img = document.createElement("img");
+    img.className = "card-back-img";
+    img.alt = "";
+    setSleeveImage(img, sleeve);
+    cardEl.appendChild(img);
+    box.appendChild(cardEl);
+    box.appendChild(el("p", "overlay-score", `${sleeve.name}: pick it for any deck in the deck builder.`));
+    const btn = el("button", "action-button", "Collect");
+    btn.type = "button";
+    btn.addEventListener("click", dismissReveal);
+    box.appendChild(btn);
+    overlay.appendChild(box);
+    return overlay;
+  }
+
   function buildRevealOverlay(pending: PendingReveal): HTMLElement {
+    const sleeve = pending.sleeveId ? SLEEVES_BY_ID.get(pending.sleeveId) : undefined;
+    if (sleeve) return buildSleeveRevealOverlay(pending, sleeve);
     const card = CARDS_BY_ID.get(pending.cardId);
     const face = card?.faces[0];
     const overlay = el("div", "overlay overlay--reveal");

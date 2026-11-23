@@ -17,6 +17,7 @@ import { loadDeckSlotsState, saveDeckSlotsState, type DeckSlotsState } from "../
 import { today } from "../events/eventClock.ts";
 import { titleForWins } from "../pub/progression.ts";
 import { loadPubState, localDateKey, savePubState, type PubState } from "../pub/pubState.ts";
+import { parseOwnedSleeves } from "../cosmetics/sleeves.ts";
 import { parseLedger } from "./ledger.ts";
 import { sha256Hex } from "./sha256.ts";
 import { PER_GAME_KEY_NAMES } from "./storageKey.ts";
@@ -29,7 +30,9 @@ import { defaultPlayerState, loadPlayerState, savePlayerState, type PlayerState 
 /**
  * 1: the original blob. 2: `pub` gained `ledger`, `hostsMet`, `giftsClaimed`
  * and `bannersSeen` (content plan §4.1/§4.3). Those live inside `pub`, which
- * is one localStorage key, because the privacy test whitelists keys.
+ * is one localStorage key, because the privacy test whitelists keys. Card sleeves
+ * (`pub.ownedSleeves`, `pub.eventWins`, each deck slot's `sleeveId`) ride inside
+ * existing stores the same way and default when absent, so the version stays 2.
  */
 export const SAVE_FILE_VERSION = 2;
 
@@ -81,6 +84,8 @@ export function migrateSaveFile(file: SaveFile, migrationDate: string = localDat
       giftsClaimed: pub.giftsClaimed ?? {},
       bannersSeen: pub.bannersSeen ?? {},
       ledger: parseLedger(pub.ledger, migrationDate),
+      ownedSleeves: parseOwnedSleeves(pub.ownedSleeves),
+      eventWins: pub.eventWins ?? {},
     },
   };
 }

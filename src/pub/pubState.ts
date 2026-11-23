@@ -9,6 +9,7 @@
 import { today } from "../events/eventClock.ts";
 import { defaultAdventState, parseAdventState, type AdventState } from "../events/adventState.ts";
 import { defaultBoothState, parseBoothState, type BoothState } from "../booth/boothState.ts";
+import { defaultOwnedSleeves, parseOwnedSleeves } from "../cosmetics/sleeves.ts";
 import { defaultLedger, parseLedger, type Ledger } from "../save/ledger.ts";
 import type { OpponentTier } from "./opponents.ts";
 import { storageKey } from "../save/storageKey.ts";
@@ -85,6 +86,13 @@ export interface PubState {
   booth: BoothState;
   /** The Advent Cabinet: doors opened per event per year, and tokens held (src/events/advent.ts). */
   advent: AdventState;
+  /** Card sleeves the player owns (src/cosmetics/sleeves.ts). Always includes "sleeve-the-bridge". Added after save version 2, inside this key. */
+  ownedSleeves: string[];
+  /**
+   * Wins counted toward an event's sleeve (design.md §17.5): event id -> calendar year -> wins dated inside
+   * that event's window. Recorded at the time of the win; wins from before this existed carry no date and don't count.
+   */
+  eventWins: Record<string, Record<string, number>>;
 }
 
 export function defaultPubState(): PubState {
@@ -104,6 +112,8 @@ export function defaultPubState(): PubState {
     ledger: defaultLedger(),
     booth: defaultBoothState(),
     advent: defaultAdventState(),
+    ownedSleeves: defaultOwnedSleeves(),
+    eventWins: {},
   };
 }
 
@@ -287,6 +297,18 @@ function parseBannersSeen(value: unknown): Record<string, number[]> {
   return out;
 }
 
+function parseEventWins(value: unknown): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return out;
+  for (const [eventId, years] of Object.entries(value)) {
+    if (typeof years !== "object" || years === null || Array.isArray(years)) continue;
+    const byYear: Record<string, number> = {};
+    for (const [year, n] of Object.entries(years)) if (typeof n === "number" && Number.isFinite(n) && n >= 0) byYear[year] = Math.floor(n);
+    out[eventId] = byYear;
+  }
+  return out;
+}
+
 function isOpponentRecord(value: unknown): value is OpponentRecord {
   const r = value as OpponentRecord;
   return !!r && typeof r === "object" && typeof r.wins === "number" && typeof r.losses === "number" && typeof r.rewardClaimed === "boolean";
@@ -327,6 +349,9 @@ export function loadPubState(): PubState {
       ledger: parseLedger(parsed.ledger, localDateKey(today())),
       booth: parseBoothState(parsed.booth),
       advent: parseAdventState(parsed.advent),
+      // A save from before sleeves owns just the default one and has no dated wins.
+      ownedSleeves: parseOwnedSleeves(parsed.ownedSleeves),
+      eventWins: parseEventWins(parsed.eventWins),
     };
   } catch {
     return defaultPubState();

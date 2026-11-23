@@ -263,12 +263,16 @@ const ALL_TOURNAMENTS: Tournament[] = [
 
 /**
  * Every tournament's field is drawn after the edition filter, so a public
- * build never seats a `giftOnly` opponent (src/edition.ts).
+ * build never seats a `giftOnly` opponent (src/edition.ts). A `giftOnly` boss
+ * simply drops out of `fixedSeats`' result and the bracket draws another seat
+ * from the rest of the pool (the random Seasoned); a `giftOnly` prize card is
+ * swapped at payout (`resolveFixedPrize`, src/tournaments/prizes.ts, design.md §17.5).
  */
-export const TOURNAMENTS: Tournament[] = ALL_TOURNAMENTS.map((t) => ({
-  ...t,
-  eligiblePool: (opponents: readonly Opponent[]) => t.eligiblePool(opponents.filter(visibleInEdition)),
-}));
+export function withEditionFilter(t: Tournament): Tournament {
+  return { ...t, eligiblePool: (opponents: readonly Opponent[]) => t.eligiblePool(opponents.filter(visibleInEdition)) };
+}
+
+export const TOURNAMENTS: Tournament[] = ALL_TOURNAMENTS.map(withEditionFilter);
 
 export const TOURNAMENTS_BY_ID = new Map<TournamentId, Tournament>(TOURNAMENTS.map((t) => [t.id, t]));
 

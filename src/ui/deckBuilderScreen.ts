@@ -35,6 +35,7 @@ import {
 } from "../decks/deckSlots.ts";
 import { loadDeckSlotsState, saveDeckSlotsState, type DeckSlotsState } from "../decks/deckStorage.ts";
 import { loadPubState } from "../pub/pubState.ts";
+import { ownedSleeves, resolveSleeve, setSleeveImage } from "../cosmetics/sleeves.ts";
 import { titleForWins } from "../pub/progression.ts";
 
 export interface DeckBuilderOptions {
@@ -265,6 +266,35 @@ export function mountDeckBuilderScreen(root: HTMLElement, options: DeckBuilderOp
       legend.appendChild(item);
     }
     screen.appendChild(legend);
+
+    // Card sleeves (design.md §17.5): each deck slot plays with one owned sleeve.
+    const pubForSleeves = loadPubState();
+    const sleeveRow = el("div", "deck-sleeve-row");
+    const sleeveLabel = el("label", "deck-sleeve-label", "Sleeve");
+    sleeveLabel.htmlFor = "deck-sleeve-select";
+    sleeveRow.appendChild(sleeveLabel);
+    const sleeveSelect = el("select", "deck-filter-select deck-sleeve-select");
+    sleeveSelect.id = "deck-sleeve-select";
+    const choices = ownedSleeves(pubForSleeves.ownedSleeves);
+    for (const sleeve of choices) {
+      const opt = el("option", undefined, sleeve.name);
+      opt.value = sleeve.id;
+      sleeveSelect.appendChild(opt);
+    }
+    const current = resolveSleeve(slot.sleeveId, pubForSleeves.ownedSleeves);
+    sleeveSelect.value = current.id;
+    const sleevePreview = document.createElement("img");
+    sleevePreview.className = "deck-sleeve-preview";
+    sleevePreview.alt = "";
+    setSleeveImage(sleevePreview, current);
+    sleeveSelect.addEventListener("change", () => {
+      const picked = resolveSleeve(sleeveSelect.value, pubForSleeves.ownedSleeves);
+      updateSlot(slotIndex, (s) => ({ ...s, sleeveId: picked.id }));
+      setSleeveImage(sleevePreview, picked);
+    });
+    sleeveRow.appendChild(sleeveSelect);
+    sleeveRow.appendChild(sleevePreview);
+    screen.appendChild(sleeveRow);
 
     const pub = loadPubState();
     const grid = el("div", "deck-grid");
