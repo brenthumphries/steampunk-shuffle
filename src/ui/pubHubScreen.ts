@@ -19,6 +19,9 @@ import { omenChipText, todaysOmen } from "../booth/omens.ts";
 import { liveAdvent, openableCount } from "../events/advent.ts";
 import { buildCabinetPicture } from "./adventCabinet.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { buildHubMoon } from "./hubMoon.ts";
+import { moonPhase } from "../sky/moon.ts";
+import { moonMatText } from "../sky/moonLines.ts";
 import { buildCardZoomEl } from "./cardZoom.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
@@ -158,6 +161,7 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
   let installDismissed = false;
   let installOfferReported = false;
   let noticeQueue: string[] = [...(options.notices ?? [])];
+  let moonMat: string | null = null;
   let torn = false;
 
   function dismissNotice(): void {
@@ -474,10 +478,20 @@ export function mountPubHubScreen(root: HTMLElement, options: PubHubOptions): ()
     screen.appendChild(secondaryRow);
 
     if (eventWeather(today()) === "snow") screen.prepend(buildSnow());
+    // The real moon in the window (design.md §5.17); a tap slides over a beer mat naming the phase.
+    screen.prepend(buildHubMoon(moonPhase(today()).name, () => {
+      moonMat = moonMatText(today());
+      render();
+    }));
     root.appendChild(screen);
     if (revealQueue[0]) root.appendChild(buildRevealOverlay(revealQueue[0]));
     else if (stakePrompt) root.appendChild(buildStakeOverlay(stakePrompt));
-    if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));
+    if (moonMat !== null) {
+      root.appendChild(buildBeerMat(moonMat, () => {
+        moonMat = null;
+        render();
+      }));
+    } else if (noticeQueue[0] !== undefined) root.appendChild(buildBeerMat(noticeQueue[0], dismissNotice));
     else if (options.hint && !hintDismissed) root.appendChild(buildBeerMat(options.hint.text, dismissHint));
     else if (options.installOffer && !installDismissed) {
       if (!installOfferReported) {

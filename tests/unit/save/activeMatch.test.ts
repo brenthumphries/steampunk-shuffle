@@ -58,6 +58,25 @@ describe("saveActiveMatch / loadActiveMatch round trip", () => {
   });
 });
 
+describe("a match saved before Full Moon +N existed", () => {
+  it("still loads and resumes, reading the missing flag as no full moon", () => {
+    const save = makeSave();
+    const { fullMoon: _dropped, ...legacyState } = save.matchState;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...save, matchState: legacyState }));
+    const loaded = loadActiveMatch();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.matchState.fullMoon).toBeUndefined();
+    expect(Boolean(loaded?.matchState.fullMoon)).toBe(false);
+  });
+
+  it("keeps a full-moon flag across a save and load", () => {
+    const save = makeSave();
+    save.matchState = createMatch(starterDeck, starterDeck, { seed: 1, startDate: new Date(2026, 10, 24, 12) });
+    saveActiveMatch(save);
+    expect(loadActiveMatch()?.matchState.fullMoon).toBe(true);
+  });
+});
+
 describe("clearActiveMatch", () => {
   it("removes a saved match", () => {
     saveActiveMatch(makeSave());

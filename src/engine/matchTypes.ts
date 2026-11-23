@@ -83,6 +83,12 @@ export interface MatchState {
   status: "in-progress" | "complete";
   result?: MatchResult;
   rngSeed: number;
+  /**
+   * Whether Full Moon +N (design.md §5.17) is live: fixed at creation from the
+   * match's start date and never changed. Absent in a match saved before the
+   * keyword existed, which reads as false.
+   */
+  fullMoon?: boolean;
 }
 
 /** A board card together with which player's board it's on — needed once a target pool spans both sides. */
