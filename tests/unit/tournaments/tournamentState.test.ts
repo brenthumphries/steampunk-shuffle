@@ -16,6 +16,7 @@ import {
   type TournamentState,
 } from "../../../src/tournaments/tournamentState.ts";
 import type { TournamentBracket } from "../../../src/tournaments/bracket.ts";
+import { TOURNAMENTS } from "../../../src/tournaments/tournaments.ts";
 
 beforeEach(() => {
   localStorage.clear();
@@ -105,5 +106,14 @@ describe("loadTournamentState / saveTournamentState", () => {
     const state = startBracket(checkInvitationalTrigger(defaultTournamentState(), new Date(2026, 9, 30)), bracket);
     saveTournamentState(state);
     expect(loadTournamentState()).toEqual(state);
+  });
+
+  it("keeps a saved bracket for every tournament, seasonal ones included (an unknown id used to reset the save)", () => {
+    for (const t of TOURNAMENTS) {
+      localStorage.clear();
+      const state = startBracket(checkInvitationalTrigger(defaultTournamentState(), new Date(2026, 10, 25)), { ...bracket, tournamentId: t.id });
+      saveTournamentState(state);
+      expect(loadTournamentState(), t.id).toEqual(state);
+    }
   });
 });

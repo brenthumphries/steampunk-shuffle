@@ -55,8 +55,19 @@ export function clearActiveBracket(state: TournamentState): TournamentState {
   return { ...state, active: null };
 }
 
+// A Record keyed by TournamentId, so adding a tournament without listing it here is a type error.
+const KNOWN_TOURNAMENT_IDS: Record<TournamentId, true> = {
+  "tuesday-knockout": true,
+  "peelers-cup": true,
+  "reichenbach-open": true,
+  "birthday-invitational": true,
+  "all-hallows-wake": true,
+  "almanack-stakes": true,
+  "fireside-circle": true,
+};
+
 export function isValidTournamentId(value: unknown): value is TournamentId {
-  return value === "tuesday-knockout" || value === "peelers-cup" || value === "reichenbach-open" || value === "birthday-invitational" || value === "all-hallows-wake";
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(KNOWN_TOURNAMENT_IDS, value);
 }
 
 function isValidBracket(value: unknown): value is TournamentBracket {
