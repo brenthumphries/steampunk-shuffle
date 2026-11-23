@@ -217,6 +217,8 @@ function handPotential(hand: CardInstance[], state: MatchState): number {
  * - Moonrise is worth its full bonus in a round that's already final, and
  *   half of it otherwise: held back for the final round, but not counted on,
  *   since a 2-0 sweep can end the match before it's ever live.
+ * - Full Moon is worth its full bonus when the match's flag is set, and
+ *   nothing otherwise (the flag is fixed at match start, §5.17).
  */
 function cardPotentialValue(card: Card, state: MatchState): number {
   const face = card.faces[0];
@@ -226,6 +228,7 @@ function cardPotentialValue(card: Card, state: MatchState): number {
   if (face.keywords?.friend) value += 0.5;
   if (face.keywords?.undying) value += 0.5;
   if (face.keywords?.moonrise !== undefined) value += face.keywords.moonrise * (isFinalRound(state) ? 1 : 0.5);
+  if (face.keywords?.fullMoon !== undefined && state.fullMoon) value += face.keywords.fullMoon;
   if (face.abilities?.some((a) => a.trigger === "onPlay")) value += 0.5;
   if (face.abilities?.some((a) => a.effects.some((e) => e.effect === "scry"))) value += SCRY_NUDGE;
   return value;

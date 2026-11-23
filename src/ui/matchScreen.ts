@@ -31,6 +31,7 @@ import { buildScryChooser, nextScryRequest } from "../match/scryPreview.ts";
 import { draftToChoice, moveWithin, startDraft, toggleZone, type ScryDraft } from "../match/scryDraft.ts";
 import { buildScryOverlay } from "./scryOverlay.ts";
 import { buildBeerMat } from "./beerMat.ts";
+import { today } from "../events/eventClock.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
 import type { HintId } from "../tutorial/tutorialState.ts";
@@ -208,7 +209,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     options.initialState?.state ??
     (options.tutorial
       ? createMatch(options.humanDeck, options.aiDeck, { seed: 1, shuffle: false, leader: AI }) // design.md §13.1: "the house always leads" in the tutorial
-      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now(), initialLocation: options.houseLocation, extraOpeningCards: { [HUMAN]: options.humanExtraOpeningCards ?? 0 } }));
+      : createMatch(options.humanDeck, options.aiDeck, { seed: Date.now(), startDate: today(), initialLocation: options.houseLocation, extraOpeningCards: { [HUMAN]: options.humanExtraOpeningCards ?? 0 } }));
   let aiSeed = options.initialState?.aiSeed ?? (Date.now() ^ 0x9e3779b9);
   // A resumed match may have finished (killed while the match-over overlay
   // was up, before "Leave the table" was tapped) — scheduleNext() no-ops

@@ -52,6 +52,8 @@ export interface Keywords {
   undying?: boolean;
   /** Moonrise +N (design.md §5.15): worth N more in the final round. Absent if the face has no Moonrise keyword. */
   moonrise?: number;
+  /** Full Moon +N (design.md §5.17): worth N more in a match begun on a night around a real full moon. */
+  fullMoon?: number;
 }
 
 export const TRIGGERS = [

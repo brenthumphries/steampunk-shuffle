@@ -204,3 +204,68 @@ describe("keyword schema validation", () => {
     expect(validateCard(withKeywords({ moonrise: 1.5 })).errors.join()).toMatch(/moonrise/);
   });
 });
+
+describe("Full Moon +N (design.md §5.17)", () => {
+  const FULL_MOON_NIGHT = new Date(2026, 10, 24, 12);
+  const ORDINARY_NIGHT = new Date(2026, 10, 10, 12);
+
+  function boardWith(card: ReturnType<typeof makeCard>, startDate: Date | undefined, extra: ReturnType<typeof makeCard>[] = []) {
+    const deckA = [card, ...extra];
+    let state = createMatch(orderedDeck(deckA), orderedDeck([vanilla("B filler")]), { seed: 1, shuffle: false, leader: "A", startDate });
+    state = playTurn(state, "A", instanceId("A", card));
+    return state;
+  }
+
+  const moonCard = () => makeCard({ name: "Moon Water", points: 2, keywords: { fullMoon: 2 } });
+
+  it("records the flag at creation from the start date", () => {
+    expect(boardWith(moonCard(), FULL_MOON_NIGHT).fullMoon).toBe(true);
+    expect(boardWith(moonCard(), ORDINARY_NIGHT).fullMoon).toBe(false);
+    expect(boardWith(moonCard(), undefined).fullMoon).toBe(false);
+  });
+
+  it("adds +N to a face-up card on a full-moon match, and nothing otherwise", () => {
+    const on = boardWith(moonCard(), FULL_MOON_NIGHT);
+    expect(effectivePoints(on, "A", on.players.A.board[0]!)).toBe(4);
+    const off = boardWith(moonCard(), ORDINARY_NIGHT);
+    expect(effectivePoints(off, "A", off.players.A.board[0]!)).toBe(2);
+  });
+
+  it("gives a face-down card nothing", () => {
+    const state = boardWith(moonCard(), FULL_MOON_NIGHT);
+    const down: MatchState = {
+      ...state,
+      players: { ...state.players, A: { ...state.players.A, board: state.players.A.board.map((b) => ({ ...b, faceUp: false })) } },
+    };
+    expect(effectivePoints(down, "A", down.players.A.board[0]!)).toBe(0);
+  });
+
+  it("stacks with Friend and Moonrise", () => {
+    const stacker = makeCard({ name: "Stacker", points: 1, keywords: { fullMoon: 2, friend: 1, moonrise: 3 } });
+    const pal = makeCard({ name: "Pal", points: 1, keywords: { friend: 1 } });
+    let state = createMatch(orderedDeck([stacker, pal]), orderedDeck([vanilla("B filler")]), { seed: 1, shuffle: false, leader: "A", startDate: FULL_MOON_NIGHT });
+    state = playTurn(state, "A", instanceId("A", stacker));
+    state = playTurn(state, "B", state.players.B.hand[0]!.instanceId);
+    state = playTurn(state, "A", instanceId("A", pal));
+    const bc = state.players.A.board.find((b) => b.card.id === stacker.id)!;
+    expect(effectivePoints(state, "A", bc)).toBe(1 + 2 + 1); // printed + Full Moon + Friend; round 1, so no Moonrise yet
+    const finalRound: MatchState = { ...state, round: 3 };
+    expect(effectivePoints(finalRound, "A", finalRound.players.A.board.find((b) => b.card.id === stacker.id)!)).toBe(1 + 2 + 1 + 3);
+  });
+
+  it("is fixed at match start: a match that spans midnight keeps the flag", () => {
+    const state = boardWith(moonCard(), FULL_MOON_NIGHT);
+    // Nothing in the engine reads a clock, so the flag cannot move; the next round and a replay of the same turns agree.
+    const later = playTurn(state, "B", state.players.B.hand[0]!.instanceId);
+    expect(later.fullMoon).toBe(true);
+    const replay = boardWith(moonCard(), FULL_MOON_NIGHT);
+    expect(replay.fullMoon).toBe(later.fullMoon);
+  });
+
+  it("validates as a positive integer", () => {
+    const ok = makeCard({ name: "Ok", keywords: { fullMoon: 1 } });
+    expect(validateCard(ok).valid).toBe(true);
+    const bad = makeCard({ name: "Bad", keywords: { fullMoon: 0 } });
+    expect(validateCard(bad).errors.join()).toContain("fullMoon");
+  });
+});

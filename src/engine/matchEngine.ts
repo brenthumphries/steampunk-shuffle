@@ -9,6 +9,7 @@
 
 import type { Card, CardFace, Deck, Effect, Side, Target, TargetFilter } from "../cards/cardTypes.ts";
 import { shuffle, stepRandom } from "./rng.ts";
+import { isFullMoonNight } from "../sky/moon.ts";
 import {
   otherPlayer,
   PLAYER_IDS,
@@ -58,6 +59,8 @@ export interface CreateMatchOptions {
   initialLocation?: Card;
   /** Extra opening-hand cards per player (the Booth's openingHandPlusOne omen gives the human one more). Default none. */
   extraOpeningCards?: Partial<Record<PlayerId, number>>;
+  /** The local day the match starts on; decides Full Moon +N (§5.17) for the whole match. Omit for a match with no moon (tests, simulations). */
+  startDate?: Date;
 }
 
 function expandDeck(deck: Deck, ownerTag: string): CardInstance[] {
@@ -106,6 +109,7 @@ export function createMatch(deckA: Deck, deckB: Deck, opts: CreateMatchOptions =
     roundHistory: [],
     status: "in-progress",
     rngSeed: seed,
+    fullMoon: opts.startDate ? isFullMoonNight(opts.startDate) : false,
   };
 
   if (opts.initialLocation) {
@@ -398,12 +402,13 @@ export function isFinalRound(state: MatchState): boolean {
   return state.roundHistory.some((r) => r.round < state.round && r.winner !== "tie");
 }
 
-/** Printed + one-shot bonuses + Friend + Moonrise, but *not* continuous buffs (see effectivePoints). */
+/** Printed + one-shot bonuses + Friend + Moonrise + Full Moon, but *not* continuous buffs (see effectivePoints). */
 function basePoints(state: MatchState, owner: PlayerId, bc: BoardCard): number {
   if (!bc.faceUp) return 0;
   const face = activeFace(bc);
   let pts = face.points + bc.bonusPoints;
   if (face.keywords?.moonrise !== undefined && isFinalRound(state)) pts += face.keywords.moonrise;
+  if (face.keywords?.fullMoon !== undefined && state.fullMoon) pts += face.keywords.fullMoon;
   if (face.keywords?.friend !== undefined) {
     const hasOtherFriend = state.players[owner].board.some(
       (other) => other.instanceId !== bc.instanceId && other.faceUp && activeFace(other).keywords?.friend !== undefined,

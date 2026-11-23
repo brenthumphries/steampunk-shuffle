@@ -13,6 +13,10 @@ describe("keywordChips", () => {
     expect(keywordChips(face({}))).toEqual([]);
   });
 
+  it("shows Full Moon with its amount", () => {
+    expect(keywordChips(face({ keywords: { fullMoon: 2 } }))).toEqual(["Full Moon +2"]);
+  });
+
   it("shows Undying and Moonrise, the latter with its amount", () => {
     expect(keywordChips(face({ keywords: { undying: true } }))).toEqual(["Undying"]);
     expect(keywordChips(face({ keywords: { elusive: true, moonrise: 4 } }))).toEqual(["Elusive", "Moonrise +4"]);

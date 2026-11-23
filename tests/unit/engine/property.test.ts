@@ -32,6 +32,8 @@ function buildCardPool(): Card[] {
     makeCard({ name: "Undying One", points: 2, keywords: { undying: true } }),
     makeCard({ name: "Undying Persist", points: 2, keywords: { undying: true, persist: true } }),
     makeCard({ name: "Moonrise Four", points: 2, keywords: { moonrise: 4 } }),
+    makeCard({ name: "Full Moon Three", points: 2, keywords: { fullMoon: 3 } }),
+    makeCard({ name: "Full Moon Friend", points: 1, keywords: { fullMoon: 2, friend: 1, moonrise: 1 } }),
     makeCard({ name: "Moonrise Elusive", points: 1, keywords: { elusive: true, moonrise: 2 } }),
     makeCard({
       name: "Flipper",
@@ -105,7 +107,8 @@ describe("Property: random games (plan step 1.2 exit check)", () => {
     const GAMES = 10_000;
     for (let game = 0; game < GAMES; game++) {
       let seed = 1_000_003 * (game + 1);
-      let state = createMatch(deckSpec, deckSpec, { seed, shuffle: true });
+      // Half the games begin on a full-moon night (24 Nov 2026), so Full Moon +N is live in them.
+      let state = createMatch(deckSpec, deckSpec, { seed, shuffle: true, startDate: game % 2 === 0 ? new Date(2026, 10, 24, 12) : undefined });
       checkInvariants(state);
 
       let guard = 0;
