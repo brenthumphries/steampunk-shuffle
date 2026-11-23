@@ -7,6 +7,7 @@ import type { Deck } from "../cards/cardTypes.ts";
 import { today } from "../events/eventClock.ts";
 import { ACQUIRABLE_CARDS_BY_ID } from "../pub/acquirableCards.ts";
 import { resolveHouseLocation } from "../tournaments/houseLocation.ts";
+import { resolveFixedPrize } from "../tournaments/prizes.ts";
 import type { PrizeCard, Tournament, TournamentId } from "../tournaments/tournaments.ts";
 import { isTournamentListed, TOURNAMENTS } from "../tournaments/tournaments.ts";
 
@@ -16,6 +17,8 @@ export interface TournamentsScreenOptions {
   checks: number;
   deckName: string;
   deck: Deck;
+  /** The player's collection, so a public build can name the fallback prize (design.md §17.5). */
+  ownedCardIds?: readonly string[];
   /** The tournament with a bracket already in progress, if any (design.md §10: "can be left mid-way and resumed"). */
   activeBracketTournamentId: TournamentId | null;
   onEnter: (tournament: Tournament) => void;
@@ -30,9 +33,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node;
 }
 
-function prizeCardLabel(prizeCard: PrizeCard): string {
-  if (prizeCard.kind === "randomRarity") return `a random ${prizeCard.rarity}`;
-  return ACQUIRABLE_CARDS_BY_ID.get(prizeCard.cardId)?.faces[0].name ?? "a prize card";
+function prizeLabel(tournament: Tournament, ownedCardIds: readonly string[]): string {
+  const prizeCard: PrizeCard = tournament.prizeCard;
+  if (prizeCard.kind === "randomRarity") return `${tournament.prizeChecks} Checks + a random ${prizeCard.rarity}`;
+  const fixed = resolveFixedPrize(tournament, ownedCardIds);
+  const checks = fixed.checks ?? tournament.prizeChecks;
+  if (fixed.cardId === null) return `${checks} Checks`;
+  return `${checks} Checks + ${ACQUIRABLE_CARDS_BY_ID.get(fixed.cardId)?.faces[0].name ?? "a prize card"}`;
 }
 
 /** Mounts the tournament list into `root` and returns a teardown function. */
@@ -47,7 +54,7 @@ export function mountTournamentsScreen(root: HTMLElement, options: TournamentsSc
     row.appendChild(el("h3", "tournament-name", tournament.name));
     row.appendChild(el("p", "tournament-meta", `${tournament.whenLabel} · ${tournament.fieldLabel}`));
     row.appendChild(el("p", "tournament-meta", `Entry: ${tournament.entryRuleLabel}${tournament.entryChecks > 0 ? ` · ${tournament.entryChecks} Checks` : " · free"}`));
-    row.appendChild(el("p", "tournament-prize", `Win: ${tournament.prizeChecks} Checks + ${prizeCardLabel(tournament.prizeCard)} · Consolation: ${tournament.consolationChecks} Checks`));
+    row.appendChild(el("p", "tournament-prize", `Win: ${prizeLabel(tournament, options.ownedCardIds ?? [])} · Consolation: ${tournament.consolationChecks} Checks`));
     const houseLocation = resolveHouseLocation(tournament);
     if (houseLocation) {
       row.appendChild(el("p", "tournament-meta", `House rule: ${houseLocation.faces[0].name} is in play at the start of every match.`));

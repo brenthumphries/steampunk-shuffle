@@ -35,6 +35,7 @@ import { today } from "../events/eventClock.ts";
 import { buildMuteToggle } from "./muteToggle.ts";
 import { playSound } from "../audio/soundEngine.ts";
 import type { HintId } from "../tutorial/tutorialState.ts";
+import { DEFAULT_SLEEVE, setSleeveImage, type Sleeve } from "../cosmetics/sleeves.ts";
 import { applyFaceFrame } from "./almanackFrame.ts";
 import { buildMatchHud } from "./matchHud.ts";
 import {
@@ -80,6 +81,8 @@ export interface HintOptions {
 
 export interface MatchScreenOptions {
   humanDeck: Deck;
+  /** The player's card sleeve (design.md §17.5): the back of their face-down cards. The opponent always uses the default. Absent means the default. */
+  humanSleeve?: Sleeve;
   aiDeck: Deck;
   aiName: string;
   aiPortraitArtId?: string;
@@ -516,6 +519,8 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
   interface CardBuildOpts {
     size: "mini" | "zoom";
     faceUp: boolean;
+    /** The back shown when `faceUp` is false; the default sleeve if omitted. */
+    sleeve?: Sleeve;
     highlight?: boolean;
     selected?: boolean;
     disabled?: boolean;
@@ -567,7 +572,9 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
     if (!opts.faceUp) {
       wrap.classList.add("card--facedown");
       const img = document.createElement("img");
-      img.src = artUrl("card-back");
+      const sleeve = opts.sleeve ?? DEFAULT_SLEEVE;
+      wrap.dataset.sleeve = sleeve.id;
+      setSleeveImage(img, sleeve);
       img.alt = "";
       img.className = "card-back-img";
       wrap.appendChild(img);
@@ -1021,6 +1028,7 @@ export function mountMatchScreen(root: HTMLElement, options: MatchScreenOptions)
         buildCardEl(bc.card, bc.faceIndex, {
           size: "mini",
           faceUp: bc.faceUp,
+          sleeve: playerId === HUMAN ? options.humanSleeve : undefined,
           instanceId: bc.instanceId,
           pointsOverride: bc.faceUp ? effectivePoints(pointsState, playerId, bc) : undefined,
           highlight: isCandidate || autoTargetIds.has(bc.instanceId),

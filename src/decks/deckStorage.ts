@@ -39,7 +39,9 @@ export function loadDeckSlotsState(): DeckSlotsState {
       return defaultState();
     }
     const selectedIndex = typeof parsed.selectedIndex === "number" && parsed.selectedIndex >= 0 && parsed.selectedIndex < DECK_SLOT_COUNT ? parsed.selectedIndex : null;
-    return { slots: parsed.slots, selectedIndex };
+    // A slot saved before sleeves has no sleeveId (the default); anything that isn't a string is dropped.
+    const slots = parsed.slots.map((s) => (s.sleeveId !== undefined && typeof s.sleeveId !== "string" ? { name: s.name, entries: s.entries } : s));
+    return { slots, selectedIndex };
   } catch {
     return defaultState();
   }

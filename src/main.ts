@@ -36,6 +36,8 @@ import { mountBoothScreen } from "./ui/boothScreen.ts";
 import { PIXIE_HOST_ID } from "./booth/booth.ts";
 import { mountTarotAlbumScreen } from "./ui/tarotAlbumScreen.ts";
 import { hostMet } from "./events/arrivals.ts";
+import { awardSleeves, recordEventWin, SLEEVE_AWARD_LINE } from "./cosmetics/sleeveAward.ts";
+import { resolveSleeve, type Sleeve } from "./cosmetics/sleeves.ts";
 import { clearActiveMatch, loadActiveMatch, saveActiveMatch, type MatchContext } from "./save/activeMatch.ts";
 import type { Tournament } from "./tournaments/tournaments.ts";
 import { TOURNAMENTS_BY_ID } from "./tournaments/tournaments.ts";
@@ -115,6 +117,8 @@ const BAR_BET_INSURANCE_LINE = "The Devil's chains slipped: your stake is back i
 
 /** Beer-mat lines waiting for the next hub visit (arrival gifts handed over at launch). Consumed by `showPubHub`. */
 let pendingNotices: string[] = [];
+/** Sleeve unwraps waiting for the next hub visit (a sleeve earned in a tournament match; a pickup win hands its own to `showPubHub`). */
+let pendingSleeveReveals: PendingReveal[] = [];
 /** The cellar beer mat is queued but not yet shown on a hub (a resumed match skips the hub). */
 let cellarNoticeQueued = false;
 
@@ -162,8 +166,32 @@ function runLaunchTasks(): void {
   savePubState(pub);
 }
 
+/**
+ * After a win (pickup or tournament; not Sir Charles, like `totalWins`): counts it toward any live
+ * event's sleeve, and hands over a sleeve the player has just earned with the unwrap and beer mat
+ * (design.md §17.5). Returns the updated PubState; the caller saves.
+ */
+function applySleeveProgress(pub: PubState): PubState {
+  const counted = recordEventWin(pub, today());
+  const { next, awarded } = awardSleeves(counted);
+  for (const sleeve of awarded) {
+    pendingSleeveReveals.push({ title: "From the cellar", cardId: "", sleeveId: sleeve.id });
+    pendingNotices.push(SLEEVE_AWARD_LINE);
+  }
+  return next;
+}
+
+/** The card sleeve of the deck slot in play (the selected one), falling back to the default when it isn't owned. */
+function selectedSleeve(): Sleeve {
+  const stored = loadDeckSlotsState();
+  const slot = stored.selectedIndex === null ? undefined : stored.slots[stored.selectedIndex];
+  return resolveSleeve(slot?.sleeveId, loadPubState().ownedSleeves);
+}
+
 function showPubHub(pendingReveals?: PendingReveal[]): void {
   syncTournamentTrigger();
+  pendingReveals = [...(pendingReveals ?? []), ...pendingSleeveReveals];
+  pendingSleeveReveals = [];
   // The "new this month" banner, once per event per year, after any gift lines.
   const notices = pendingNotices;
   pendingNotices = [];
@@ -336,6 +364,7 @@ function mountMatch(params: {
   teardownScreen = mountMatchScreen(app!, {
     humanExtraOpeningCards,
     humanDeck: params.humanDeck,
+    humanSleeve: selectedSleeve(),
     aiDeck: params.aiDeck,
     aiName: params.aiName,
     aiPortraitArtId: params.aiPortraitArtId,
@@ -398,6 +427,7 @@ function finishPickupMatch(opponent: Opponent, stakedCardId: string | null, resu
   pub = withLedger(next, (l) => ledgerAfterPickup(l, { opponentId: opponent.id, outcome, checksEarned, reward: cardRef(rewardCardId), dateKey: localDateKey(today()) }));
   // The Booth's win omens (firstWinBonus, checksPerWin). Sir Charles pays no Checks, so no omen bonus either.
   if (outcome === "win" && opponent.tier !== "house") pub = applyWinOmen(pub, today()).next;
+  if (outcome === "win" && opponent.tier !== "house") pub = applySleeveProgress(pub);
 
   const reveals: PendingReveal[] = [];
   if (rewardCardId) reveals.push({ title: `First win against ${opponent.name}!`, cardId: rewardCardId });
@@ -506,6 +536,7 @@ function showTournaments(): void {
     checks: pub.checks,
     deckName: selectedDeckName,
     deck: selectedDeck,
+    ownedCardIds: pub.collection,
     activeBracketTournamentId: tournamentState.active?.tournamentId ?? null,
     onEnter: (tournament) => enterTournament(tournament),
     onResume: (tournament) => showBracket(tournament, tournamentState.active!),
@@ -546,6 +577,7 @@ function finishTournamentMatch(tournament: Tournament, bracket: TournamentBracke
   pub = recordTournamentMatchResult(pub, opponent.id, opponent.tier, opponent.rewardCardId, outcome);
   pub = withLedger(pub, (l) => ledgerAfterTournamentMatch(l, opponent.id, outcome));
   if (outcome === "win") pub = applyWinOmen(pub, today()).next;
+  if (outcome === "win" && opponent.tier !== "house") pub = applySleeveProgress(pub);
 
   const nextBracket = advanceBracket(bracket, outcome);
   let tournamentState = loadTournamentState();

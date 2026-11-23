@@ -19,6 +19,8 @@ export interface DeckSlotEntry {
 export interface DeckSlot {
   name: string;
   entries: DeckSlotEntry[];
+  /** The card sleeve this deck plays with (src/cosmetics/sleeves.ts); absent means the default. */
+  sleeveId?: string;
 }
 
 export function createEmptySlot(index: number): DeckSlot {
