@@ -188,6 +188,9 @@ function validateKeywords(keywords: unknown, path: string, errors: string[]): vo
   if (k.moonrise !== undefined && (!isInteger(k.moonrise) || k.moonrise < 1)) {
     errors.push(`${path}.moonrise: expected a positive integer`);
   }
+  if (k.fullMoon !== undefined && (!isInteger(k.fullMoon) || k.fullMoon < 1)) {
+    errors.push(`${path}.fullMoon: expected a positive integer`);
+  }
 }
 
 function pointRangeFor(type: CardType, rarity: Rarity): readonly [number, number] {

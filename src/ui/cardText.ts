@@ -22,6 +22,7 @@ export function keywordChips(face: CardFace): string[] {
   if (kw?.friend !== undefined) chips.push(`Friend ${signed(kw.friend)}`);
   if (kw?.undying) chips.push("Undying");
   if (kw?.moonrise !== undefined) chips.push(`Moonrise +${kw.moonrise}`);
+  if (kw?.fullMoon !== undefined) chips.push(`Full Moon +${kw.fullMoon}`);
   // Scry is an effect, not a static keyword, but reads as one on the card (design.md §5.16).
   for (const ability of face.abilities ?? []) {
     for (const effect of ability.effects) if (effect.effect === "scry") chips.push(`Scry ${effect.amount}`);
@@ -36,6 +37,7 @@ const KEYWORD_LABEL: Record<keyof NonNullable<CardFace["keywords"]>, string> = {
   friend: "Friend",
   undying: "Undying",
   moonrise: "Moonrise",
+  fullMoon: "Full Moon",
 };
 
 function describeSide(side: Target["side"]): string {
